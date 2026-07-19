@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'welcome_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -33,22 +34,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     },
   ];
 
+  void _goToWelcomeScreen() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const WelcomeScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       body: SafeArea(
         child: Column(
           children: [
-
             // Skip Button
             Padding(
               padding: const EdgeInsets.only(right: 20, top: 10),
               child: Align(
                 alignment: Alignment.topRight,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: _goToWelcomeScreen,
                   child: const Text(
                     "Skip",
                     style: TextStyle(
@@ -76,7 +84,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-
                         Icon(
                           pages[index]["icon"],
                           size: 120,
@@ -112,7 +119,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            // Indicator
+            // Page Indicator
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
@@ -147,7 +154,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         curve: Curves.easeInOut,
                       );
                     } else {
-                      // TODO: Navigate to Login Screen
+                      _goToWelcomeScreen();
                     }
                   },
                   child: Text(
