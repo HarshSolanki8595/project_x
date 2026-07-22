@@ -34,6 +34,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     },
   ];
 
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   void _goToWelcomeScreen() {
     Navigator.pushReplacement(
       context,
@@ -47,6 +53,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+
       body: SafeArea(
         child: Column(
           children: [
@@ -68,7 +75,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            // Pages
+            // Onboarding Pages
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -85,7 +92,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          pages[index]["icon"],
+                          pages[index]["icon"] as IconData,
                           size: 120,
                           color: Colors.deepPurple,
                         ),
@@ -93,7 +100,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         const SizedBox(height: 40),
 
                         Text(
-                          pages[index]["title"],
+                          pages[index]["title"] as String,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 30,
@@ -104,7 +111,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         const SizedBox(height: 20),
 
                         Text(
-                          pages[index]["description"],
+                          pages[index]["description"] as String,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 18,
@@ -141,6 +148,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
             const SizedBox(height: 30),
 
+            // Next / Get Started Button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: SizedBox(
