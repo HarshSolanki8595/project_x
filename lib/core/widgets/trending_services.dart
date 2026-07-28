@@ -60,7 +60,7 @@ class TrendingServices extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             scrollDirection: Axis.horizontal,
             itemCount: services.length,
-            separatorBuilder: (_, __) =>
+            separatorBuilder: (_, _) =>
                 const SizedBox(width: 16),
             itemBuilder: (context, index) {
               final item = services[index];
@@ -77,7 +77,7 @@ class TrendingServices extends StatelessWidget {
                     borderRadius: BorderRadius.circular(22),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(.06),
+                        color: Colors.black.withValues(alpha: .06),
                         blurRadius: 14,
                         offset: const Offset(0, 6),
                       ),
@@ -94,7 +94,7 @@ class TrendingServices extends StatelessWidget {
                           radius: 26,
                           backgroundColor:
                               (item["color"] as Color)
-                                  .withOpacity(.15),
+                                  .withValues(alpha: .15),
                           child: Icon(
                             item["icon"],
                             color: item["color"],

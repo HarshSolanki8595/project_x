@@ -9,6 +9,7 @@ import '../core/widgets/home_app_bar.dart';
 import '../core/widgets/home_search_bar.dart';
 import '../core/widgets/trending_services.dart';
 import '../core/widgets/bottom_nav_bar.dart';
+import 'search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -73,9 +74,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 24),
 
                     HomeSearchBar(
-                      onTap: () {},
-                      onVoiceTap: () {},
-                    ),
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SearchScreen(),
+      ),
+    );
+  },
+  onVoiceTap: () {},
+),
 
                     const SizedBox(height: 24),
 

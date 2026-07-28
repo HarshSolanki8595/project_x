@@ -32,7 +32,7 @@ class AskProjectXCard extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.deepPurple.withOpacity(.25),
+                color: Colors.deepPurple.withValues(alpha: .25),
                 blurRadius: 18,
                 offset: const Offset(0, 8),
               ),
@@ -106,7 +106,7 @@ class AskProjectXCard extends StatelessWidget {
                     vertical: 14,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(.15),
+                    color: Colors.white.withValues(alpha: .15),
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: const Row(

@@ -66,7 +66,7 @@ class FrequentlyUsedSection extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             scrollDirection: Axis.horizontal,
             itemCount: services.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 14),
+            separatorBuilder: (_, _) => const SizedBox(width: 14),
             itemBuilder: (context, index) {
               final item = services[index];
 
@@ -82,7 +82,7 @@ class FrequentlyUsedSection extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(.05),
+                        color: Colors.black.withValues(alpha: .05),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
                       ),
@@ -95,7 +95,7 @@ class FrequentlyUsedSection extends StatelessWidget {
                       CircleAvatar(
                         radius: 24,
                         backgroundColor:
-                            (item["color"] as Color).withOpacity(.15),
+                            (item["color"] as Color).withValues(alpha: .15),
                         child: Icon(
                           item["icon"],
                           color: item["color"],
