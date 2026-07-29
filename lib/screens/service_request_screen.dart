@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'address_screen.dart';
 
 class ServiceRequestScreen extends StatefulWidget {
   final String categoryName;
@@ -111,8 +112,9 @@ class _ServiceRequestScreenState
               ),              const SizedBox(height: 30),
 
               SwitchListTile(
-                value: isEmergency,
-                activeColor: Colors.red,
+  value: isEmergency,
+  activeThumbColor: Colors.red,
+  activeTrackColor: Colors.red.shade200,
                 title: const Text("Emergency Service"),
                 subtitle: const Text(
                   "Need immediate assistance?",
@@ -131,8 +133,27 @@ class _ServiceRequestScreenState
                 height: 55,
                 child: ElevatedButton(
                   onPressed: () {
+  if (issueController.text.trim().isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Please describe your issue."),
+      ),
+    );
+    return;
+  }
 
-                  },
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => AddressScreen(
+        categoryName: widget.categoryName,
+        subCategoryName: widget.subCategoryName,
+        issueDescription: issueController.text.trim(),
+        isEmergency: isEmergency,
+      ),
+    ),
+  );
+},
                   child: const Text(
                     "Continue",
                     style: TextStyle(
