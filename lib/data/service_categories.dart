@@ -152,6 +152,123 @@ class ServiceCategories {
         ),
       ],
     ),
+
+    Category(
+      id: 'plumbing',
+      name: 'Plumbing',
+      icon: Icons.plumbing,
+      color: Colors.blue,
+      subCategories: [
+        SubCategory(
+          id: 'water_leakage',
+          name: 'Water Leakage',
+          icon: Icons.water_drop_outlined,
+          description: 'Leakage from pipes, taps, walls or ceilings.',
+          keywords: [
+            'water leak',
+            'pipe leak',
+            'tap leak',
+            'ceiling leak',
+            'wall leak',
+          ],
+        ),
+
+        SubCategory(
+          id: 'tap_sink_basin',
+          name: 'Tap, Sink & Basin',
+          icon: Icons.water,
+          description: 'Repair and installation of taps, sinks and basins.',
+          keywords: [
+            'tap',
+            'faucet',
+            'sink',
+            'wash basin',
+            'kitchen sink',
+          ],
+        ),
+
+        SubCategory(
+          id: 'toilet_bathroom',
+          name: 'Toilet & Bathroom Fittings',
+          icon: Icons.bathtub_outlined,
+          description:
+              'Repair and installation of toilets, flushes, showers and bathroom fittings.',
+          keywords: [
+            'toilet',
+            'flush',
+            'commode',
+            'shower',
+            'jet spray',
+            'bathroom',
+          ],
+        ),
+
+        SubCategory(
+          id: 'drainage',
+          name: 'Drainage & Blockage',
+          icon: Icons.cleaning_services_outlined,
+          description: 'Drain, sewer and blockage related work.',
+          keywords: [
+            'drain',
+            'blocked drain',
+            'sewer',
+            'clog',
+            'drainage',
+          ],
+        ),
+
+        SubCategory(
+          id: 'pipes',
+          name: 'Pipe Installation & Repair',
+          icon: Icons.linear_scale,
+          description: 'Installation and repair of water pipelines.',
+          keywords: [
+            'pipe',
+            'pipeline',
+            'pipe repair',
+            'pipe installation',
+          ],
+        ),
+
+        SubCategory(
+          id: 'tank_pump',
+          name: 'Water Tank & Pump',
+          icon: Icons.storage,
+          description: 'Water tanks, pumps and pressure related work.',
+          keywords: [
+            'water tank',
+            'pump',
+            'motor',
+            'pressure',
+          ],
+        ),
+
+        SubCategory(
+          id: 'geyser_connection',
+          name: 'Geyser Installation & Connection',
+          icon: Icons.hot_tub_outlined,
+          description: 'Water connections and installation for geysers.',
+          keywords: [
+            'geyser',
+            'water heater',
+            'geyser installation',
+            'geyser connection',
+          ],
+        ),
+
+        SubCategory(
+          id: 'general_plumbing',
+          name: 'General Plumbing Issue',
+          icon: Icons.help_outline,
+          description: 'Not sure? Choose this option.',
+          keywords: [
+            'plumbing',
+            'other',
+            'unknown',
+          ],
+        ),
+      ],
+    ),
   ];
 
   static Category? getCategoryById(String id) {

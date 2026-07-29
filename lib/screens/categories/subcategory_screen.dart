@@ -13,8 +13,14 @@ class SubcategoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Category? category =
-        ServiceCategories.getCategoryByName(categoryName);
+    debugPrint("Received category: '$categoryName'");
+
+for (final c in ServiceCategories.all) {
+  debugPrint("Available category: '${c.name}'");
+}
+
+final Category? category =
+    ServiceCategories.getCategoryByName(categoryName);
 
     return Scaffold(
       backgroundColor: const Color(0xffF7F8FC),
