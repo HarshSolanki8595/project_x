@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/service_categories.dart';
 import '../../models/category.dart';
+import '../service_request_screen.dart';
 
 class SubcategoryScreen extends StatelessWidget {
   final String categoryName;
@@ -45,14 +46,21 @@ final Category? category =
               separatorBuilder: (_, _) =>
                   const SizedBox(height: 14),
               itemBuilder: (context, index) {
-                final subCategory = category.subCategories[index];
+  final subCategory = category.subCategories[index];
 
-                return InkWell(
-                  borderRadius: BorderRadius.circular(18),
-                  onTap: () {
-                    // Next screen:
-                    // IssueDescriptionScreen(...)
-                  },
+  return InkWell(
+    borderRadius: BorderRadius.circular(18),
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ServiceRequestScreen(
+            categoryName: category.name,
+            subCategoryName: subCategory.name,
+          ),
+        ),
+      );
+    },
                   child: Container(
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
