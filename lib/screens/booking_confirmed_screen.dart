@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'main_navigation_screen.dart';
 
 class BookingConfirmedScreen extends StatelessWidget {
   const BookingConfirmedScreen({
@@ -88,10 +89,13 @@ class BookingConfirmedScreen extends StatelessWidget {
                 height: 55,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.popUntil(
-                      context,
-                      (route) => route.isFirst,
-                    );
+                    Navigator.pushAndRemoveUntil(
+  context,
+  MaterialPageRoute(
+    builder: (_) => const MainNavigationScreen(),
+  ),
+  (route) => false,
+);
                   },
                   child: const Text(
                     "Back to Home",

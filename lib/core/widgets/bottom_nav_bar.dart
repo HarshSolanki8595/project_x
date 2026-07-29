@@ -29,9 +29,9 @@ class BottomNavBar extends StatelessWidget {
           label: 'Bookings',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.favorite_border_rounded),
-          label: 'Saved',
-        ),
+  icon: Icon(Icons.notifications_none_rounded),
+  label: 'Notifications',
+),
         BottomNavigationBarItem(
           icon: Icon(Icons.person_outline_rounded),
           label: 'Profile',
