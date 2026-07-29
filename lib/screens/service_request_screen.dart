@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'address_screen.dart';
+import '../models/service_request.dart';
 
 class ServiceRequestScreen extends StatefulWidget {
   final String categoryName;
@@ -143,16 +144,18 @@ class _ServiceRequestScreenState
   }
 
   Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => AddressScreen(
+  context,
+  MaterialPageRoute(
+    builder: (_) => AddressScreen(
+      request: ServiceRequest(
         categoryName: widget.categoryName,
         subCategoryName: widget.subCategoryName,
         issueDescription: issueController.text.trim(),
         isEmergency: isEmergency,
       ),
     ),
-  );
+  ),
+);
 },
                   child: const Text(
                     "Continue",

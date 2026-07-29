@@ -1,36 +1,29 @@
 import 'package:flutter/material.dart';
 
+import '../models/service_request.dart';
+import 'date_time_screen.dart';
+
+
 class AddressScreen extends StatelessWidget {
-  final String categoryName;
-  final String subCategoryName;
-  final String issueDescription;
-  final bool isEmergency;
+  final ServiceRequest request;
 
   const AddressScreen({
     super.key,
-    required this.categoryName,
-    required this.subCategoryName,
-    required this.issueDescription,
-    required this.isEmergency,
+    required this.request,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF7F8FC),
-
       appBar: AppBar(
         title: const Text("Service Address"),
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(20),
-
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-
           children: [
-
             const Text(
               "Where do you need the service?",
               style: TextStyle(
@@ -54,9 +47,7 @@ class AddressScreen extends StatelessWidget {
                   color: Colors.deepPurple,
                 ),
                 title: const Text("Use Current Location"),
-                subtitle: const Text(
-                  "Detect automatically",
-                ),
+                subtitle: const Text("Detect automatically"),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {},
               ),
@@ -71,9 +62,7 @@ class AddressScreen extends StatelessWidget {
                   color: Colors.deepPurple,
                 ),
                 title: const Text("Home"),
-                subtitle: const Text(
-                  "No saved address",
-                ),
+                subtitle: const Text("No saved address"),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {},
               ),
@@ -100,7 +89,16 @@ class AddressScreen extends StatelessWidget {
               height: 55,
               child: ElevatedButton(
                 onPressed: () {
+                  request.address = "Current Address";
 
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DateTimeScreen(
+                        request: request,
+                      ),
+                    ),
+                  );
                 },
                 child: const Text(
                   "Continue",
