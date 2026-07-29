@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/professional.dart';
 import '../models/service_request.dart';
+import 'booking_summary_screen.dart';
 
 class ProfessionalsScreen extends StatelessWidget {
   final ServiceRequest request;
@@ -228,10 +229,12 @@ class ProfessionalsScreen extends StatelessWidget {
               Expanded(
   child: ElevatedButton(
     onPressed: () {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Booking ${professional.name}",
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BookingSummaryScreen(
+            request: request,
+            professional: professional,
           ),
         ),
       );
