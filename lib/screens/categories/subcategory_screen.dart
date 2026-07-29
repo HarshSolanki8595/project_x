@@ -42,7 +42,7 @@ final Category? category =
           : ListView.separated(
               padding: const EdgeInsets.all(20),
               itemCount: category.subCategories.length,
-              separatorBuilder: (_, __) =>
+              separatorBuilder: (_, _) =>
                   const SizedBox(height: 14),
               itemBuilder: (context, index) {
                 final subCategory = category.subCategories[index];
