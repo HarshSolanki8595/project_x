@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/service_request.dart';
+import 'professionals_screen.dart';
 
 class DateTimeScreen extends StatefulWidget {
   final ServiceRequest request;
@@ -91,25 +92,31 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
               width: double.infinity,
               height: 55,
               child: ElevatedButton(
-                onPressed: () {
-                  widget.request.preferredDate = selectedDate;
-                  widget.request.preferredTimeSlot = selectedSlot;
+  onPressed: () {
+    widget.request.preferredDate = selectedDate;
+    widget.request.preferredTimeSlot = selectedSlot;
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Next: Professionals Screen"),
-                    ),
-                  );
-                },
-                child: const Text(
-                  "Continue",
-                  style: TextStyle(fontSize: 18),
-                ),
-              ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProfessionalsScreen(
+          request: widget.request,
+        ),
+      ),
+    );
+  },
+  child: const Text(
+    "Continue",
+    style: TextStyle(fontSize: 18),
+  ),
+),
             ),
           ],
         ),
       ),
-    );
-  }
+      );
+}
+
+
+
 }
