@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/professional.dart';
 import '../models/service_request.dart';
+import 'booking_confirmed_screen.dart';
 
 class BookingSummaryScreen extends StatelessWidget {
   final ServiceRequest request;
@@ -25,7 +26,6 @@ class BookingSummaryScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             _sectionTitle("Service"),
 
             _infoTile(
@@ -95,7 +95,6 @@ class BookingSummaryScreen extends StatelessWidget {
             Card(
               child: Column(
                 children: [
-
                   ListTile(
                     leading: const Icon(Icons.calendar_today),
                     title: Text(
@@ -124,18 +123,23 @@ class BookingSummaryScreen extends StatelessWidget {
               height: 55,
               child: ElevatedButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Booking Confirmed"),
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const BookingConfirmedScreen(),
                     ),
                   );
                 },
                 child: const Text(
                   "Confirm Booking",
-                  style: TextStyle(fontSize: 18),
+                  style: TextStyle(
+                    fontSize: 18,
+                  ),
                 ),
               ),
             ),
+
+            const SizedBox(height: 20),
           ],
         ),
       ),
