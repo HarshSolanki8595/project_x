@@ -10,6 +10,7 @@ import '../core/widgets/home_search_bar.dart';
 import '../core/widgets/trending_services.dart';
 
 import 'search_screen.dart';
+import 'service_request_screen.dart';
 import 'categories/subcategory_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -24,11 +25,22 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Later this will come from Firebase/API.
   bool hasActiveBooking = false;
 
+  void _openAskProjectX() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ServiceRequestScreen(
+          categoryName: "Ask Project X",
+          subCategoryName: "AI Diagnosis",
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF7F8FC),
-
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -74,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const SearchScreen(),
+                      builder: (_) => const SearchScreen(),
                     ),
                   );
                 },
@@ -84,9 +96,9 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 24),
 
               AskProjectXCard(
-                onTap: () {},
-                onVoiceTap: () {},
-                onCameraTap: () {},
+                onTap: _openAskProjectX,
+                onVoiceTap: _openAskProjectX,
+                onCameraTap: _openAskProjectX,
               ),
 
               const SizedBox(height: 24),
@@ -96,8 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onContinue: () {},
               ),
 
-              if (hasActiveBooking)
-                const SizedBox(height: 24),
+              if (hasActiveBooking) const SizedBox(height: 24),
 
               FrequentlyUsedSection(
                 onServiceTap: (service) {},

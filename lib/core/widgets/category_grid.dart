@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../data/service_categories.dart';
+
 class CategoryGrid extends StatelessWidget {
   const CategoryGrid({
     super.key,
@@ -10,68 +12,7 @@ class CategoryGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> categories = [
-      {
-        "title": "Electrical",
-        "icon": Icons.electrical_services_rounded,
-        "color": Colors.amber,
-      },
-      {
-        "title": "Plumbing",
-        "icon": Icons.plumbing,
-        "color": Colors.blue,
-      },
-      {
-        "title": "Appliances",
-        "icon": Icons.kitchen_rounded,
-        "color": Colors.deepPurple,
-      },
-      {
-        "title": "Cleaning",
-        "icon": Icons.cleaning_services_rounded,
-        "color": Colors.green,
-      },
-      {
-        "title": "Painting",
-        "icon": Icons.format_paint,
-        "color": Colors.deepOrange,
-      },
-      {
-        "title": "Carpentry",
-        "icon": Icons.carpenter,
-        "color": Colors.brown,
-      },
-      {
-        "title": "Pest Control",
-        "icon": Icons.pest_control,
-        "color": Colors.redAccent,
-      },
-      {
-        "title": "Home Repair",
-        "icon": Icons.home_repair_service,
-        "color": Colors.indigo,
-      },
-      {
-        "title": "Automobile",
-        "icon": Icons.directions_car_filled_rounded,
-        "color": Colors.teal,
-      },
-      {
-        "title": "Moving",
-        "icon": Icons.local_shipping_rounded,
-        "color": Colors.orange,
-      },
-      {
-        "title": "Beauty",
-        "icon": Icons.face_retouching_natural,
-        "color": Colors.pink,
-      },
-      {
-        "title": "More",
-        "icon": Icons.grid_view_rounded,
-        "color": Colors.grey,
-      },
-    ];
+    final categories = ServiceCategories.all;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,12 +44,12 @@ class CategoryGrid extends StatelessWidget {
               childAspectRatio: .90,
             ),
             itemBuilder: (context, index) {
-              final item = categories[index];
+              final category = categories[index];
 
               return InkWell(
                 borderRadius: BorderRadius.circular(20),
                 onTap: () {
-                  onCategoryTap?.call(item["title"]);
+                  onCategoryTap?.call(category.name);
                 },
                 child: Container(
                   decoration: BoxDecoration(
@@ -128,10 +69,10 @@ class CategoryGrid extends StatelessWidget {
                       CircleAvatar(
                         radius: 26,
                         backgroundColor:
-                            (item["color"] as Color).withValues(alpha: .15),
+                            category.color.withValues(alpha: .15),
                         child: Icon(
-                          item["icon"],
-                          color: item["color"],
+                          category.icon,
+                          color: category.color,
                           size: 28,
                         ),
                       ),
@@ -142,7 +83,7 @@ class CategoryGrid extends StatelessWidget {
                         padding:
                             const EdgeInsets.symmetric(horizontal: 8),
                         child: Text(
-                          item["title"],
+                          category.name,
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
