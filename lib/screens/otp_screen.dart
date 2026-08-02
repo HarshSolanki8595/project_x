@@ -1,13 +1,19 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import 'create_profile_screen.dart';
 import 'home_screen.dart';
 
 class OtpScreen extends StatefulWidget {
   final String phoneNumber;
+  final String verificationId;
 
   const OtpScreen({
     super.key,
     required this.phoneNumber,
+    required this.verificationId,
   });
 
   @override
@@ -20,6 +26,14 @@ class _OtpScreenState extends State<OtpScreen> {
 
   final List<FocusNode> focusNodes =
       List.generate(6, (_) => FocusNode());
+
+  bool _isLoading = false;
+
+  bool get isOtpComplete =>
+      controllers.every((controller) => controller.text.isNotEmpty);
+
+  String get otp =>
+      controllers.map((e) => e.text).join();
 
   @override
   void dispose() {
@@ -34,25 +48,82 @@ class _OtpScreenState extends State<OtpScreen> {
     super.dispose();
   }
 
-  bool get isOtpComplete =>
-      controllers.every((controller) => controller.text.isNotEmpty);
-
-  void verifyOtp() {
+  Future<void> verifyOtp() async {
     if (!isOtpComplete) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Please enter the complete OTP"),
+          content: Text(
+            "Please enter the complete OTP",
+          ),
         ),
       );
       return;
     }
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const HomeScreen(),
-      ),
-    );
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      PhoneAuthCredential credential =
+          PhoneAuthProvider.credential(
+        verificationId: widget.verificationId,
+        smsCode: otp,
+      );
+
+      UserCredential userCredential =
+          await FirebaseAuth.instance
+              .signInWithCredential(credential);
+
+      final uid = userCredential.user!.uid;
+
+      final userDoc =
+          await FirebaseFirestore.instance
+              .collection("users")
+              .doc(uid)
+              .get();
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (userDoc.exists) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const HomeScreen(),
+          ),
+          (route) => false,
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CreateProfileScreen(
+              uid: uid,
+              phoneNumber: widget.phoneNumber,
+            ),
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.message ??
+                "OTP verification failed",
+          ),
+        ),
+      );
+    }
   }
 
   Widget otpBox(int index) {
@@ -66,9 +137,9 @@ class _OtpScreenState extends State<OtpScreen> {
         textAlign: TextAlign.center,
         maxLength: 1,
         inputFormatters: [
-          FilteringTextInputFormatter.digitsOnly,
-        ],
-        style: const TextStyle(
+  FilteringTextInputFormatter.digitsOnly,
+],
+style: const TextStyle(
           fontSize: 22,
           fontWeight: FontWeight.bold,
         ),
@@ -77,17 +148,26 @@ class _OtpScreenState extends State<OtpScreen> {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: Colors.deepPurple,
+              width: 2,
+            ),
+          ),
         ),
         onChanged: (value) {
           if (value.isNotEmpty) {
             if (index < 5) {
-              FocusScope.of(context).requestFocus(focusNodes[index + 1]);
+              FocusScope.of(context)
+                  .requestFocus(focusNodes[index + 1]);
             } else {
               FocusScope.of(context).unfocus();
             }
           } else {
             if (index > 0) {
-              FocusScope.of(context).requestFocus(focusNodes[index - 1]);
+              FocusScope.of(context)
+                  .requestFocus(focusNodes[index - 1]);
             }
           }
 
@@ -113,7 +193,8 @@ class _OtpScreenState extends State<OtpScreen> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
 
@@ -139,7 +220,8 @@ class _OtpScreenState extends State<OtpScreen> {
               const SizedBox(height: 45),
 
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween,
                 children: List.generate(6, otpBox),
               ),
 
@@ -148,40 +230,58 @@ class _OtpScreenState extends State<OtpScreen> {
               Center(
                 child: TextButton(
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(
                       const SnackBar(
-                        content: Text("OTP resent successfully."),
+                        content: Text(
+                          "Resend OTP will be added shortly.",
+                        ),
                       ),
                     );
                   },
                   child: const Text(
                     "Resend OTP",
-                    style: TextStyle(fontSize: 16),
+                    style: TextStyle(
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               ),
 
               const Spacer(),
 
-              SizedBox(
+SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: isOtpComplete ? verifyOtp : null,
+                  onPressed: (_isLoading || !isOtpComplete)
+                      ? null
+                      : verifyOtp,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,
-                    disabledBackgroundColor: Colors.deepPurple.shade200,
+                    disabledBackgroundColor:
+                        Colors.deepPurple.shade200,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
+                      borderRadius:
+                          BorderRadius.circular(15),
                     ),
                   ),
-                  child: const Text(
-                    "Verify",
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          "Verify",
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
 

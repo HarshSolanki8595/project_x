@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../core/widgets/ask_projectx_card.dart';
 import '../core/widgets/category_grid.dart';
@@ -23,7 +25,34 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   /// Temporary variable.
   /// Later this will come from Firebase/API.
-  bool hasActiveBooking = false;
+ bool hasActiveBooking = false;
+
+String userName = "User";
+
+@override
+void initState() {
+  super.initState();
+  _loadUser();
+}
+
+Future<void> _loadUser() async {
+  final user = FirebaseAuth.instance.currentUser;
+
+  if (user == null) return;
+
+  final doc = await FirebaseFirestore.instance
+      .collection("users")
+      .doc(user.uid)
+      .get();
+
+  if (!mounted) return;
+
+  if (doc.exists) {
+    setState(() {
+      userName = doc["fullName"] ?? "User";
+    });
+  }
+}
 
   void _openAskProjectX() {
     Navigator.push(
