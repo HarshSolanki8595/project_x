@@ -11,9 +11,10 @@ import '../core/widgets/home_app_bar.dart';
 import '../core/widgets/home_search_bar.dart';
 import '../core/widgets/trending_services.dart';
 
+import 'categories/subcategory_screen.dart';
+import 'map_screen.dart';
 import 'search_screen.dart';
 import 'service_request_screen.dart';
-import 'categories/subcategory_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,36 +24,34 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  /// Temporary variable.
-  /// Later this will come from Firebase/API.
- bool hasActiveBooking = false;
+  bool hasActiveBooking = false;
 
-String userName = "User";
+  String userName = "User";
 
-@override
-void initState() {
-  super.initState();
-  _loadUser();
-}
-
-Future<void> _loadUser() async {
-  final user = FirebaseAuth.instance.currentUser;
-
-  if (user == null) return;
-
-  final doc = await FirebaseFirestore.instance
-      .collection("users")
-      .doc(user.uid)
-      .get();
-
-  if (!mounted) return;
-
-  if (doc.exists) {
-    setState(() {
-      userName = doc["fullName"] ?? "User";
-    });
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
   }
-}
+
+  Future<void> _loadUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    final doc = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(user.uid)
+        .get();
+
+    if (!mounted) return;
+
+    if (doc.exists) {
+      setState(() {
+        userName = doc["fullName"] ?? "User";
+      });
+    }
+  }
 
   void _openAskProjectX() {
     Navigator.push(
@@ -62,6 +61,15 @@ Future<void> _loadUser() async {
           categoryName: "Ask Project X",
           subCategoryName: "AI Diagnosis",
         ),
+      ),
+    );
+  }
+
+  void _openMap() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const MapScreen(),
       ),
     );
   }
@@ -78,26 +86,26 @@ Future<void> _loadUser() async {
             children: [
               HomeAppBar(
                 location: "Mumbai",
-                onLocationTap: () {},
+                onLocationTap: _openMap,
                 onNotificationTap: () {},
               ),
 
               const SizedBox(height: 24),
 
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Hello Harsh 👋",
-                      style: TextStyle(
+                      "Welcome $userName 👋",
+                      style: const TextStyle(
                         fontSize: 30,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 8),
-                    Text(
+                    const SizedBox(height: 8),
+                    const Text(
                       "How can we help you today?",
                       style: TextStyle(
                         color: Colors.grey,
