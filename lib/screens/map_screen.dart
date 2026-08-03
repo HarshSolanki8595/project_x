@@ -20,6 +20,11 @@ class _MapScreenState extends State<MapScreen> {
 
   String _selectedAddress = "Fetching your location...";
 
+  LatLng _selectedLatLng = const LatLng(
+    19.0760,
+    72.8777,
+  );
+
   static const CameraPosition _initialPosition = CameraPosition(
     target: LatLng(
       19.0760,
@@ -39,25 +44,21 @@ class _MapScreenState extends State<MapScreen> {
       Position position =
           await _locationService.getCurrentLocation();
 
+      _selectedLatLng = LatLng(
+        position.latitude,
+        position.longitude,
+      );
+
       if (_mapController != null) {
-        _mapController!.animateCamera(
+        await _mapController!.animateCamera(
           CameraUpdate.newLatLngZoom(
-            LatLng(
-              position.latitude,
-              position.longitude,
-            ),
+            _selectedLatLng,
             17,
           ),
         );
       }
 
-      if (!mounted) return;
-
-      setState(() {
-        _selectedAddress =
-            "Lat: ${position.latitude.toStringAsFixed(5)}\n"
-            "Lng: ${position.longitude.toStringAsFixed(5)}";
-      });
+      await _updateAddress();
     } catch (e) {
       if (!mounted) return;
 
@@ -69,6 +70,20 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  Future<void> _updateAddress() async {
+    final address =
+        await _locationService.getAddressFromCoordinates(
+      _selectedLatLng.latitude,
+      _selectedLatLng.longitude,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _selectedAddress = address;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,7 +92,6 @@ class _MapScreenState extends State<MapScreen> {
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
       ),
-
       body: Stack(
         children: [
           GoogleMap(
@@ -93,6 +107,14 @@ class _MapScreenState extends State<MapScreen> {
               _mapController = controller;
               _moveToCurrentLocation();
             },
+
+            onCameraMove: (position) {
+              _selectedLatLng = position.target;
+            },
+
+            onCameraIdle: () {
+              _updateAddress();
+            },
           ),
 
           const CenterLocationPin(),
@@ -102,12 +124,13 @@ class _MapScreenState extends State<MapScreen> {
       bottomSheet: AddressBottomSheet(
         address: _selectedAddress,
         onConfirm: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                "Address confirmed.",
-              ),
-            ),
+          Navigator.pop(
+            context,
+            {
+              "address": _selectedAddress,
+              "latitude": _selectedLatLng.latitude,
+              "longitude": _selectedLatLng.longitude,
+            },
           );
         },
       ),
