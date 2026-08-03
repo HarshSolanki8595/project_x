@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../models/place_prediction.dart';
 import '../core/services/location_service.dart';
+import '../core/services/places_service.dart';
 import '../core/widgets/address_bottom_sheet.dart';
+import '../core/widgets/address_search_bar.dart';
 import '../core/widgets/center_location_pin.dart';
+import 'address_search_screen.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -17,6 +21,7 @@ class _MapScreenState extends State<MapScreen> {
   GoogleMapController? _mapController;
 
   final LocationService _locationService = LocationService();
+  final PlacesService _placesService = PlacesService();
 
   String _selectedAddress = "Fetching your location...";
 
@@ -25,7 +30,8 @@ class _MapScreenState extends State<MapScreen> {
     72.8777,
   );
 
-  static const CameraPosition _initialPosition = CameraPosition(
+  static const CameraPosition _initialPosition =
+      CameraPosition(
     target: LatLng(
       19.0760,
       72.8777,
@@ -84,18 +90,73 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
+  Future<void> _openSearch() async {
+    final PlacePrediction? prediction =
+        await Navigator.push<PlacePrediction>(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            const AddressSearchScreen(),
+      ),
+    );
+
+    if (prediction == null) return;
+
+    try {
+      final location =
+          await _placesService.getPlaceLocation(
+        prediction.placeId,
+      );
+
+      _selectedLatLng = LatLng(
+        location["lat"]!,
+        location["lng"]!,
+      );
+
+      await _mapController?.animateCamera(
+        CameraUpdate.newLatLngZoom(
+          _selectedLatLng,
+          17,
+        ),
+      );
+
+      await _updateAddress();
+
+    } catch (e) {
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString(),
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
+
       appBar: AppBar(
-        title: const Text("Select Service Address"),
+        title: const Text(
+          "Select Service Address",
+        ),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
       ),
+
       body: Stack(
+
         children: [
+
           GoogleMap(
-            initialCameraPosition: _initialPosition,
+
+            initialCameraPosition:
+                _initialPosition,
 
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
@@ -109,7 +170,8 @@ class _MapScreenState extends State<MapScreen> {
             },
 
             onCameraMove: (position) {
-              _selectedLatLng = position.target;
+              _selectedLatLng =
+                  position.target;
             },
 
             onCameraIdle: () {
@@ -118,18 +180,26 @@ class _MapScreenState extends State<MapScreen> {
           ),
 
           const CenterLocationPin(),
+
+          AddressSearchBar(
+            onTap: _openSearch,
+          ),
         ],
       ),
 
       bottomSheet: AddressBottomSheet(
         address: _selectedAddress,
         onConfirm: () {
+
           Navigator.pop(
             context,
             {
-              "address": _selectedAddress,
-              "latitude": _selectedLatLng.latitude,
-              "longitude": _selectedLatLng.longitude,
+              "address":
+                  _selectedAddress,
+              "latitude":
+                  _selectedLatLng.latitude,
+              "longitude":
+                  _selectedLatLng.longitude,
             },
           );
         },
