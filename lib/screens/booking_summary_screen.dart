@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/professional.dart';
 import '../models/service_request.dart';
 import 'booking_confirmed_screen.dart';
+import '../core/services/booking_service.dart';
 
 class BookingSummaryScreen extends StatelessWidget {
   final ServiceRequest request;
@@ -122,14 +123,47 @@ class BookingSummaryScreen extends StatelessWidget {
               width: double.infinity,
               height: 55,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const BookingConfirmedScreen(),
-                    ),
-                  );
-                },
+                onPressed: () async {
+  try {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    final bookingId = await BookingService.createBooking(
+      request: request,
+      professional: professional,
+    );
+
+    if (!context.mounted) return;
+
+    Navigator.pop(context);
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BookingConfirmedScreen(
+          bookingId: bookingId,
+        ),
+      ),
+    );
+  } catch (e) {
+    if (!context.mounted) return;
+
+    Navigator.pop(context);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "Booking failed.\n$e",
+        ),
+      ),
+    );
+  }
+},
                 child: const Text(
                   "Confirm Booking",
                   style: TextStyle(

@@ -26,6 +26,40 @@ class Professional {
     required this.quote,
     required this.quoteDescription,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      "id": id,
+      "name": name,
+      "image": image,
+      "rating": rating,
+      "reviews": reviews,
+      "verified": verified,
+      "experience": experience,
+      "jobsCompleted": jobsCompleted,
+      "distance": distance,
+      "arrivalTime": arrivalTime,
+      "quote": quote,
+      "quoteDescription": quoteDescription,
+    };
+  }
+
+  factory Professional.fromMap(Map<String, dynamic> map) {
+    return Professional(
+      id: map["id"] ?? "",
+      name: map["name"] ?? "",
+      image: map["image"] ?? "",
+      rating: (map["rating"] ?? 0).toDouble(),
+      reviews: map["reviews"] ?? 0,
+      verified: map["verified"] ?? false,
+      experience: map["experience"] ?? 0,
+      jobsCompleted: map["jobsCompleted"] ?? 0,
+      distance: (map["distance"] ?? 0).toDouble(),
+      arrivalTime: map["arrivalTime"] ?? "",
+      quote: (map["quote"] ?? 0).toDouble(),
+      quoteDescription: map["quoteDescription"] ?? "",
+    );
+  }
 }
 
 /// Dummy Professionals

@@ -1,7 +1,43 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String fullName = "User";
+  String phoneNumber = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    final doc = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(user.uid)
+        .get();
+
+    if (!mounted) return;
+
+    if (doc.exists) {
+      setState(() {
+        fullName = doc["fullName"] ?? "User";
+        phoneNumber = doc["phoneNumber"] ?? "";
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,12 +59,24 @@ class ProfileScreen extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          const Center(
+          Center(
             child: Text(
-              "Harsh Solanki",
-              style: TextStyle(
+              fullName,
+              style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 6),
+
+          Center(
+            child: Text(
+              "+91 $phoneNumber",
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 16,
               ),
             ),
           ),

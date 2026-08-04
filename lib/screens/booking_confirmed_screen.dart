@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+
 import 'main_navigation_screen.dart';
 
 class BookingConfirmedScreen extends StatelessWidget {
+  final String bookingId;
+
   const BookingConfirmedScreen({
     super.key,
+    required this.bookingId,
   });
 
   @override
@@ -15,7 +19,6 @@ class BookingConfirmedScreen extends StatelessWidget {
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-
               const Spacer(),
 
               Container(
@@ -59,23 +62,61 @@ class BookingConfirmedScreen extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Padding(
-                  padding: EdgeInsets.all(20),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.confirmation_number,
+                            color: Colors.deepPurple,
+                          ),
 
-                      ListTile(
-                        leading: Icon(Icons.confirmation_number),
-                        title: Text("Booking ID"),
-                        trailing: Text("#PX102548"),
+                          const SizedBox(width: 16),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Booking ID",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 6),
+
+                                SelectableText(
+                                  bookingId,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
 
-                      Divider(),
+                      const Divider(height: 35),
 
-                      ListTile(
+                      const ListTile(
+                        contentPadding: EdgeInsets.zero,
                         leading: Icon(Icons.schedule),
                         title: Text("Status"),
-                        trailing: Text("Awaiting Acceptance"),
+                        trailing: Text(
+                          "Pending",
+                          style: TextStyle(
+                            color: Colors.orange,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -90,16 +131,18 @@ class BookingConfirmedScreen extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.pushAndRemoveUntil(
-  context,
-  MaterialPageRoute(
-    builder: (_) => const MainNavigationScreen(),
-  ),
-  (route) => false,
-);
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const MainNavigationScreen(),
+                      ),
+                      (route) => false,
+                    );
                   },
                   child: const Text(
                     "Back to Home",
-                    style: TextStyle(fontSize: 18),
+                    style: TextStyle(
+                      fontSize: 18,
+                    ),
                   ),
                 ),
               ),

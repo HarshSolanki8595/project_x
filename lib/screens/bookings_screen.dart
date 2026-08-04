@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
+import '../core/services/booking_repository.dart';
 import '../models/booking.dart';
 import 'booking_details_screen.dart';
 
@@ -34,7 +36,15 @@ class _BookingsScreenState extends State<BookingsScreen>
   @override
   Widget build(BuildContext context) {
 
-    final List<Booking> bookings = [];
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text("Please login first."),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -43,44 +53,103 @@ class _BookingsScreenState extends State<BookingsScreen>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-
             Tab(text: "Upcoming"),
-
             Tab(text: "Ongoing"),
-
             Tab(text: "Completed"),
-
             Tab(text: "Cancelled"),
-
           ],
         ),
       ),
 
-      body: TabBarView(
-        controller: _tabController,
+      body: StreamBuilder<List<Booking>>(
 
-        children: [
+        stream: BookingRepository.bookings(),
 
-          _buildBookings(bookings),
+        builder: (context, snapshot) {
 
-          _buildBookings([]),
+          if (snapshot.connectionState ==
+              ConnectionState.waiting) {
 
-          _buildBookings([]),
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
 
-          _buildBookings([]),
+          if (snapshot.hasError) {
 
-        ],
+            return Center(
+              child: Text(
+                snapshot.error.toString(),
+              ),
+            );
+          }
+
+          final bookings = snapshot.data ?? [];
+
+          final upcomingBookings = bookings.where((booking) {
+
+            return booking.status ==
+                    BookingStatus.awaitingAcceptance ||
+                booking.status ==
+                    BookingStatus.accepted;
+
+          }).toList();
+
+          final ongoingBookings = bookings.where((booking) {
+
+            return booking.status ==
+                    BookingStatus.onTheWay ||
+                booking.status ==
+                    BookingStatus.inProgress;
+
+          }).toList();
+
+          final completedBookings = bookings.where((booking) {
+
+            return booking.status ==
+                BookingStatus.completed;
+
+          }).toList();
+
+          final cancelledBookings = bookings.where((booking) {
+
+            return booking.status ==
+                BookingStatus.cancelled;
+
+          }).toList();
+
+          return TabBarView(
+
+            controller: _tabController,
+
+            children: [
+
+              _buildBookings(upcomingBookings),
+
+              _buildBookings(ongoingBookings),
+
+              _buildBookings(completedBookings),
+
+              _buildBookings(cancelledBookings),
+
+            ],
+
+          );
+
+        },
+
       ),
-    );
-  }
 
-  Widget _buildBookings(List<Booking> bookings) {
+    );
+
+  }  Widget _buildBookings(List<Booking> bookings) {
 
     if (bookings.isEmpty) {
 
       return const Center(
 
         child: Column(
+
           mainAxisAlignment: MainAxisAlignment.center,
 
           children: [
@@ -111,8 +180,11 @@ class _BookingsScreenState extends State<BookingsScreen>
             ),
 
           ],
+
         ),
+
       );
+
     }
 
     return ListView.builder(
@@ -165,34 +237,51 @@ class _BookingsScreenState extends State<BookingsScreen>
 
                 crossAxisAlignment: CrossAxisAlignment.start,
 
-                children: [                  Row(
+                children: [
+
+                  Row(
+
                     children: [
+
                       Expanded(
+
                         child: Text(
+
                           booking.request.subCategoryName,
+
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
+
                         ),
+
                       ),
+
                       _statusChip(booking.status),
+
                     ],
+
                   ),
 
                   const SizedBox(height: 16),
 
                   ListTile(
+
                     contentPadding: EdgeInsets.zero,
+
                     leading: const CircleAvatar(
                       child: Icon(Icons.person),
                     ),
+
                     title: Text(
                       booking.professional.name,
                     ),
+
                     subtitle: Text(
                       "⭐ ${booking.professional.rating} • ${booking.professional.experience} Years Experience",
                     ),
+
                     trailing: Text(
                       "₹${booking.professional.quote.toStringAsFixed(0)}",
                       style: const TextStyle(
@@ -201,6 +290,7 @@ class _BookingsScreenState extends State<BookingsScreen>
                         fontSize: 18,
                       ),
                     ),
+
                   ),
 
                   const Divider(),
@@ -208,85 +298,132 @@ class _BookingsScreenState extends State<BookingsScreen>
                   const SizedBox(height: 8),
 
                   Row(
+
                     children: [
+
                       const Icon(
                         Icons.calendar_today,
                         size: 18,
                         color: Colors.grey,
                       ),
+
                       const SizedBox(width: 8),
+
                       Text(
+
                         booking.request.preferredDate == null
                             ? "-"
                             : "${booking.request.preferredDate!.day}/${booking.request.preferredDate!.month}/${booking.request.preferredDate!.year}",
+
                       ),
+
                     ],
+
                   ),
 
                   const SizedBox(height: 10),
 
                   Row(
+
                     children: [
+
                       const Icon(
                         Icons.access_time,
                         size: 18,
                         color: Colors.grey,
                       ),
+
                       const SizedBox(width: 8),
+
                       Text(
                         booking.request.preferredTimeSlot ?? "-",
                       ),
+
                     ],
+
                   ),
 
                   const SizedBox(height: 10),
 
                   Row(
+
                     children: [
+
                       const Icon(
                         Icons.location_on,
                         size: 18,
                         color: Colors.grey,
                       ),
+
                       const SizedBox(width: 8),
+
                       Expanded(
+
                         child: Text(
+
                           booking.request.address ?? "-",
+
                           maxLines: 2,
+
                           overflow: TextOverflow.ellipsis,
+
                         ),
+
                       ),
+
                     ],
+
                   ),
 
                   const SizedBox(height: 16),
 
                   Align(
+
                     alignment: Alignment.centerRight,
+
                     child: TextButton.icon(
+
                       onPressed: () {
+
                         Navigator.push(
+
                           context,
+
                           MaterialPageRoute(
+
                             builder: (_) => BookingDetailsScreen(
                               booking: booking,
                             ),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.arrow_forward),
-                      label: const Text("View Details"),
-                    ),
-                  ),                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
 
-  Widget _statusChip(BookingStatus status) {
+                          ),
+
+                        );
+
+                      },
+
+                      icon: const Icon(Icons.arrow_forward),
+
+                      label: const Text("View Details"),
+
+                    ),
+
+                  ),
+
+                ],
+
+              ),
+
+            ),
+
+          ),
+
+        );
+
+      },
+
+    );
+
+  }  Widget _statusChip(BookingStatus status) {
     Color color;
     String text;
 
@@ -328,7 +465,7 @@ class _BookingsScreenState extends State<BookingsScreen>
         vertical: 6,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(

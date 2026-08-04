@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import 'home_screen.dart';
+import 'main_navigation_screen.dart';
 
 class CreateProfileScreen extends StatefulWidget {
   final String uid;
@@ -62,13 +62,13 @@ Future<void> _createAccount() async {
 
     if (!mounted) return;
 
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const HomeScreen(),
-      ),
-      (route) => false,
-    );
+   Navigator.pushAndRemoveUntil(
+  context,
+  MaterialPageRoute(
+    builder: (_) => const MainNavigationScreen(),
+  ),
+  (route) => false,
+);
   } catch (e) {
     if (!mounted) return;
 

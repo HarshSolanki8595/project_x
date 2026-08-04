@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'create_profile_screen.dart';
-import 'home_screen.dart';
+import 'main_navigation_screen.dart';
 
 class OtpScreen extends StatefulWidget {
   final String phoneNumber;
@@ -90,13 +90,13 @@ class _OtpScreenState extends State<OtpScreen> {
       });
 
       if (userDoc.exists) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const HomeScreen(),
-          ),
-          (route) => false,
-        );
+       Navigator.pushAndRemoveUntil(
+  context,
+  MaterialPageRoute(
+    builder: (_) => const MainNavigationScreen(),
+  ),
+  (route) => false,
+);
       } else {
         Navigator.pushReplacement(
           context,
