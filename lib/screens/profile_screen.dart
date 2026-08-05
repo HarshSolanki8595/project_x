@@ -2,128 +2,180 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class ProfileScreen extends StatefulWidget {
+import 'bookings_screen.dart';
+import 'saved_addresses_screen.dart';
+import 'login_screen.dart';
+
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  String fullName = "User";
-  String phoneNumber = "";
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfile();
-  }
-
-  Future<void> _loadProfile() async {
+  Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
-    if (user == null) return;
-
-    final doc = await FirebaseFirestore.instance
-        .collection("users")
-        .doc(user.uid)
-        .get();
-
-    if (!mounted) return;
-
-    if (doc.exists) {
-      setState(() {
-        fullName = doc["fullName"] ?? "User";
-        phoneNumber = doc["phoneNumber"] ?? "";
-      });
+    if (user == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text("Please login first."),
+        ),
+      );
     }
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Profile"),
-        centerTitle: true,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          const CircleAvatar(
-            radius: 50,
-            child: Icon(
-              Icons.person,
-              size: 50,
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection("users")
+          .doc(user.uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState ==
+            ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
             ),
+          );
+        }
+
+        final data =
+            snapshot.data?.data() as Map<String, dynamic>?;
+
+        final fullName =
+            data?["fullName"] ?? "User";
+
+        final phoneNumber =
+            data?["phoneNumber"] ?? "";
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text("My Profile"),
+            centerTitle: true,
           ),
-
-          const SizedBox(height: 16),
-
-          Center(
-            child: Text(
-              fullName,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+          body: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              const CircleAvatar(
+                radius: 55,
+                child: Icon(
+                  Icons.person,
+                  size: 55,
+                ),
               ),
-            ),
-          ),
 
-          const SizedBox(height: 6),
+              const SizedBox(height: 16),
 
-          Center(
-            child: Text(
-              "+91 $phoneNumber",
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 16,
+              Center(
+                child: Text(
+                  fullName,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            ),
-          ),
 
-          const SizedBox(height: 30),
+              const SizedBox(height: 8),
 
-          ListTile(
-            leading: const Icon(Icons.receipt_long),
-            title: const Text("My Bookings"),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () {},
-          ),
+              Center(
+                child: Text(
+                  "+91 $phoneNumber",
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 18,
+                  ),
+                ),
+              ),
 
-          ListTile(
-            leading: const Icon(Icons.location_on),
-            title: const Text("Saved Addresses"),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () {},
-          ),
+              const SizedBox(height: 30),
 
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text("Settings"),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () {},
-          ),
+              ListTile(
+                leading:
+                    const Icon(Icons.receipt_long),
+                title: const Text("My Bookings"),
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const BookingsScreen(),
+                    ),
+                  );
+                },
+              ),
 
-          ListTile(
-            leading: const Icon(Icons.help_outline),
-            title: const Text("Help & Support"),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () {},
-          ),
+              ListTile(
+                leading:
+                    const Icon(Icons.location_on),
+                title:
+                    const Text("Saved Addresses"),
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const SavedAddressesScreen(),
+                    ),
+                  );
+                },
+              ),
 
-          ListTile(
-            leading: const Icon(
-              Icons.logout,
-              color: Colors.red,
-            ),
-            title: const Text(
-              "Logout",
-              style: TextStyle(color: Colors.red),
-            ),
-            onTap: () {},
+              ListTile(
+                leading:
+                    const Icon(Icons.settings),
+                title: const Text("Settings"),
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
+                ),
+                onTap: () {},
+              ),
+
+              ListTile(
+                leading:
+                    const Icon(Icons.help_outline),
+                title:
+                    const Text("Help & Support"),
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
+                ),
+                onTap: () {},
+              ),
+
+              ListTile(
+                leading: const Icon(
+                  Icons.logout,
+                  color: Colors.red,
+                ),
+                title: const Text(
+                  "Logout",
+                  style: TextStyle(
+                    color: Colors.red,
+                  ),
+                ),
+                onTap: () async {
+                  await FirebaseAuth.instance
+                      .signOut();
+
+                  if (!context.mounted) return;
+
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const LoginScreen(),
+                    ),
+                    (route) => false,
+                  );
+                },
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
