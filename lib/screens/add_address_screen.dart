@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../core/services/address_repository.dart';
 import '../models/address.dart';
+import 'map_screen.dart';
 
 class AddAddressScreen extends StatefulWidget {
   final Address? address;
@@ -180,9 +181,58 @@ class _AddAddressScreenState
               },
             ),
 
-            const SizedBox(height: 20),
+           const SizedBox(height: 20),
 
-            field("Flat / House No.", _houseController),
+SizedBox(
+  width: double.infinity,
+  height: 55,
+  child: OutlinedButton.icon(
+    icon: const Icon(Icons.map),
+    label: const Text(
+      "Pick Address on Map",
+      style: TextStyle(
+        fontSize: 16,
+      ),
+    ),
+    onPressed: () async {
+
+      final result =
+          await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const MapScreen(),
+        ),
+      );
+
+      if (result != null) {
+
+        _houseController.text =
+    result["house"] ?? "";
+
+_streetController.text =
+    result["street"] ?? "";
+
+_areaController.text =
+    result["area"] ?? "";
+
+_cityController.text =
+    result["city"] ?? "";
+
+_stateController.text =
+    result["state"] ?? "";
+
+_pincodeController.text =
+    result["pincode"] ?? "";
+
+      }
+
+    },
+  ),
+),
+
+const SizedBox(height: 20),
+
+field("Flat / House No.", _houseController),
             field("Building / Society", _buildingController),
             field("Street", _streetController),
             field("Area", _areaController),

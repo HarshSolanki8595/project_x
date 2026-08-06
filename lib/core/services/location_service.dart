@@ -74,4 +74,34 @@ class LocationService {
       return "Unable to fetch address";
     }
   }
+
+  Future<Map<String, String>> getAddressComponents(
+    double latitude,
+    double longitude,
+  ) async {
+    try {
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(
+        latitude,
+        longitude,
+      );
+
+      if (placemarks.isEmpty) {
+        return {};
+      }
+
+      final place = placemarks.first;
+
+      return {
+        "house": place.name ?? "",
+        "street": place.street ?? "",
+        "area": place.subLocality ?? "",
+        "city": place.locality ?? "",
+        "state": place.administrativeArea ?? "",
+        "pincode": place.postalCode ?? "",
+      };
+    } catch (_) {
+      return {};
+    }
+  }
 }

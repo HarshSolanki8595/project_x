@@ -76,19 +76,30 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  Future<void> _updateAddress() async {
-    final address =
-        await _locationService.getAddressFromCoordinates(
-      _selectedLatLng.latitude,
-      _selectedLatLng.longitude,
-    );
+  Map<String, String> _addressComponents = {};
 
-    if (!mounted) return;
+Future<void> _updateAddress() async {
 
-    setState(() {
-      _selectedAddress = address;
-    });
-  }
+  final address =
+      await _locationService.getAddressFromCoordinates(
+    _selectedLatLng.latitude,
+    _selectedLatLng.longitude,
+  );
+
+  final components =
+      await _locationService.getAddressComponents(
+    _selectedLatLng.latitude,
+    _selectedLatLng.longitude,
+  );
+
+  if (!mounted) return;
+
+  setState(() {
+    _selectedAddress = address;
+    _addressComponents = components;
+  });
+
+}
 
   Future<void> _openSearch() async {
     final PlacePrediction? prediction =
@@ -192,16 +203,35 @@ class _MapScreenState extends State<MapScreen> {
         onConfirm: () {
 
           Navigator.pop(
-            context,
-            {
-              "address":
-                  _selectedAddress,
-              "latitude":
-                  _selectedLatLng.latitude,
-              "longitude":
-                  _selectedLatLng.longitude,
-            },
-          );
+  context,
+  {
+    "address": _selectedAddress,
+
+    "house":
+        _addressComponents["house"],
+
+    "street":
+        _addressComponents["street"],
+
+    "area":
+        _addressComponents["area"],
+
+    "city":
+        _addressComponents["city"],
+
+    "state":
+        _addressComponents["state"],
+
+    "pincode":
+        _addressComponents["pincode"],
+
+    "latitude":
+        _selectedLatLng.latitude,
+
+    "longitude":
+        _selectedLatLng.longitude,
+  },
+);
         },
       ),
     );
