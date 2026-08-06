@@ -14,10 +14,13 @@ class Booking {
   final String bookingId;
   final ServiceRequest request;
   final Professional professional;
-  final BookingStatus status;
+
+  // Changed from final to mutable
+  BookingStatus status;
+
   final DateTime createdAt;
 
-  const Booking({
+  Booking({
     required this.bookingId,
     required this.request,
     required this.professional,

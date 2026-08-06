@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../data/dummy_bookings.dart';
 
 import '../models/booking.dart';
 
@@ -324,15 +325,73 @@ class BookingDetailsScreen extends StatelessWidget {
               width: double.infinity,
               height: 55,
               child: OutlinedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        "Cancel Booking feature coming soon",
-                      ),
-                    ),
-                  );
-                },
+                onPressed: () async {
+
+  final confirm =
+      await showDialog<bool>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text(
+          "Cancel Booking?",
+        ),
+        content: const Text(
+          "Are you sure you want to cancel this booking?",
+        ),
+        actions: [
+
+          TextButton(
+            onPressed: () {
+              Navigator.pop(
+                context,
+                false,
+              );
+            },
+            child: const Text(
+              "No",
+            ),
+          ),
+
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(
+                context,
+                true,
+              );
+            },
+            child: const Text(
+              "Yes, Cancel",
+            ),
+          ),
+
+        ],
+      );
+    },
+  );
+
+  if (confirm != true) return;
+
+  if (!context.mounted) return;
+
+  booking.status = BookingStatus.cancelled;
+
+dummyBookings.removeWhere(
+  (b) => b.bookingId == booking.bookingId,
+);
+
+dummyBookings.add(booking);
+
+ScaffoldMessenger.of(context).showSnackBar(
+  const SnackBar(
+    content: Text(
+      "Booking cancelled successfully.",
+    ),
+  ),
+);
+
+Navigator.pop(context, true);
+
+},
                 icon: const Icon(Icons.cancel),
                 label: const Text(
                   "Cancel Booking",
