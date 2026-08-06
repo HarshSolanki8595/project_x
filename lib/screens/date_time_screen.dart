@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/service_request.dart';
-import 'professionals_screen.dart';
+import 'review_booking_screen.dart';
 
 class DateTimeScreen extends StatefulWidget {
   final ServiceRequest request;
@@ -97,13 +97,13 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
     widget.request.preferredTimeSlot = selectedSlot;
 
     Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ProfessionalsScreen(
-          request: widget.request,
-        ),
-      ),
-    );
+  context,
+  MaterialPageRoute(
+    builder: (_) => ReviewBookingScreen(
+      request: widget.request,
+    ),
+  ),
+);
   },
   child: const Text(
     "Continue",
