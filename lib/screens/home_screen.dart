@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => const ServiceRequestScreen(
-          categoryName: "Ask Project X",
+          categoryName: "Ask Habio",
           subCategoryName: "AI Diagnosis",
         ),
       ),

@@ -70,7 +70,7 @@ class AskProjectXCard extends StatelessWidget {
                         children: [
 
                           Text(
-                            "Ask Project X",
+                            "Ask Habio",
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 22,
@@ -193,7 +193,7 @@ class AskProjectXCard extends StatelessWidget {
 
                 const Center(
                   child: Text(
-                    "Powered by Project X AI",
+                    "Powered by Habio AI",
                     style: TextStyle(
                       color: Colors.white70,
                       fontSize: 12,

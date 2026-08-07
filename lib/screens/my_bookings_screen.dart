@@ -83,7 +83,7 @@ class _MyBookingsScreenState
       ),
     );
   }
-}class _BookingsTab extends StatefulWidget {
+}class _BookingsTab extends StatelessWidget {
   final BookingStatus status;
   final Future<void> Function() onUpdated;
 

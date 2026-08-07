@@ -133,7 +133,7 @@ Future<void> _createAccount() async {
 
               const Center(
                 child: Text(
-                  "Tell us your name to complete your Project X account.",
+                  "Tell us your name to complete your Habio account.",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.grey,

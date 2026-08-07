@@ -1,11 +1,11 @@
 name: flutter_application_1
-description: "Project X"
+description: "Habio"
 publish_to: 'none'
 
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.12.2
+  sdk: ">=3.12.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -32,7 +32,7 @@ dependencies:
   firebase_storage: ^13.0.0
   firebase_messaging: ^16.0.0
 
-  # Date Formatting
+  # Utilities
   intl: ^0.20.2
 
 dev_dependencies:
@@ -43,3 +43,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/logo/
+    - assets/images/
+    - assets/images/onboarding/

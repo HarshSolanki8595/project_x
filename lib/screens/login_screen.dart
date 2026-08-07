@@ -146,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               Center(
                 child: Text(
-                  "Login or create your Project X account",
+                  "Login or create your Habio account",
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 16,
