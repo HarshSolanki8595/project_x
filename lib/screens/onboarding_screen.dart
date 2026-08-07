@@ -92,12 +92,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
 
             /// LOGO — the hero element, no wordmark, same on every page
-            Image.asset(
-              "assets/logo/habio_logo_blue.png",
-              height: 92,
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Image.asset(
+                "assets/logo/habio_logo_blue.png",
+                height: MediaQuery.of(context).size.height * 0.16,
+              ),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 14),
 
             /// PAGE VIEW — title, subtitle, illustration, badges all change per page
             Expanded(
@@ -151,32 +154,38 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                       const SizedBox(height: 8),
 
-                      /// ILLUSTRATION — enlarged to fill remaining space
+                      /// ILLUSTRATION — fills the entire remaining space,
+                      /// no letterbox gaps above/below or beside the image
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 4,
                           ),
-                          child: Image.asset(
-                            page["image"] as String,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) {
-                              debugPrint(error.toString());
-                              return Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
-                                  borderRadius:
-                                      BorderRadius.circular(20),
-                                ),
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.image_not_supported_outlined,
-                                    size: 70,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              );
-                            },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: SizedBox.expand(
+                              child: Image.asset(
+                                page["image"] as String,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  debugPrint(error.toString());
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      borderRadius:
+                                          BorderRadius.circular(20),
+                                    ),
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.image_not_supported_outlined,
+                                        size: 70,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
                           ),
                         ),
                       ),
