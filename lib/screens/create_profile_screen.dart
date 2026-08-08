@@ -18,12 +18,18 @@ class CreateProfileScreen extends StatefulWidget {
       _CreateProfileScreenState();
 }
 
-class _CreateProfileScreenState
-    extends State<CreateProfileScreen> {
+class _CreateProfileScreenState extends State<CreateProfileScreen> {
   final TextEditingController _nameController =
       TextEditingController();
 
   bool _isLoading = false;
+
+  static const Color primaryBlue = Color(0xFF0D47FF);
+  static const Color darkText = Color(0xFF0F172A);
+  static const Color secondaryText = Color(0xFF64748B);
+  static const Color lightText = Color(0xFF94A3B8);
+  static const Color borderColor = Color(0xFFD1D5DB);
+  static const Color softBlue = Color(0xFFF1F5FF);
 
   @override
   void dispose() {
@@ -31,197 +37,388 @@ class _CreateProfileScreenState
     super.dispose();
   }
 
-Future<void> _createAccount() async {
-  final name = _nameController.text.trim();
+  Future<void> _createAccount() async {
+    final name = _nameController.text.trim();
 
-  if (name.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Please enter your full name."),
-      ),
-    );
-    return;
-  }
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter your full name."),
+        ),
+      );
+      return;
+    }
 
-  setState(() {
-    _isLoading = true;
-  });
-
-  try {
-    await FirebaseFirestore.instance
-        .collection("users")
-        .doc(widget.uid)
-        .set({
-      "uid": widget.uid,
-      "fullName": name,
-      "phoneNumber": widget.phoneNumber,
-      "role": "customer",
-      "createdAt": FieldValue.serverTimestamp(),
-      "lastLogin": FieldValue.serverTimestamp(),
+    setState(() {
+      _isLoading = true;
     });
 
-    if (!mounted) return;
-
-   Navigator.pushAndRemoveUntil(
-  context,
-  MaterialPageRoute(
-    builder: (_) => const MainNavigationScreen(),
-  ),
-  (route) => false,
-);
-  } catch (e) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Failed to create account: $e"),
-      ),
-    );
-  } finally {
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
+    try {
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(widget.uid)
+          .set({
+        "uid": widget.uid,
+        "fullName": name,
+        "phoneNumber": widget.phoneNumber,
+        "role": "customer",
+        "createdAt": FieldValue.serverTimestamp(),
+        "lastLogin": FieldValue.serverTimestamp(),
       });
+
+      if (!mounted) return;
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const MainNavigationScreen(),
+        ),
+        (route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Failed to create account: $e"),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
 
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black,
-        title: const Text(
-          "Create Your Account",
-        ),
-      ),
-
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 20),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
 
-              const Center(
-                child: Icon(
-                  Icons.account_circle,
-                  size: 90,
-                  color: Colors.deepPurple,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 28,
+          ),
+
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+
+              // ============================================================
+              // TOP BAR
+              // ============================================================
+
+              const SizedBox(height: 12),
+
+              SizedBox(
+                height: 48,
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(
+                        Icons.arrow_back,
+                        size: 29,
+                        color: darkText,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+
+                    const SizedBox(width: 18),
+
+                    const Text(
+                      "Create your account",
+                      style: TextStyle(
+                        color: darkText,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
-              const SizedBox(height: 30),
+              // ============================================================
+              // HABIO LOGO
+              // ============================================================
 
-              const Center(
-                child: Text(
-                  "Almost There!",
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
+              const SizedBox(height: 20),
+
+              Center(
+                child: Hero(
+                  tag: "habio_logo",
+                  child: Image.asset(
+                    "assets/logo/habio_logo_blue.png",
+                    height: 72,
+                    width: 72,
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),
+
+              // ============================================================
+              // TITLE
+              // ============================================================
+
+              const SizedBox(height: 24),
+
+              const Center(
+                child: Text(
+                  "Almost there!",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: darkText,
+                    fontSize: 31,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.6,
+                  ),
+                ),
+              ),
+
+              // ============================================================
+              // SUBTITLE
+              // ============================================================
 
               const SizedBox(height: 12),
 
               const Center(
-                child: Text(
-                  "Tell us your name to complete your Habio account.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 16,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    "Tell us your name to complete your\nHabio account.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: secondaryText,
+                      fontSize: 16,
+                      height: 1.45,
+                    ),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 40),
+              // ============================================================
+              // NAME LABEL
+              // ============================================================
+
+              const SizedBox(height: 34),
 
               const Text(
                 "Full Name",
                 style: TextStyle(
+                  color: darkText,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
               ),
 
               const SizedBox(height: 10),
 
+              // ============================================================
+              // NAME FIELD
+              // ============================================================
+
               TextField(
                 controller: _nameController,
-                textCapitalization:
-                    TextCapitalization.words,
+                textCapitalization: TextCapitalization.words,
+
+                style: const TextStyle(
+                  color: darkText,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w500,
+                ),
+
                 decoration: InputDecoration(
                   hintText: "Enter your full name",
-                  border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(15),
+
+                  hintStyle: const TextStyle(
+                    color: Color(0xFF9CA3AF),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
                   ),
-                  focusedBorder:
-                      OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(15),
-                    borderSide:
-                        const BorderSide(
-                      color: Colors.deepPurple,
+
+                  prefixIcon: const Icon(
+                    Icons.person_outline,
+                    color: secondaryText,
+                  ),
+
+                  filled: true,
+                  fillColor: Colors.white,
+
+                  contentPadding:
+                      const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 17,
+                  ),
+
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: borderColor,
+                      width: 1.3,
+                    ),
+                  ),
+
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: borderColor,
+                      width: 1.3,
+                    ),
+                  ),
+
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: primaryBlue,
                       width: 2,
                     ),
                   ),
                 ),
               ),
 
+              // ============================================================
+              // VERIFIED MOBILE LABEL
+              // ============================================================
+
               const SizedBox(height: 25),
 
               const Text(
                 "Verified Mobile Number",
                 style: TextStyle(
+                  color: darkText,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
               ),
 
               const SizedBox(height: 10),
 
-              TextField(
-                enabled: false,
-                decoration: InputDecoration(
-                  prefixIcon:
-                      const Icon(Icons.phone),
-                  hintText:
-                      "+91 ${widget.phoneNumber}",
-                  border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(15),
+              // ============================================================
+              // VERIFIED MOBILE
+              // ============================================================
+
+              Container(
+                width: double.infinity,
+                height: 60,
+
+                decoration: BoxDecoration(
+                  color: softBlue,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFFDCE6FF),
+                    width: 1.2,
                   ),
+                ),
+
+                child: Row(
+                  children: [
+                    const SizedBox(width: 17),
+
+                    const Icon(
+                      Icons.verified_outlined,
+                      color: primaryBlue,
+                      size: 23,
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      child: Text(
+                        "+91 ${widget.phoneNumber}",
+                        style: const TextStyle(
+                          color: darkText,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+
+                    const Padding(
+                      padding: EdgeInsets.only(right: 16),
+                      child: Text(
+                        "Verified",
+                        style: TextStyle(
+                          color: primaryBlue,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
-              const Spacer(),              SizedBox(
+              // ============================================================
+              // INFORMATION
+              // ============================================================
+
+              const SizedBox(height: 14),
+
+              const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: lightText,
+                  ),
+
+                  SizedBox(width: 7),
+
+                  Expanded(
+                    child: Text(
+                      "Your mobile number has been verified and "
+                      "will be linked to your Habio account.",
+                      style: TextStyle(
+                        color: lightText,
+                        fontSize: 12,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              // ============================================================
+              // CREATE ACCOUNT BUTTON
+              // ============================================================
+
+              const SizedBox(height: 36),
+
+              SizedBox(
                 width: double.infinity,
-                height: 55,
+                height: 58,
+
                 child: ElevatedButton(
                   onPressed:
                       _isLoading ? null : _createAccount,
+
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: primaryBlue,
                     disabledBackgroundColor:
-                        Colors.deepPurple.shade200,
+                        const Color(0xFFB8C7F5),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(15),
+                      borderRadius: BorderRadius.circular(17),
                     ),
                   ),
+
                   child: _isLoading
                       ? const SizedBox(
                           height: 24,
                           width: 24,
                           child: CircularProgressIndicator(
-                            strokeWidth: 2,
+                            strokeWidth: 2.5,
                             color: Colors.white,
                           ),
                         )
@@ -229,13 +426,30 @@ Future<void> _createAccount() async {
                           "Create Account",
                           style: TextStyle(
                             fontSize: 18,
-                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                 ),
               ),
 
-              const SizedBox(height: 20),
+              // ============================================================
+              // BOTTOM MESSAGE
+              // ============================================================
+
+              const SizedBox(height: 18),
+
+              const Center(
+                child: Text(
+                  "You can update your profile details later.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: lightText,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 28),
             ],
           ),
         ),

@@ -7,122 +7,132 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const Color primaryBlue = Color(0xFF0D47FF);
+    const Color darkText = Color(0xFF0F172A);
+    const Color secondaryText = Color(0xFF64748B);
+    const Color lightText = Color(0xFF94A3B8);
 
     return Scaffold(
       backgroundColor: Colors.white,
+
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 28,
+          ),
+
           child: Column(
             children: [
-              const Spacer(),
 
-              /// HERO LOGO
+              // ------------------------------------------------------------
+              // HABIO LOGO
+              // ------------------------------------------------------------
+              const SizedBox(height: 42),
+
               Hero(
                 tag: "habio_logo",
                 child: Image.asset(
                   "assets/logo/habio_logo_blue.png",
-                  height: 115,
+                  height: 105,
+                  width: 105,
+                  fit: BoxFit.contain,
                 ),
               ),
 
-              const SizedBox(height: 20),
+              // ------------------------------------------------------------
+              // WELCOME TITLE
+              // ------------------------------------------------------------
+              const SizedBox(height: 28),
 
-              /// HERO TEXT
               const Hero(
                 tag: "habio_text",
                 child: Material(
                   color: Colors.transparent,
                   child: Text(
-                    "Habio",
+                    "Welcome to Habio",
+                    textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 42,
+                      color: darkText,
+                      fontSize: 30,
                       fontWeight: FontWeight.w700,
-                      letterSpacing: -1,
+                      letterSpacing: -0.7,
+                      height: 1.15,
                     ),
                   ),
                 ),
               ),
 
+              // ------------------------------------------------------------
+              // MAIN TAGLINE
+              // ------------------------------------------------------------
               const SizedBox(height: 14),
 
-              const Text(
-                "Connecting Homes\nwith Trusted Professionals",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 18,
-                  height: 1.45,
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                child: Text(
+                  "Connecting Homes with Trusted\nProfessionals",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: secondaryText,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400,
+                    height: 1.4,
+                  ),
                 ),
               ),
 
-              const Spacer(),
+              // ------------------------------------------------------------
+              // SUPPORTING TEXT
+              // ------------------------------------------------------------
+              const SizedBox(height: 12),
 
-              SizedBox(
-                width: double.infinity,
-                height: 58,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryBlue,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  "Find the right professional, compare your\n"
+                  "options, and choose what works best for you.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: lightText,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                    height: 1.45,
                   ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const LoginScreen(),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    "Login",
+                ),
+              ),
+
+              // ------------------------------------------------------------
+              // CONTROLLED SPACE
+              // ------------------------------------------------------------
+              const SizedBox(height: 34),
+
+              // ------------------------------------------------------------
+              // LOGIN LABEL
+              // ------------------------------------------------------------
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: 8,
+                    bottom: 9,
+                  ),
+                  child: Text(
+                    "Already have an account?",
                     style: TextStyle(
-                      fontSize: 17,
+                      color: secondaryText,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 18),
-
-              const Row(
-                children: [
-                  Expanded(child: Divider()),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      "OR",
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  Expanded(child: Divider()),
-                ],
-              ),
-
-              const SizedBox(height: 18),
-
+              // ------------------------------------------------------------
+              // LOGIN BUTTON
+              // ------------------------------------------------------------
               SizedBox(
                 width: double.infinity,
                 height: 58,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(
-                      color: primaryBlue,
-                      width: 1.6,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
+                child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -131,31 +141,204 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                     );
                   },
+
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryBlue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(17),
+                    ),
+                  ),
+
+                  child: const Text(
+                    "Login",
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+
+              // ------------------------------------------------------------
+              // OR DIVIDER
+              // ------------------------------------------------------------
+              const SizedBox(height: 18),
+
+              Row(
+                children: [
+                  const Expanded(
+                    child: Divider(
+                      color: Color(0xFFE2E8F0),
+                      thickness: 1,
+                    ),
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                    ),
+                    child: Text(
+                      "OR",
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+
+                  const Expanded(
+                    child: Divider(
+                      color: Color(0xFFE2E8F0),
+                      thickness: 1,
+                    ),
+                  ),
+                ],
+              ),
+
+              // ------------------------------------------------------------
+              // CREATE ACCOUNT LABEL
+              // ------------------------------------------------------------
+              const SizedBox(height: 18),
+
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: 8,
+                    bottom: 9,
+                  ),
+                  child: Text(
+                    "New to Habio?",
+                    style: TextStyle(
+                      color: secondaryText,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+
+              // ------------------------------------------------------------
+              // CREATE ACCOUNT BUTTON
+              // ------------------------------------------------------------
+              SizedBox(
+                width: double.infinity,
+                height: 58,
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const LoginScreen(),
+                      ),
+                    );
+                  },
+
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: primaryBlue,
+
+                    side: const BorderSide(
+                      color: primaryBlue,
+                      width: 1.7,
+                    ),
+
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(17),
+                    ),
+                  ),
+
                   child: const Text(
                     "Create New Account",
                     style: TextStyle(
                       color: primaryBlue,
                       fontSize: 17,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 18),
+              // ------------------------------------------------------------
+              // GUEST
+              // ------------------------------------------------------------
+              const SizedBox(height: 10),
 
               TextButton(
                 onPressed: () {},
+
+                style: TextButton.styleFrom(
+                  foregroundColor: secondaryText,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
+                ),
+
                 child: const Text(
                   "Continue as Guest",
                   style: TextStyle(
-                    color: Colors.grey,
+                    color: secondaryText,
+                    fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
 
-              const SizedBox(height: 30),
+              // ------------------------------------------------------------
+              // TRUST MESSAGE
+              // ------------------------------------------------------------
+              const SizedBox(height: 6),
+
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.verified_user_outlined,
+                    size: 15,
+                    color: primaryBlue,
+                  ),
+
+                  SizedBox(width: 6),
+
+                  Text(
+                    "Trusted professionals",
+                    style: TextStyle(
+                      color: lightText,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(
+                      "•",
+                      style: TextStyle(
+                        color: lightText,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+
+                  Text(
+                    "Transparent pricing",
+                    style: TextStyle(
+                      color: lightText,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+
+              // ------------------------------------------------------------
+              // BOTTOM SAFE SPACE
+              // ------------------------------------------------------------
+              const SizedBox(height: 18),
             ],
           ),
         ),

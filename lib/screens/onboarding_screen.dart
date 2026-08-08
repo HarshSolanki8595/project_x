@@ -72,7 +72,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           children: [
             /// SKIP BUTTON
             Padding(
-              padding: const EdgeInsets.only(top: 4, right: 24),
+              padding: const EdgeInsets.only(top: 6, right: 24),
               child: Align(
                 alignment: Alignment.topRight,
                 child: TextButton(
@@ -91,16 +91,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            /// LOGO — the hero element, no wordmark, same on every page
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Image.asset(
-                "assets/logo/habio_logo_blue.png",
-                height: MediaQuery.of(context).size.height * 0.16,
+            /// LOGO + HABIO WORDMARK (matches reference: logo above, text below)
+            const SizedBox(height: 8),
+            Image.asset(
+              "assets/logo/habio_logo_blue.png",
+              height: 130,
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              "Habio",
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF0F172A),
+                letterSpacing: -0.5,
               ),
             ),
-
-            const SizedBox(height: 14),
 
             /// PAGE VIEW — title, subtitle, illustration, badges all change per page
             Expanded(
@@ -119,105 +125,107 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                   return Column(
                     children: [
-                      /// TITLE (smaller than before)
+                      const SizedBox(height: 18),
+
+                      /// TITLE
                       Padding(
                         padding:
-                            const EdgeInsets.symmetric(horizontal: 32),
+                            const EdgeInsets.symmetric(horizontal: 30),
                         child: Text(
                           page["title"] as String,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
                             color: Color(0xFF0F172A),
-                            height: 1.15,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 6),
-
-                      /// SUBTITLE (smaller still)
-                      Padding(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 32),
-                        child: Text(
-                          page["description"] as String,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF64748B),
-                            height: 1.3,
+                            height: 1.2,
                           ),
                         ),
                       ),
 
                       const SizedBox(height: 8),
 
-                      /// ILLUSTRATION — fills the entire remaining space,
-                      /// no letterbox gaps above/below or beside the image
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: SizedBox.expand(
-                              child: Image.asset(
-                                page["image"] as String,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  debugPrint(error.toString());
-                                  return Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade100,
-                                      borderRadius:
-                                          BorderRadius.circular(20),
-                                    ),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.image_not_supported_outlined,
-                                        size: 70,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
+                      /// SUBTITLE
+                      Padding(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 30),
+                        child: Text(
+                          page["description"] as String,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Color(0xFF64748B),
+                            height: 1.4,
                           ),
                         ),
                       ),
 
-                      const SizedBox(height: 10),
-
-                      /// FEATURE BADGES ROW
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(features.length, (i) {
-                          final feature = features[i];
-                          return Row(
-                            children: [
-                              _FeatureBadge(
-                                icon: feature["icon"] as IconData,
-                                label: feature["label"] as String,
-                              ),
-                              if (i != features.length - 1)
-                                Container(
-                                  height: 34,
-                                  width: 1,
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                  ),
-                                  color: const Color(0xFFE2E8F0),
+                      /// ILLUSTRATION — the extracted asset already has the
+                      /// blob backdrop baked in, so it's shown as-is with
+                      /// no extra decoration behind it. It fills the space
+                      /// left over between the text above and badges below.
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 10,
+                          ),
+                          child: Image.asset(
+                            page["image"] as String,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              debugPrint(error.toString());
+                              return Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius:
+                                      BorderRadius.circular(20),
                                 ),
-                            ],
-                          );
-                        }),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.image_not_supported_outlined,
+                                    size: 70,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                       ),
 
-                      const SizedBox(height: 10),
+                      /// FEATURE BADGES ROW
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                        ),
+                        child: Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.spaceEvenly,
+                          children: List.generate(features.length, (i) {
+                            final feature = features[i];
+                            return Row(
+                              children: [
+                                _FeatureBadge(
+                                  icon: feature["icon"] as IconData,
+                                  label: feature["label"] as String,
+                                ),
+                                if (i != features.length - 1)
+                                  Container(
+                                    height: 36,
+                                    width: 1,
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
+                                    color: const Color(0xFFE2E8F0),
+                                  ),
+                              ],
+                            );
+                          }),
+                        ),
+                      ),
+
+                      const SizedBox(height: 14),
                     ],
                   );
                 },
@@ -226,7 +234,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
             /// PAGE INDICATOR
             Padding(
-              padding: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.only(bottom: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
@@ -252,7 +260,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: 58,
                 child: ElevatedButton(
                   onPressed: () {
                     if (currentPage < pages.length - 1) {
@@ -292,7 +300,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            const SizedBox(height: 18),
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -316,8 +324,8 @@ class _FeatureBadge extends StatelessWidget {
     return Column(
       children: [
         Container(
-          height: 38,
-          width: 38,
+          height: 42,
+          width: 42,
           decoration: const BoxDecoration(
             color: Color(0xFFE8EDFF),
             shape: BoxShape.circle,
@@ -325,15 +333,15 @@ class _FeatureBadge extends StatelessWidget {
           child: Icon(
             icon,
             color: const Color(0xFF0D47FF),
-            size: 18,
+            size: 20,
           ),
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 6),
         Text(
           label,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: FontWeight.w600,
             color: Color(0xFF0F172A),
             height: 1.2,
