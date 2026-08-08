@@ -18,6 +18,8 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+  static const Color primaryBlue = Color(0xFF1557FF);
+
   GoogleMapController? _mapController;
 
   final LocationService _locationService = LocationService();
@@ -39,6 +41,8 @@ class _MapScreenState extends State<MapScreen> {
     zoom: 14,
   );
 
+  Map<String, String> _addressComponents = {};
+
   @override
   void initState() {
     super.initState();
@@ -47,7 +51,7 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _moveToCurrentLocation() async {
     try {
-      Position position =
+      final Position position =
           await _locationService.getCurrentLocation();
 
       _selectedLatLng = LatLng(
@@ -76,38 +80,33 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  Map<String, String> _addressComponents = {};
+  Future<void> _updateAddress() async {
+    final address =
+        await _locationService.getAddressFromCoordinates(
+      _selectedLatLng.latitude,
+      _selectedLatLng.longitude,
+    );
 
-Future<void> _updateAddress() async {
+    final components =
+        await _locationService.getAddressComponents(
+      _selectedLatLng.latitude,
+      _selectedLatLng.longitude,
+    );
 
-  final address =
-      await _locationService.getAddressFromCoordinates(
-    _selectedLatLng.latitude,
-    _selectedLatLng.longitude,
-  );
+    if (!mounted) return;
 
-  final components =
-      await _locationService.getAddressComponents(
-    _selectedLatLng.latitude,
-    _selectedLatLng.longitude,
-  );
-
-  if (!mounted) return;
-
-  setState(() {
-    _selectedAddress = address;
-    _addressComponents = components;
-  });
-
-}
+    setState(() {
+      _selectedAddress = address;
+      _addressComponents = components;
+    });
+  }
 
   Future<void> _openSearch() async {
     final PlacePrediction? prediction =
-        await Navigator.push<PlacePrediction>(
+        await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            const AddressSearchScreen(),
+        builder: (_) => const AddressSearchScreen(),
       ),
     );
 
@@ -132,16 +131,12 @@ Future<void> _updateAddress() async {
       );
 
       await _updateAddress();
-
     } catch (e) {
-
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            e.toString(),
-          ),
+          content: Text(e.toString()),
         ),
       );
     }
@@ -149,29 +144,38 @@ Future<void> _updateAddress() async {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
+      backgroundColor: Colors.white,
 
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+        centerTitle: false,
+        titleSpacing: 4,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_rounded,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         title: const Text(
           "Select Service Address",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
       ),
 
       body: Stack(
-
         children: [
-
           GoogleMap(
-
-            initialCameraPosition:
-                _initialPosition,
-
+            initialCameraPosition: _initialPosition,
             myLocationEnabled: true,
-            myLocationButtonEnabled: true,
-
+            myLocationButtonEnabled: false,
             compassEnabled: true,
             zoomControlsEnabled: false,
 
@@ -181,8 +185,7 @@ Future<void> _updateAddress() async {
             },
 
             onCameraMove: (position) {
-              _selectedLatLng =
-                  position.target;
+              _selectedLatLng = position.target;
             },
 
             onCameraIdle: () {
@@ -192,8 +195,41 @@ Future<void> _updateAddress() async {
 
           const CenterLocationPin(),
 
-          AddressSearchBar(
-            onTap: _openSearch,
+          Positioned(
+            top: 16,
+            left: 20,
+            right: 20,
+            child: AddressSearchBar(
+              onTap: _openSearch,
+            ),
+          ),
+
+          Positioned(
+            right: 20,
+            bottom: 210,
+            child: Material(
+              color: Colors.white,
+              elevation: 4,
+              shadowColor: Colors.black26,
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: _moveToCurrentLocation,
+                child: Container(
+                  height: 52,
+                  width: 52,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.my_location_rounded,
+                    color: primaryBlue,
+                    size: 24,
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -201,37 +237,20 @@ Future<void> _updateAddress() async {
       bottomSheet: AddressBottomSheet(
         address: _selectedAddress,
         onConfirm: () {
-
           Navigator.pop(
-  context,
-  {
-    "address": _selectedAddress,
-
-    "house":
-        _addressComponents["house"],
-
-    "street":
-        _addressComponents["street"],
-
-    "area":
-        _addressComponents["area"],
-
-    "city":
-        _addressComponents["city"],
-
-    "state":
-        _addressComponents["state"],
-
-    "pincode":
-        _addressComponents["pincode"],
-
-    "latitude":
-        _selectedLatLng.latitude,
-
-    "longitude":
-        _selectedLatLng.longitude,
-  },
-);
+            context,
+            {
+              "address": _selectedAddress,
+              "house": _addressComponents["house"],
+              "street": _addressComponents["street"],
+              "area": _addressComponents["area"],
+              "city": _addressComponents["city"],
+              "state": _addressComponents["state"],
+              "pincode": _addressComponents["pincode"],
+              "latitude": _selectedLatLng.latitude,
+              "longitude": _selectedLatLng.longitude,
+            },
+          );
         },
       ),
     );

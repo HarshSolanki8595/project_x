@@ -11,37 +11,35 @@ class EmergencyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       child: InkWell(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(21),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: const Color(0xFFFFF3F3),
-            borderRadius: BorderRadius.circular(22),
+            color: const Color(0xFFFFF7F7),
+            borderRadius: BorderRadius.circular(21),
             border: Border.all(
-              color: Colors.red.shade200,
+              color: const Color(0xFFFECACA),
             ),
           ),
           child: Row(
             children: [
               Container(
-                height: 62,
-                width: 62,
+                height: 55,
+                width: 55,
                 decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(18),
+                  color: const Color(0xFFFF3B30),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Icon(
                   Icons.warning_amber_rounded,
                   color: Colors.white,
-                  size: 34,
+                  size: 30,
                 ),
               ),
-
-              const SizedBox(width: 18),
-
+              const SizedBox(width: 15),
               const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,30 +47,28 @@ class EmergencyCard extends StatelessWidget {
                     Text(
                       "Emergency Assistance",
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-
-                    SizedBox(height: 6),
-
+                    SizedBox(height: 5),
                     Text(
                       "Need urgent help? Get connected to emergency services instantly.",
                       style: TextStyle(
-                        color: Colors.black54,
-                        height: 1.4,
+                        color: Color(0xFF64748B),
+                        fontSize: 12.5,
+                        height: 1.35,
                       ),
                     ),
                   ],
                 ),
               ),
-
-              const SizedBox(width: 10),
-
+              const SizedBox(width: 8),
               const Icon(
                 Icons.arrow_forward_ios_rounded,
-                size: 18,
-                color: Colors.red,
+                size: 17,
+                color: Color(0xFFFF3B30),
               ),
             ],
           ),

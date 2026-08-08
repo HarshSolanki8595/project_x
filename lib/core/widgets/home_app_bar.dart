@@ -12,70 +12,72 @@ class HomeAppBar extends StatelessWidget {
   final VoidCallback? onLocationTap;
   final VoidCallback? onNotificationTap;
 
+  static const Color primaryBlue = Color(0xFF0D47FF);
+  static const Color darkText = Color(0xFF0F172A);
+  static const Color secondaryText = Color(0xFF64748B);
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      bottom: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-        child: Row(
-          children: [
-            Expanded(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: onLocationTap,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: onLocationTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 5,
+                  horizontal: 2,
+                ),
                 child: Row(
                   children: [
                     Container(
-                      height: 42,
-                      width: 42,
+                      height: 44,
+                      width: 44,
                       decoration: BoxDecoration(
-                        color: Colors.deepPurple.shade50,
-                        borderRadius: BorderRadius.circular(12),
+                        color: const Color(0xFFF1F5FF),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Icon(
-                        Icons.location_on,
-                        color: Colors.deepPurple,
+                        Icons.location_on_rounded,
+                        color: primaryBlue,
+                        size: 23,
                       ),
                     ),
-
                     const SizedBox(width: 12),
-
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             "Current Location",
                             style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 12,
+                              color: secondaryText,
+                              fontSize: 11,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-
                           const SizedBox(height: 2),
-
                           Row(
                             children: [
-                              Expanded(
+                              Flexible(
                                 child: Text(
                                   location,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
+                                    color: darkText,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ),
-
-                              const SizedBox(width: 4),
-
+                              const SizedBox(width: 3),
                               const Icon(
                                 Icons.keyboard_arrow_down_rounded,
-                                size: 20,
-                                color: Colors.black54,
+                                color: secondaryText,
+                                size: 19,
                               ),
                             ],
                           ),
@@ -86,47 +88,45 @@ class HomeAppBar extends StatelessWidget {
                 ),
               ),
             ),
-
-            const SizedBox(width: 12),
-
-            Stack(
-              children: [
-                InkWell(
-                  borderRadius: BorderRadius.circular(14),
-                  onTap: onNotificationTap,
-                  child: Container(
-                    height: 50,
-                    width: 50,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: Colors.grey.shade300,
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.notifications_none_rounded,
-                      color: Colors.black87,
+          ),
+          const SizedBox(width: 12),
+          Stack(
+            children: [
+              InkWell(
+                borderRadius: BorderRadius.circular(15),
+                onTap: onNotificationTap,
+                child: Container(
+                  height: 48,
+                  width: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(
+                      color: const Color(0xFFE2E8F0),
                     ),
                   ),
-                ),
-
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: Container(
-                    height: 10,
-                    width: 10,
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
+                  child: const Icon(
+                    Icons.notifications_none_rounded,
+                    color: darkText,
+                    size: 24,
                   ),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+              Positioned(
+                top: 9,
+                right: 9,
+                child: Container(
+                  height: 9,
+                  width: 9,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFF3B30),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

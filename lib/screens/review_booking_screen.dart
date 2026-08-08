@@ -12,14 +12,18 @@ class ReviewBookingScreen extends StatelessWidget {
     required this.request,
   });
 
+  static const Color primaryBlue = Color(0xFF1557FF);
+  static const Color backgroundColor = Color(0xFFF7F8FC);
+
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Text(
         title,
         style: const TextStyle(
           fontSize: 18,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
+          color: Colors.black87,
         ),
       ),
     );
@@ -30,18 +34,14 @@ class ReviewBookingScreen extends StatelessWidget {
   }) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 18),
+      margin: const EdgeInsets.only(bottom: 22),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: Offset(0, 3),
-          ),
-        ],
+        border: Border.all(
+          color: Colors.grey.shade200,
+        ),
       ),
       child: child,
     );
@@ -60,323 +60,368 @@ class ReviewBookingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF7F8FC),
-
+      backgroundColor: backgroundColor,
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
         title: const Text(
           "Review Booking",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
-
       body: SafeArea(
         child: Column(
           children: [
-
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     const Text(
-                      "Please review your request before sending it to nearby professionals.",
+                      "Review your request",
                       style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 15,
+                        fontSize: 30,
+                        height: 1.2,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
                       ),
                     ),
 
-                    const SizedBox(height: 28),_buildSectionTitle("Service"),
+                    const SizedBox(height: 8),
 
-_buildCard(
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
+                    const Text(
+                      "Make sure everything looks right before sending your request.",
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 15,
+                        height: 1.4,
+                      ),
+                    ),
 
-      Text(
-        request.categoryName,
-        style: const TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+                    const SizedBox(height: 28),
 
-      const SizedBox(height: 6),
+                    _buildSectionTitle("Service"),
 
-      Text(
-        request.subCategoryName,
-        style: const TextStyle(
-          fontSize: 16,
-          color: Colors.grey,
-        ),
-      ),
+                    _buildCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            request.categoryName,
+                            style: const TextStyle(
+                              fontSize: 21,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
 
-      if (request.isEmergency) ...[
+                          const SizedBox(height: 5),
 
-        const SizedBox(height: 16),
+                          Text(
+                            request.subCategoryName,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
 
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 8,
-          ),
-          decoration: BoxDecoration(
-            color: Colors.red.shade100,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+                          if (request.isEmergency) ...[
+                            const SizedBox(height: 14),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.red.shade100,
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.warning_amber_rounded,
+                                    color: Colors.red,
+                                    size: 18,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    "Emergency Service",
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
 
-              Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.red,
-                size: 18,
-              ),
+                    _buildSectionTitle("Issue Description"),
 
-              SizedBox(width: 8),
+                    _buildCard(
+                      child: Text(
+                        request.issueDescription.isEmpty
+                            ? "No description provided."
+                            : request.issueDescription,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          height: 1.5,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
 
-              Text(
-                "Emergency Service",
-                style: TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
+                    _buildSectionTitle("Photos"),
+
+                    _buildCard(
+                      child: request.photos.isEmpty
+                          ? const Row(
+                              children: [
+                                Icon(
+                                  Icons.photo_library_outlined,
+                                  color: Colors.grey,
+                                ),
+                                SizedBox(width: 10),
+                                Text(
+                                  "No photos attached.",
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : SizedBox(
+                              height: 90,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: request.photos.length,
+                                itemBuilder: (context, index) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(
+                                      right: 12,
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius:
+                                          BorderRadius.circular(12),
+                                      child: Image.file(
+                                        request.photos[index],
+                                        width: 90,
+                                        height: 90,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                    ),
+
+                    _buildSectionTitle("Service Address"),
+
+                    _buildCard(
+                      child: Row(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: 42,
+                            width: 42,
+                            decoration: BoxDecoration(
+                              color:
+                                  primaryBlue.withValues(alpha: 0.10),
+                              borderRadius:
+                                  BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.location_on_rounded,
+                              color: primaryBlue,
+                              size: 22,
+                            ),
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          Expanded(
+                            child: Text(
+                              request.address == null ||
+                                      request.address!.isEmpty
+                                  ? "No address selected"
+                                  : request.address!,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                height: 1.5,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    _buildSectionTitle("Preferred Schedule"),
+
+                    _buildCard(
+                      child: Row(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: 42,
+                            width: 42,
+                            decoration: BoxDecoration(
+                              color:
+                                  primaryBlue.withValues(alpha: 0.10),
+                              borderRadius:
+                                  BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.calendar_month_rounded,
+                              color: primaryBlue,
+                              size: 22,
+                            ),
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  formattedDate,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 5),
+
+                                Text(
+                                  request.preferredTimeSlot ??
+                                      "Not Selected",
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    _buildSectionTitle("What Happens Next"),
+
+                    _buildCard(
+                      child: Column(
+                        children: const [
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(
+                              Icons.check_circle_rounded,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              "Your request will be sent to nearby verified professionals.",
+                            ),
+                          ),
+
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(
+                              Icons.check_circle_rounded,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              "Professionals will review your request and send quotations.",
+                            ),
+                          ),
+
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(
+                              Icons.check_circle_rounded,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              "Compare prices, ratings and reviews before choosing one.",
+                            ),
+                          ),
+
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(
+                              Icons.check_circle_rounded,
+                              color: Colors.green,
+                            ),
+                            title: Text(
+                              "No payment is required until you accept a quotation.",
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
+            ),
 
-            ],
-          ),
-        ),
-
-      ],
-
-    ],
-  ),
-),
-
-_buildSectionTitle("Issue Description"),
-
-_buildCard(
-  child: Text(
-    request.issueDescription.isEmpty
-        ? "No description provided."
-        : request.issueDescription,
-    style: const TextStyle(
-      fontSize: 16,
-      height: 1.5,
-    ),
-  ),
-),
-
-_buildSectionTitle("Photos"),
-
-_buildCard(
-  child: request.photos.isEmpty
-      ? const Text(
-          "No photos attached.",
-          style: TextStyle(
-            color: Colors.grey,
-          ),
-        )
-      : SizedBox(
-          height: 90,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: request.photos.length,
-            itemBuilder: (context, index) {
-
-              return Padding(
-                padding: const EdgeInsets.only(
-                  right: 12,
-                ),
-                child: ClipRRect(
-                  borderRadius:
-                      BorderRadius.circular(12),
-                  child: Image.file(
-                    request.photos[index],
-                    width: 90,
-                    height: 90,
-                    fit: BoxFit.cover,
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, -4),
                   ),
-                ),
-              );
-
-            },
-          ),
-        ),
-),
-
-const SizedBox(height: 10),_buildSectionTitle("Service Address"),
-
-_buildCard(
-  child: Row(
-    crossAxisAlignment:
-        CrossAxisAlignment.start,
-    children: [
-
-      const Icon(
-        Icons.location_on,
-        color: Colors.deepPurple,
-      ),
-
-      const SizedBox(width: 12),
-
-      Expanded(
-        child: Text(
-          request.address == null ||
-                  request.address!.isEmpty
-              ? "No address selected"
-              : request.address!,
-          style: const TextStyle(
-            fontSize: 16,
-            height: 1.5,
-          ),
-        ),
-      ),
-
-    ],
-  ),
-),
-
-_buildSectionTitle("Preferred Schedule"),
-
-_buildCard(
-  child: Row(
-    crossAxisAlignment:
-        CrossAxisAlignment.start,
-    children: [
-
-      const Icon(
-        Icons.calendar_month,
-        color: Colors.deepPurple,
-      ),
-
-      const SizedBox(width: 12),
-
-      Expanded(
-        child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-          children: [
-
-            Text(
-              formattedDate,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+                ],
               ),
-            ),
-
-            const SizedBox(height: 6),
-
-            Text(
-              request.preferredTimeSlot ??
-                  "Not Selected",
-              style: const TextStyle(
-                fontSize: 15,
-                color: Colors.grey,
-              ),
-            ),
-
-          ],
-        ),
-      ),
-
-    ],
-  ),
-),
-
-_buildSectionTitle("What Happens Next"),
-
-_buildCard(
-  child: Column(
-    children: const [
-
-      ListTile(
-        leading: Icon(
-          Icons.check_circle,
-          color: Colors.green,
-        ),
-        title: Text(
-          "Your request will be sent to nearby verified professionals.",
-        ),
-      ),
-
-      ListTile(
-        leading: Icon(
-          Icons.check_circle,
-          color: Colors.green,
-        ),
-        title: Text(
-          "Professionals will review your request and send quotations.",
-        ),
-      ),
-
-      ListTile(
-        leading: Icon(
-          Icons.check_circle,
-          color: Colors.green,
-        ),
-        title: Text(
-          "Compare prices, ratings and reviews before choosing one.",
-        ),
-      ),
-
-      ListTile(
-        leading: Icon(
-          Icons.check_circle,
-          color: Colors.green,
-        ),
-        title: Text(
-          "No payment is required until you accept a quotation.",
-        ),
-      ),
-
-    ],
-  ),
-),
-
-const SizedBox(height: 30),
-
-SizedBox(
-  width: double.infinity,
-  height: 56,
-  child: ElevatedButton(
-    style: ElevatedButton.styleFrom(
-      backgroundColor:
-          Colors.deepPurple,
-      shape:
-          RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(14),
-      ),
-    ),
-    onPressed: () {
-
-      Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (_) => FindingProfessionalsScreen(
-      request: request,
-    ),
-  ),
-);
-
-    },
-    child: const Text(
-      "REQUEST QUOTES",
-      style: TextStyle(
-        fontSize: 17,
-        color: Colors.white,
-        fontWeight:
-            FontWeight.bold,
-      ),
-    ),
-  ),
-),                  ],
+              child: SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryBlue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => FindingProfessionalsScreen(
+                          request: request,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    "Request Quotes",
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
             ),

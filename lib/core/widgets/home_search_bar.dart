@@ -12,68 +12,72 @@ class HomeSearchBar extends StatelessWidget {
   final VoidCallback? onVoiceTap;
   final TextEditingController? controller;
 
+  static const Color primaryBlue = Color(0xFF0D47FF);
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Material(
         color: Colors.white,
-        elevation: 2,
-        shadowColor: Colors.black12,
+        elevation: 0,
         borderRadius: BorderRadius.circular(18),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(18),
           child: Container(
-            height: 60,
-            padding: const EdgeInsets.symmetric(horizontal: 18),
+            height: 62,
+            padding: const EdgeInsets.symmetric(horizontal: 17),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: const Color(0xFFE2E8F0),
+              ),
+            ),
             child: Row(
               children: [
                 const Icon(
                   Icons.search_rounded,
-                  color: Colors.grey,
-                  size: 28,
+                  color: Color(0xFF64748B),
+                  size: 27,
                 ),
-
-                const SizedBox(width: 14),
-
+                const SizedBox(width: 13),
                 Expanded(
                   child: IgnorePointer(
                     child: TextField(
                       controller: controller,
                       decoration: const InputDecoration(
                         border: InputBorder.none,
-                        hintText: "Search anything...",
+                        hintText: "Search services...",
                         hintStyle: TextStyle(
-                          color: Colors.grey,
+                          color: Color(0xFF94A3B8),
                           fontSize: 16,
                         ),
                       ),
                     ),
                   ),
                 ),
-
                 Container(
-                  height: 38,
+                  height: 32,
                   width: 1,
-                  color: Colors.grey.shade300,
+                  color: const Color(0xFFE2E8F0),
                 ),
-
-                const SizedBox(width: 12),
-
+                const SizedBox(width: 11),
                 InkWell(
                   borderRadius: BorderRadius.circular(30),
                   onTap: onVoiceTap,
                   child: Container(
                     height: 42,
                     width: 42,
-                    decoration: BoxDecoration(
-                      color: Colors.deepPurple.shade50,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF1F5FF),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.mic_none_rounded,
-                      color: Colors.deepPurple,
+                      color: primaryBlue,
+                      size: 22,
                     ),
                   ),
                 ),

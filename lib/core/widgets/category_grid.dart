@@ -22,14 +22,14 @@ class CategoryGrid extends StatelessWidget {
           child: Text(
             "Browse Categories",
             style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+              fontSize: 21,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.3,
             ),
           ),
         ),
-
-        const SizedBox(height: 18),
-
+        const SizedBox(height: 15),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: GridView.builder(
@@ -39,56 +39,49 @@ class CategoryGrid extends StatelessWidget {
             gridDelegate:
                 const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 14,
-              childAspectRatio: .90,
+              crossAxisSpacing: 11,
+              mainAxisSpacing: 11,
+              childAspectRatio: 0.92,
             ),
             itemBuilder: (context, index) {
               final category = categories[index];
 
               return InkWell(
-                borderRadius: BorderRadius.circular(20),
-                onTap: () {
-                  onCategoryTap?.call(category.name);
-                },
+                borderRadius: BorderRadius.circular(18),
+                onTap: () => onCategoryTap?.call(category.name),
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: .05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: const Color(0xFFE8EDF4),
+                    ),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       CircleAvatar(
-                        radius: 26,
+                        radius: 25,
                         backgroundColor:
-                            category.color.withValues(alpha: .15),
+                            category.color.withValues(alpha: 0.12),
                         child: Icon(
                           category.icon,
                           color: category.color,
-                          size: 28,
+                          size: 27,
                         ),
                       ),
-
-                      const SizedBox(height: 12),
-
+                      const SizedBox(height: 10),
                       Padding(
                         padding:
-                            const EdgeInsets.symmetric(horizontal: 8),
+                            const EdgeInsets.symmetric(horizontal: 7),
                         child: Text(
                           category.name,
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 13,
+                            color: Color(0xFF334155),
+                            fontSize: 12.5,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

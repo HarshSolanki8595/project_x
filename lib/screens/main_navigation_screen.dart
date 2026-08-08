@@ -77,12 +77,14 @@ class _MainNavigationScreenState
               .snapshots(),
           builder: (context, notificationSnapshot) {
             final unreadNotificationCount =
-                notificationSnapshot.data?.docs.length ??
-                    0;
+                notificationSnapshot.data?.docs.length ?? 0;
 
             return Scaffold(
-              body: _screens[_selectedIndex],
-
+              backgroundColor: const Color(0xFFF7F8FC),
+              body: IndexedStack(
+                index: _selectedIndex,
+                children: _screens,
+              ),
               bottomNavigationBar: BottomNavBar(
                 currentIndex: _selectedIndex,
                 onTap: _onItemTapped,

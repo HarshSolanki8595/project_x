@@ -25,8 +25,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool hasActiveBooking = false;
-
   String userName = "User";
+
+  static const Color backgroundColor = Color(0xFFF7F9FC);
+  static const Color darkText = Color(0xFF0F172A);
+  static const Color secondaryText = Color(0xFF64748B);
 
   @override
   void initState() {
@@ -74,10 +77,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _openSearch() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const SearchScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF7F8FC),
+      backgroundColor: backgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -90,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onNotificationTap: () {},
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -100,37 +112,34 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       "Welcome $userName 👋",
                       style: const TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
+                        color: darkText,
+                        fontSize: 29,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.6,
+                        height: 1.15,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 7),
                     const Text(
                       "How can we help you today?",
                       style: TextStyle(
-                        color: Colors.grey,
+                        color: secondaryText,
                         fontSize: 16,
+                        height: 1.35,
                       ),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               HomeSearchBar(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const SearchScreen(),
-                    ),
-                  );
-                },
+                onTap: _openSearch,
                 onVoiceTap: () {},
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 22),
 
               AskProjectXCard(
                 onTap: _openAskProjectX,
@@ -138,20 +147,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 onCameraTap: _openAskProjectX,
               ),
 
-              const SizedBox(height: 24),
+              if (hasActiveBooking) ...[
+                const SizedBox(height: 22),
+                ContinueBookingCard(
+                  isVisible: hasActiveBooking,
+                  onContinue: () {},
+                ),
+              ],
 
-              ContinueBookingCard(
-                isVisible: hasActiveBooking,
-                onContinue: () {},
-              ),
-
-              if (hasActiveBooking) const SizedBox(height: 24),
+              const SizedBox(height: 30),
 
               FrequentlyUsedSection(
                 onServiceTap: (service) {},
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 32),
 
               CategoryGrid(
                 onCategoryTap: (category) {
@@ -166,19 +176,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 32),
 
               TrendingServices(
                 onServiceTap: (service) {},
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 32),
 
               EmergencyCard(
                 onTap: () {},
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 8),
             ],
           ),
         ),

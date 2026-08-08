@@ -21,39 +21,36 @@ class ServiceRequestScreen extends StatefulWidget {
       _ServiceRequestScreenState();
 }
 
-class _ServiceRequestScreenState
-    extends State<ServiceRequestScreen> {
-  final TextEditingController issueController =
-      TextEditingController();
+class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
+  static const Color primaryBlue = Color(0xFF0D47FF);
+  static const Color darkText = Color(0xFF0F172A);
+  static const Color secondaryText = Color(0xFF64748B);
+  static const Color pageBackground = Color(0xFFF7F9FC);
+
+  final TextEditingController issueController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
 
   bool isEmergency = false;
 
-  final ImagePicker _picker = ImagePicker();
-
   List<File> selectedPhotos = [];
-
   File? selectedVideo;
 
   Future<void> pickPhotos() async {
-    final List<XFile> images =
-        await _picker.pickMultiImage(
+    final List<XFile> images = await _picker.pickMultiImage(
       imageQuality: 80,
     );
 
     if (images.isNotEmpty) {
       setState(() {
         selectedPhotos.addAll(
-          images.map(
-            (image) => File(image.path),
-          ),
+          images.map((image) => File(image.path)),
         );
       });
     }
   }
 
   Future<void> pickVideo() async {
-    final XFile? video =
-        await _picker.pickVideo(
+    final XFile? video = await _picker.pickVideo(
       source: ImageSource.gallery,
     );
 
@@ -70,260 +67,494 @@ class _ServiceRequestScreenState
     super.dispose();
   }
 
+  void _continue() {
+    if (issueController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please describe your issue."),
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddressScreen(
+          request: ServiceRequest(
+            categoryName: widget.categoryName,
+            subCategoryName: widget.subCategoryName,
+            issueDescription: issueController.text.trim(),
+            isEmergency: isEmergency,
+            photos: selectedPhotos,
+            video: selectedVideo,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: pageBackground,
       appBar: AppBar(
-        title: const Text("Describe Your Issue"),
+        backgroundColor: pageBackground,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        foregroundColor: darkText,
+        title: const Text(
+          "Describe Your Issue",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 30),
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [              Text(
-                widget.categoryName,
-                style: const TextStyle(
-                  color: Colors.deepPurple,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-
-              const SizedBox(height: 6),
-
-              Text(
-                widget.subCategoryName,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildServiceHeader(),
+              const SizedBox(height: 28),
+              _buildIssueSection(),
+              const SizedBox(height: 26),
+              _buildMediaSection(),
+              const SizedBox(height: 26),
+              _buildEmergencyCard(),
               const SizedBox(height: 30),
+              _buildContinueButton(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-              const Text(
-                "Describe your issue",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              TextField(
-                controller: issueController,
-                maxLines: 8,
-                decoration: InputDecoration(
-                  hintText:
-                      "Describe the problem in detail...\n\n"
-                      "Example:\n"
-                      "The ceiling fan makes noise and stops after 5 minutes.",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
+  Widget _buildServiceHeader() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: const Color(0xFFE5EAF1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            height: 52,
+            width: 52,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF3FF),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.build_circle_outlined,
+              color: primaryBlue,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.categoryName,
+                  style: const TextStyle(
+                    color: primaryBlue,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 25),
-
-              const Text(
-                "Upload Photos (Optional)",
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              OutlinedButton.icon(
-                onPressed: pickPhotos,
-                icon: const Icon(Icons.photo),
-                label: const Text("Add Photos"),
-              ),
-
-              if (selectedPhotos.isNotEmpty) ...[
-                const SizedBox(height: 15),
-
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: List.generate(
-                    selectedPhotos.length,
-                    (index) {
-                      return Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius:
-                                BorderRadius.circular(12),
-                            child: Image.file(
-                              selectedPhotos[index],
-                              width: 90,
-                              height: 90,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selectedPhotos.removeAt(index);
-                                });
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(3),
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.close,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+                const SizedBox(height: 3),
+                Text(
+                  widget.subCategoryName,
+                  style: const TextStyle(
+                    color: darkText,
+                    fontSize: 21,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-              const SizedBox(height: 25),
-
-              const Text(
-                "Upload Video (Optional)",
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
+  Widget _buildIssueSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "What’s wrong?",
+          style: TextStyle(
+            color: darkText,
+            fontSize: 23,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          "Tell us what is happening so the right professional can help.",
+          style: TextStyle(
+            color: secondaryText,
+            fontSize: 14,
+            height: 1.4,
+          ),
+        ),
+        const SizedBox(height: 14),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFFDCE3EC),
+            ),
+          ),
+          child: TextField(
+            controller: issueController,
+            maxLines: 7,
+            textCapitalization: TextCapitalization.sentences,
+            style: const TextStyle(
+              color: darkText,
+              fontSize: 16,
+              height: 1.45,
+            ),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.fromLTRB(17, 16, 17, 16),
+              hintText: "Describe the problem...",
+              hintStyle: TextStyle(
+                color: Color(0xFF94A3B8),
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(13),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5FF),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.lightbulb_outline_rounded,
+                color: primaryBlue,
+                size: 20,
+              ),
+              SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  "Example: The ceiling fan makes noise and stops after 5 minutes.",
+                  style: TextStyle(
+                    color: Color(0xFF475569),
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
                 ),
               ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
-              const SizedBox(height: 10),
-
-              OutlinedButton.icon(
-                onPressed: pickVideo,
-                icon: const Icon(Icons.videocam),
-                label: const Text("Add Video"),
-              ),              if (selectedVideo != null) ...[
-                const SizedBox(height: 15),
-
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurple.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.video_file,
-                        color: Colors.deepPurple,
+  Widget _buildMediaSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Help the professional understand",
+          style: TextStyle(
+            color: darkText,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 5),
+        const Text(
+          "Photos or a video are optional, but they can help.",
+          style: TextStyle(
+            color: secondaryText,
+            fontSize: 13.5,
+          ),
+        ),
+        const SizedBox(height: 14),
+        Row(
+          children: [
+            Expanded(
+              child: _mediaButton(
+                icon: Icons.photo_camera_outlined,
+                label: "Add Photos",
+                onTap: pickPhotos,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _mediaButton(
+                icon: Icons.videocam_outlined,
+                label: "Add Video",
+                onTap: pickVideo,
+              ),
+            ),
+          ],
+        ),
+        if (selectedPhotos.isNotEmpty) ...[
+          const SizedBox(height: 15),
+          SizedBox(
+            height: 82,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: selectedPhotos.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemBuilder: (context, index) {
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: Image.file(
+                        selectedPhotos[index],
+                        width: 82,
+                        height: 82,
+                        fit: BoxFit.cover,
                       ),
-
-                      const SizedBox(width: 10),
-
-                      const Expanded(
-                        child: Text(
-                          "1 video selected",
-                        ),
-                      ),
-
-                      IconButton(
-                        icon: const Icon(
-                          Icons.delete,
-                          color: Colors.red,
-                        ),
-                        onPressed: () {
+                    ),
+                    Positioned(
+                      top: -5,
+                      right: -5,
+                      child: GestureDetector(
+                        onTap: () {
                           setState(() {
-                            selectedVideo = null;
+                            selectedPhotos.removeAt(index);
                           });
                         },
+                        child: Container(
+                          height: 23,
+                          width: 23,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF0F172A),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ),
                       ),
-                    ],
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+        if (selectedVideo != null) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 13,
+              vertical: 10,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: const Color(0xFFE1E7EF),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  height: 38,
+                  width: 38,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF3FF),
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  child: const Icon(
+                    Icons.video_file_outlined,
+                    color: primaryBlue,
+                    size: 21,
                   ),
                 ),
-              ],
-
-              const SizedBox(height: 30),
-
-              SwitchListTile(
-                value: isEmergency,
-                activeThumbColor: Colors.red,
-                activeTrackColor: Colors.red.shade200,
-                title: const Text(
-                  "Emergency Service",
-                ),
-                subtitle: const Text(
-                  "Need immediate assistance?",
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    isEmergency = value;
-                  });
-                },
-              ),
-
-              const SizedBox(height: 40),
-
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (issueController.text
-                        .trim()
-                        .isEmpty) {
-                      ScaffoldMessenger.of(context)
-                          .showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            "Please describe your issue.",
-                          ),
-                        ),
-                      );
-                      return;
-                    }
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AddressScreen(
-                          request: ServiceRequest(
-                            categoryName:
-                                widget.categoryName,
-                            subCategoryName:
-                                widget.subCategoryName,
-                            issueDescription:
-                                issueController.text
-                                    .trim(),
-                            isEmergency:
-                                isEmergency,
-                            photos:
-                                selectedPhotos,
-                            video:
-                                selectedVideo,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    "Continue",
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    "Video selected",
                     style: TextStyle(
-                      fontSize: 18,
+                      color: darkText,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-              ),            ],
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedVideo = null;
+                    });
+                  },
+                  icon: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: Color(0xFFEF4444),
+                  ),
+                ),
+              ],
+            ),
           ),
+        ],
+      ],
+    );
+  }
+
+  Widget _mediaButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return OutlinedButton.icon(
+      onPressed: onTap,
+      style: OutlinedButton.styleFrom(
+        backgroundColor: Colors.white,
+        foregroundColor: primaryBlue,
+        side: const BorderSide(
+          color: Color(0xFFDCE3EC),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+      icon: Icon(icon, size: 21),
+      label: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmergencyCard() {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: const EdgeInsets.fromLTRB(16, 15, 12, 15),
+      decoration: BoxDecoration(
+        color: isEmergency
+            ? const Color(0xFFFFF2F2)
+            : Colors.white,
+        borderRadius: BorderRadius.circular(19),
+        border: Border.all(
+          color: isEmergency
+              ? const Color(0xFFFCA5A5)
+              : const Color(0xFFE1E7EF),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            height: 45,
+            width: 45,
+            decoration: BoxDecoration(
+              color: isEmergency
+                  ? const Color(0xFFFFE1E1)
+                  : const Color(0xFFF1F5FF),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              Icons.priority_high_rounded,
+              color: isEmergency
+                  ? const Color(0xFFDC2626)
+                  : primaryBlue,
+              size: 25,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Need urgent help?",
+                  style: TextStyle(
+                    color: darkText,
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: 3),
+                Text(
+                  "Mark this request as an emergency.",
+                  style: TextStyle(
+                    color: secondaryText,
+                    fontSize: 12.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch.adaptive(
+            value: isEmergency,
+            activeTrackColor: const Color(0xFFEF4444),
+            onChanged: (value) {
+              setState(() {
+                isEmergency = value;
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContinueButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: _continue,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryBlue,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(17),
+          ),
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "Continue",
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            SizedBox(width: 9),
+            Icon(
+              Icons.arrow_forward_rounded,
+              size: 21,
+            ),
+          ],
         ),
       ),
     );

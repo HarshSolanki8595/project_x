@@ -18,7 +18,7 @@ class FrequentlyUsedSection extends StatelessWidget {
       },
       {
         "title": "Plumber",
-        "icon": Icons.plumbing,
+        "icon": Icons.plumbing_rounded,
         "color": Colors.blue,
       },
       {
@@ -33,12 +33,12 @@ class FrequentlyUsedSection extends StatelessWidget {
       },
       {
         "title": "Painting",
-        "icon": Icons.format_paint,
+        "icon": Icons.format_paint_rounded,
         "color": Colors.deepOrange,
       },
       {
         "title": "Carpenter",
-        "icon": Icons.carpenter,
+        "icon": Icons.carpenter_rounded,
         "color": Colors.brown,
       },
     ];
@@ -46,75 +46,66 @@ class FrequentlyUsedSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 20),
           child: Text(
             "Frequently Used",
             style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+              fontSize: 21,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.3,
             ),
           ),
         ),
-
-        const SizedBox(height: 18),
-
+        const SizedBox(height: 15),
         SizedBox(
-          height: 118,
+          height: 116,
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             scrollDirection: Axis.horizontal,
             itemCount: services.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 14),
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final item = services[index];
+              final color = item["color"] as Color;
 
               return InkWell(
-                borderRadius: BorderRadius.circular(20),
-                onTap: () {
-                  onServiceTap?.call(item["title"]);
-                },
+                borderRadius: BorderRadius.circular(18),
+                onTap: () => onServiceTap?.call(item["title"]),
                 child: Container(
-                  width: 100,
+                  width: 104,
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: .05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: const Color(0xFFE8EDF4),
+                    ),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-
                       CircleAvatar(
-                        radius: 24,
-                        backgroundColor:
-                            (item["color"] as Color).withValues(alpha: .15),
+                        radius: 23,
+                        backgroundColor: color.withValues(alpha: 0.12),
                         child: Icon(
                           item["icon"],
-                          color: item["color"],
-                          size: 28,
+                          color: color,
+                          size: 26,
                         ),
                       ),
-
-                      const SizedBox(height: 12),
-
+                      const SizedBox(height: 10),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 7),
                         child: Text(
                           item["title"],
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
+                            color: Color(0xFF334155),
                             fontWeight: FontWeight.w600,
-                            fontSize: 13,
+                            fontSize: 12.5,
                           ),
                         ),
                       ),

@@ -26,7 +26,7 @@ class TrendingServices extends StatelessWidget {
       {
         "title": "Pest Control",
         "subtitle": "Protect your family",
-        "icon": Icons.pest_control,
+        "icon": Icons.pest_control_rounded,
         "color": Colors.redAccent,
       },
       {
@@ -40,112 +40,92 @@ class TrendingServices extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 20),
           child: Text(
-            "🔥 Trending Services",
+            "Trending Services",
             style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+              fontSize: 21,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.3,
             ),
           ),
         ),
-
-        const SizedBox(height: 18),
-
+        const SizedBox(height: 15),
         SizedBox(
-          height: 165,
+          height: 170,
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             scrollDirection: Axis.horizontal,
             itemCount: services.length,
-            separatorBuilder: (_, _) =>
-                const SizedBox(width: 16),
+            separatorBuilder: (_, __) => const SizedBox(width: 13),
             itemBuilder: (context, index) {
               final item = services[index];
+              final color = item["color"] as Color;
 
               return InkWell(
-                borderRadius: BorderRadius.circular(22),
-                onTap: () {
-                  onServiceTap?.call(item["title"]);
-                },
+                borderRadius: BorderRadius.circular(21),
+                onTap: () => onServiceTap?.call(item["title"]),
                 child: Container(
                   width: 220,
+                  padding: const EdgeInsets.all(17),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(22),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: .06),
-                        blurRadius: 14,
-                        offset: const Offset(0, 6),
+                    borderRadius: BorderRadius.circular(21),
+                    border: Border.all(
+                      color: const Color(0xFFE8EDF4),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CircleAvatar(
+                        radius: 25,
+                        backgroundColor: color.withValues(alpha: 0.12),
+                        child: Icon(
+                          item["icon"],
+                          color: color,
+                          size: 28,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        item["title"],
+                        style: const TextStyle(
+                          color: Color(0xFF0F172A),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item["subtitle"],
+                        style: const TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 13),
+                      const Row(
+                        children: [
+                          Text(
+                            "Book Now",
+                            style: TextStyle(
+                              color: Color(0xFF0D47FF),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          SizedBox(width: 5),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Color(0xFF0D47FF),
+                            size: 17,
+                          ),
+                        ],
                       ),
                     ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(18),
-                    child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
-                      children: [
-
-                        CircleAvatar(
-                          radius: 26,
-                          backgroundColor:
-                              (item["color"] as Color)
-                                  .withValues(alpha: .15),
-                          child: Icon(
-                            item["icon"],
-                            color: item["color"],
-                            size: 30,
-                          ),
-                        ),
-
-                        const Spacer(),
-
-                        Text(
-                          item["title"],
-                          style: const TextStyle(
-                            fontSize: 19,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-
-                        const SizedBox(height: 6),
-
-                        Text(
-                          item["subtitle"],
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 14,
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        Row(
-                          children: [
-
-                            const Text(
-                              "Book Now",
-                              style: TextStyle(
-                                color: Colors.deepPurple,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-
-                            const SizedBox(width: 6),
-
-                            const Icon(
-                              Icons.arrow_forward_rounded,
-                              size: 18,
-                              color: Colors.deepPurple,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
                   ),
                 ),
               );

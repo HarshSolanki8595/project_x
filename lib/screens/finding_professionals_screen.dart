@@ -1,11 +1,11 @@
 import 'dart:async';
-import '../models/service_request.dart';
+
 import 'package:flutter/material.dart';
 
+import '../models/service_request.dart';
 import 'professionals_screen.dart';
 
 class FindingProfessionalsScreen extends StatefulWidget {
-
   final ServiceRequest request;
 
   const FindingProfessionalsScreen({
@@ -21,9 +21,10 @@ class FindingProfessionalsScreen extends StatefulWidget {
 class _FindingProfessionalsScreenState
     extends State<FindingProfessionalsScreen>
     with SingleTickerProviderStateMixin {
+  static const Color primaryBlue = Color(0xFF1557FF);
+  static const Color backgroundColor = Color(0xFFF7F8FC);
 
   late AnimationController _controller;
-
   late Animation<double> _animation;
 
   @override
@@ -32,9 +33,7 @@ class _FindingProfessionalsScreenState
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(
-        seconds: 2,
-      ),
+      duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
 
     _animation = Tween<double>(
@@ -50,184 +49,217 @@ class _FindingProfessionalsScreenState
     Timer(
       const Duration(seconds: 3),
       () {
-
         if (!mounted) return;
 
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-           builder: (_) => ProfessionalsScreen(
-  request: widget.request,
-),
+            builder: (_) => ProfessionalsScreen(
+              request: widget.request,
+            ),
           ),
         );
-
       },
     );
   }
 
   @override
   void dispose() {
-
     _controller.dispose();
-
     super.dispose();
+  }
+
+  Widget _statusItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            height: 42,
+            width: 42,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(
+            Icons.check_circle_rounded,
+            color: Colors.green,
+            size: 21,
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
-      backgroundColor:
-          const Color(0xffF7F8FC),
-
+      backgroundColor: backgroundColor,
       body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(22, 28, 22, 24),
+          child: Column(
+            children: [
+              const Spacer(flex: 2),
 
-        child: Center(
-
-          child: Padding(
-            padding:
-                const EdgeInsets.all(30),
-
-            child: Column(
-
-              mainAxisAlignment:
-                  MainAxisAlignment.center,
-
-              children: [
-
-                ScaleTransition(
-
-                  scale: _animation,
-
-                  child: Container(
-
-                    height: 120,
-
-                    width: 120,
-
-                    decoration: BoxDecoration(
-
-                      color: Colors.deepPurple,
-
-                      borderRadius:
-                          BorderRadius.circular(
-                        60,
+              ScaleTransition(
+                scale: _animation,
+                child: Container(
+                  height: 118,
+                  width: 118,
+                  decoration: BoxDecoration(
+                    color: primaryBlue,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryBlue.withValues(alpha: 0.20),
+                        blurRadius: 28,
+                        spreadRadius: 6,
                       ),
-
-                    ),
-
-                    child: const Icon(
-
-                      Icons.search,
-
-                      color: Colors.white,
-
-                      size: 55,
-
-                    ),
-
+                    ],
                   ),
-
+                  child: const Icon(
+                    Icons.search_rounded,
+                    color: Colors.white,
+                    size: 54,
+                  ),
                 ),
+              ),
 
-                const SizedBox(
-                  height: 40,
-                ),const Text(
-  "Finding Professionals",
-  style: TextStyle(
-    fontSize: 28,
-    fontWeight: FontWeight.bold,
-  ),
-),
+              const SizedBox(height: 32),
 
-const SizedBox(
-  height: 12,
-),
+              const Text(
+                "Finding Professionals",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                  letterSpacing: -0.3,
+                ),
+              ),
 
-const Text(
-  "Searching nearby verified professionals...\nThis usually takes only a few seconds.",
-  textAlign: TextAlign.center,
-  style: TextStyle(
-    color: Colors.grey,
-    fontSize: 16,
-    height: 1.5,
-  ),
-),
+              const SizedBox(height: 10),
 
-const SizedBox(
-  height: 40,
-),
+              const Text(
+                "Searching nearby verified professionals\nwho can help with your request.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 15,
+                  height: 1.5,
+                ),
+              ),
 
-const SizedBox(
-  width: 220,
-  child: LinearProgressIndicator(
-    minHeight: 6,
-    borderRadius: BorderRadius.all(
-      Radius.circular(10),
-    ),
-  ),
-),
+              const SizedBox(height: 30),
 
-const SizedBox(
-  height: 40,
-),
+              Container(
+                width: double.infinity,
+                height: 7,
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const LinearProgressIndicator(
+                  backgroundColor: Colors.transparent,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    primaryBlue,
+                  ),
+                ),
+              ),
 
-Container(
-  padding: const EdgeInsets.all(16),
-  decoration: BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(16),
-    boxShadow: const [
-      BoxShadow(
-        color: Colors.black12,
-        blurRadius: 8,
-      ),
-    ],
-  ),
-  child: const Column(
-    children: [
+              const SizedBox(height: 28),
 
-      ListTile(
-        dense: true,
-        leading: Icon(
-          Icons.verified,
-          color: Colors.green,
-        ),
-        title: Text(
-          "Verified Professionals Only",
-        ),
-      ),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(17, 12, 17, 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Colors.grey.shade200,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    _statusItem(
+                      icon: Icons.verified_rounded,
+                      iconColor: Colors.green,
+                      title: "Verified Professionals Only",
+                      subtitle: "Matching trusted professionals",
+                    ),
+                    Divider(
+                      height: 1,
+                      color: Colors.grey.shade200,
+                    ),
+                    _statusItem(
+                      icon: Icons.location_on_rounded,
+                      iconColor: primaryBlue,
+                      title: "Checking Your Location",
+                      subtitle: "Finding professionals nearby",
+                    ),
+                    Divider(
+                      height: 1,
+                      color: Colors.grey.shade200,
+                    ),
+                    _statusItem(
+                      icon: Icons.request_quote_rounded,
+                      iconColor: Colors.orange,
+                      title: "Request Sent",
+                      subtitle: "Waiting for quotations",
+                    ),
+                  ],
+                ),
+              ),
 
-      ListTile(
-        dense: true,
-        leading: Icon(
-          Icons.location_on,
-          color: Colors.deepPurple,
-        ),
-        title: Text(
-          "Searching within your selected location",
-        ),
-      ),
+              const Spacer(flex: 3),
 
-      ListTile(
-        dense: true,
-        leading: Icon(
-          Icons.price_check,
-          color: Colors.orange,
-        ),
-        title: Text(
-          "Waiting for quotations",
-        ),
-      ),
-
-    ],
-  ),
-),
-
-              ],
-            ),
+              const Text(
+                "Professionals will decide their price.\nYou decide which offer is right for you.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12.5,
+                  height: 1.45,
+                ),
+              ),
+            ],
           ),
         ),
       ),
