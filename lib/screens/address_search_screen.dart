@@ -212,7 +212,7 @@ class _AddressSearchScreenState
                 "Find your service location",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 19,
+                  fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -321,7 +321,7 @@ class _AddressSearchScreenState
                     child: Text(
                       place.description,
                       style: const TextStyle(
-                        fontSize: 15,
+                        fontSize: 16,
                         height: 1.35,
                         fontWeight: FontWeight.w500,
                         color: Colors.black87,

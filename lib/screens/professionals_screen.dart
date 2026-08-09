@@ -38,7 +38,7 @@ class ProfessionalsScreen extends StatelessWidget {
           const Text(
             "Choose the right professional",
             style: TextStyle(
-              fontSize: 27,
+              fontSize: 28,
               height: 1.2,
               fontWeight: FontWeight.w700,
               color: Colors.black87,
@@ -49,7 +49,7 @@ class ProfessionalsScreen extends StatelessWidget {
             "Compare verified professionals, their experience and their quotes before deciding.",
             style: TextStyle(
               color: Colors.grey,
-              fontSize: 14.5,
+              fontSize: 14,
               height: 1.45,
             ),
           ),
@@ -93,7 +93,7 @@ class ProfessionalsScreen extends StatelessWidget {
               "Professionals decide their price. You decide which offer gives you the best value.",
               style: TextStyle(
                 color: Color(0xFF334155),
-                fontSize: 13.5,
+                fontSize: 14,
                 height: 1.4,
                 fontWeight: FontWeight.w600,
               ),
@@ -183,7 +183,7 @@ class ProfessionalsScreen extends StatelessWidget {
                                 "Verified Professional",
                                 style: TextStyle(
                                   color: Colors.green,
-                                  fontSize: 11.5,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -282,7 +282,7 @@ class ProfessionalsScreen extends StatelessWidget {
                           "₹${professional.quote.toStringAsFixed(0)}",
                           style: const TextStyle(
                             color: primaryBlue,
-                            fontSize: 27,
+                            fontSize: 28,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
@@ -304,7 +304,7 @@ class ProfessionalsScreen extends StatelessWidget {
               professional.quoteDescription,
               style: TextStyle(
                 color: Colors.grey.shade700,
-                fontSize: 13.5,
+                fontSize: 14,
                 height: 1.35,
               ),
             ),
@@ -438,7 +438,7 @@ class ProfessionalsScreen extends StatelessWidget {
           text,
           style: TextStyle(
             color: Colors.grey.shade700,
-            fontSize: 13.5,
+            fontSize: 14,
           ),
         ),
       ],
@@ -501,7 +501,7 @@ class ProfessionalsScreen extends StatelessWidget {
                   professional.name,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontSize: 23,
+                    fontSize: 24,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -642,7 +642,7 @@ class ProfessionalsScreen extends StatelessWidget {
           label,
           style: const TextStyle(
             color: Colors.grey,
-            fontSize: 11.5,
+            fontSize: 12,
           ),
         ),
       ],
@@ -664,7 +664,7 @@ class ProfessionalsScreen extends StatelessWidget {
         Text(
           text,
           style: const TextStyle(
-            fontSize: 13.5,
+            fontSize: 14,
             color: Colors.black87,
           ),
         ),

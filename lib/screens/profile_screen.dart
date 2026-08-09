@@ -9,12 +9,19 @@ import 'login_screen.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
+  static const Color primaryBlue = Color(0xFF1557FF);
+  static const Color lightBlue = Color(0xFFEEF3FF);
+  static const Color background = Color(0xFFF7F8FC);
+  static const Color textPrimary = Color(0xFF101828);
+  static const Color textSecondary = Color(0xFF667085);
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
       return const Scaffold(
+        backgroundColor: background,
         body: Center(
           child: Text("Please login first."),
         ),
@@ -30,14 +37,18 @@ class ProfileScreen extends StatelessWidget {
         if (snapshot.connectionState ==
             ConnectionState.waiting) {
           return const Scaffold(
+            backgroundColor: background,
             body: Center(
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator(
+                color: primaryBlue,
+              ),
             ),
           );
         }
 
         final data =
-            snapshot.data?.data() as Map<String, dynamic>?;
+            snapshot.data?.data()
+                as Map<String, dynamic>?;
 
         final fullName =
             data?["fullName"] ?? "User";
@@ -46,29 +57,60 @@ class ProfileScreen extends StatelessWidget {
             data?["phoneNumber"] ?? "";
 
         return Scaffold(
+          backgroundColor: background,
+
           appBar: AppBar(
-            title: const Text("My Profile"),
+            backgroundColor: background,
+            elevation: 0,
             centerTitle: true,
+
+            title: const Text(
+              "My Profile",
+              style: TextStyle(
+                color: textPrimary,
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
+
           body: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(
+              32,
+              18,
+              32,
+              30,
+            ),
             children: [
-              const CircleAvatar(
-                radius: 55,
-                child: Icon(
-                  Icons.person,
-                  size: 55,
+              const SizedBox(height: 10),
+
+              // PROFILE IMAGE
+              Center(
+                child: Container(
+                  height: 150,
+                  width: 150,
+                  decoration: const BoxDecoration(
+                    color: lightBlue,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.person,
+                    size: 78,
+                    color: primaryBlue,
+                  ),
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 22),
 
               Center(
                 child: Text(
                   fullName,
+                  textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                    color: textPrimary,
+                    fontSize: 30,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -79,21 +121,18 @@ class ProfileScreen extends StatelessWidget {
                 child: Text(
                   "+91 $phoneNumber",
                   style: const TextStyle(
-                    color: Colors.grey,
+                    color: textSecondary,
                     fontSize: 18,
                   ),
                 ),
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 42),
 
-              ListTile(
-                leading:
-                    const Icon(Icons.receipt_long),
-                title: const Text("My Bookings"),
-                trailing: const Icon(
-                  Icons.arrow_forward_ios,
-                ),
+              _profileOption(
+                context,
+                icon: Icons.receipt_long_rounded,
+                title: "My Bookings",
                 onTap: () {
                   Navigator.push(
                     context,
@@ -105,14 +144,10 @@ class ProfileScreen extends StatelessWidget {
                 },
               ),
 
-              ListTile(
-                leading:
-                    const Icon(Icons.location_on),
-                title:
-                    const Text("Saved Addresses"),
-                trailing: const Icon(
-                  Icons.arrow_forward_ios,
-                ),
+              _profileOption(
+                context,
+                icon: Icons.location_on_rounded,
+                title: "Saved Addresses",
                 onTap: () {
                   Navigator.push(
                     context,
@@ -124,38 +159,44 @@ class ProfileScreen extends StatelessWidget {
                 },
               ),
 
-              ListTile(
-                leading:
-                    const Icon(Icons.settings),
-                title: const Text("Settings"),
-                trailing: const Icon(
-                  Icons.arrow_forward_ios,
-                ),
+              _profileOption(
+                context,
+                icon: Icons.settings_rounded,
+                title: "Settings",
                 onTap: () {},
               ),
 
-              ListTile(
-                leading:
-                    const Icon(Icons.help_outline),
-                title:
-                    const Text("Help & Support"),
-                trailing: const Icon(
-                  Icons.arrow_forward_ios,
-                ),
+              _profileOption(
+                context,
+                icon: Icons.help_outline_rounded,
+                title: "Help & Support",
                 onTap: () {},
               ),
 
+              const SizedBox(height: 10),
+
               ListTile(
+                contentPadding: EdgeInsets.zero,
+
                 leading: const Icon(
-                  Icons.logout,
-                  color: Colors.red,
+                  Icons.logout_rounded,
+                  size: 30,
+                  color: Color(0xFFE53935),
                 ),
+
                 title: const Text(
                   "Logout",
                   style: TextStyle(
-                    color: Colors.red,
+                    color: Color(0xFFE53935),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
+
+                trailing: const SizedBox(
+                  width: 30,
+                ),
+
                 onTap: () async {
                   await FirebaseAuth.instance
                       .signOut();
@@ -176,6 +217,40 @@ class ProfileScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _profileOption(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+
+      leading: Icon(
+        icon,
+        size: 30,
+        color: textPrimary,
+      ),
+
+      title: Text(
+        title,
+        style: const TextStyle(
+          color: textPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 23,
+        color: textPrimary,
+      ),
+
+      onTap: onTap,
     );
   }
 }

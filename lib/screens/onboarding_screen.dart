@@ -135,7 +135,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           page["title"] as String,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 22,
+                            fontSize: 20,
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF0F172A),
                             height: 1.2,
@@ -153,7 +153,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           page["description"] as String,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: 14,
                             color: Color(0xFF64748B),
                             height: 1.4,
                           ),

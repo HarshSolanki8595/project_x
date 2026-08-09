@@ -169,7 +169,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                   widget.categoryName,
                   style: const TextStyle(
                     color: primaryBlue,
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -178,7 +178,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                   widget.subCategoryName,
                   style: const TextStyle(
                     color: darkText,
-                    fontSize: 21,
+                    fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -198,7 +198,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
           "What’s wrong?",
           style: TextStyle(
             color: darkText,
-            fontSize: 23,
+            fontSize: 24,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.3,
           ),
@@ -263,7 +263,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                   "Example: The ceiling fan makes noise and stops after 5 minutes.",
                   style: TextStyle(
                     color: Color(0xFF475569),
-                    fontSize: 13,
+                    fontSize: 14,
                     height: 1.4,
                   ),
                 ),
@@ -292,7 +292,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
           "Photos or a video are optional, but they can help.",
           style: TextStyle(
             color: secondaryText,
-            fontSize: 13.5,
+            fontSize: 14,
           ),
         ),
         const SizedBox(height: 14),
@@ -496,7 +496,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                   "Need urgent help?",
                   style: TextStyle(
                     color: darkText,
-                    fontSize: 15.5,
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -505,7 +505,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                   "Mark this request as an emergency.",
                   style: TextStyle(
                     color: secondaryText,
-                    fontSize: 12.5,
+                    fontSize: 12,
                   ),
                 ),
               ],
@@ -545,7 +545,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
             Text(
               "Continue",
               style: TextStyle(
-                fontSize: 17,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
             ),

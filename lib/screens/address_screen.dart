@@ -88,7 +88,7 @@ class _AddressScreenState extends State<AddressScreen> {
                     "Where should the professional come?",
                     style: TextStyle(
                       color: darkText,
-                      fontSize: 25,
+                      fontSize: 24,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.4,
                     ),
@@ -196,7 +196,7 @@ class _AddressScreenState extends State<AddressScreen> {
                           address.label,
                           style: const TextStyle(
                             color: darkText,
-                            fontSize: 17,
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -215,7 +215,7 @@ class _AddressScreenState extends State<AddressScreen> {
                             "Default",
                             style: TextStyle(
                               color: Color(0xFF15803D),
-                              fontSize: 11,
+                              fontSize: 12,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -341,7 +341,7 @@ class _AddressScreenState extends State<AddressScreen> {
         label: const Text(
           "Add New Address",
           style: TextStyle(
-            fontSize: 15,
+            fontSize: 16,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -387,7 +387,7 @@ class _AddressScreenState extends State<AddressScreen> {
             Text(
               "Continue",
               style: TextStyle(
-                fontSize: 17,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
             ),

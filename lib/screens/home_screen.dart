@@ -113,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       "Welcome $userName 👋",
                       style: const TextStyle(
                         color: darkText,
-                        fontSize: 29,
+                        fontSize: 28,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -0.6,
                         height: 1.15,

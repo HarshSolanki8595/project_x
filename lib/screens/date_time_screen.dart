@@ -118,7 +118,7 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
               child: Text(
                 title,
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: 16,
                   fontWeight:
                       selected ? FontWeight.w700 : FontWeight.w500,
                   color: Colors.black87,
@@ -199,7 +199,7 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
                     const Text(
                       "When do you need the\nservice?",
                       style: TextStyle(
-                        fontSize: 34,
+                        fontSize: 30,
                         height: 1.15,
                         fontWeight: FontWeight.w800,
                         color: Colors.black87,
@@ -211,7 +211,7 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
                     const Text(
                       "Select a date",
                       style: TextStyle(
-                        fontSize: 21,
+                        fontSize: 20,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -271,7 +271,7 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
                                   Text(
                                     _formattedDate(),
                                     style: const TextStyle(
-                                      fontSize: 21,
+                                      fontSize: 20,
                                       fontWeight:
                                           FontWeight.w700,
                                     ),
@@ -295,7 +295,7 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
                     const Text(
                       "Preferred time",
                       style: TextStyle(
-                        fontSize: 21,
+                        fontSize: 20,
                         fontWeight: FontWeight.w700,
                       ),
                     ),

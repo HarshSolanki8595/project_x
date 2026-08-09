@@ -51,7 +51,7 @@ class BookingConfirmedScreen extends StatelessWidget {
                 "Booking Confirmed!",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 29,
+                  fontSize: 28,
                   fontWeight: FontWeight.w700,
                   color: Colors.black87,
                 ),
@@ -64,7 +64,7 @@ class BookingConfirmedScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.grey,
-                  fontSize: 15,
+                  fontSize: 16,
                   height: 1.5,
                 ),
               ),
@@ -121,7 +121,7 @@ class BookingConfirmedScreen extends StatelessWidget {
                               SelectableText(
                                 bookingId,
                                 style: const TextStyle(
-                                  fontSize: 15,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.w700,
                                   color: Colors.black87,
                                 ),
@@ -176,7 +176,7 @@ class BookingConfirmedScreen extends StatelessWidget {
                                 "Pending",
                                 style: TextStyle(
                                   color: Colors.orange,
-                                  fontSize: 15,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -213,7 +213,7 @@ class BookingConfirmedScreen extends StatelessWidget {
                         "You can compare updates and booking activity from your Home screen.",
                         style: TextStyle(
                           color: Color(0xFF334155),
-                          fontSize: 13,
+                          fontSize: 14,
                           height: 1.4,
                         ),
                       ),
@@ -249,7 +249,7 @@ class BookingConfirmedScreen extends StatelessWidget {
                   child: const Text(
                     "Back to Home",
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

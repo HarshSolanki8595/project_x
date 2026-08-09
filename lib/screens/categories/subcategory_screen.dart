@@ -96,7 +96,7 @@ final Category? category =
                               Text(
                                 subCategory.name,
                                 style: const TextStyle(
-                                  fontSize: 17,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),

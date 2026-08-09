@@ -176,7 +176,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: darkText,
-                    fontSize: 31,
+                    fontSize: 30,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.6,
                   ),
@@ -231,7 +231,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
                 style: const TextStyle(
                   color: darkText,
-                  fontSize: 17,
+                  fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
 
@@ -347,7 +347,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                         "Verified",
                         style: TextStyle(
                           color: primaryBlue,
-                          fontSize: 13,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

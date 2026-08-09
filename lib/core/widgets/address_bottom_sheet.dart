@@ -69,7 +69,7 @@ class AddressBottomSheet extends StatelessWidget {
                     child: Text(
                       address,
                       style: const TextStyle(
-                        fontSize: 15,
+                        fontSize: 16,
                         color: Colors.black87,
                       ),
                     ),
@@ -95,7 +95,7 @@ class AddressBottomSheet extends StatelessWidget {
                     "Confirm Location",
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 17,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

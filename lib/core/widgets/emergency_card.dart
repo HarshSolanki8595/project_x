@@ -48,7 +48,7 @@ class EmergencyCard extends StatelessWidget {
                       "Emergency Assistance",
                       style: TextStyle(
                         color: Color(0xFF0F172A),
-                        fontSize: 17,
+                        fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -57,7 +57,7 @@ class EmergencyCard extends StatelessWidget {
                       "Need urgent help? Get connected to emergency services instantly.",
                       style: TextStyle(
                         color: Color(0xFF64748B),
-                        fontSize: 12.5,
+                        fontSize: 12,
                         height: 1.35,
                       ),
                     ),

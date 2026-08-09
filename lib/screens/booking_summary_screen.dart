@@ -46,7 +46,7 @@ class BookingSummaryScreen extends StatelessWidget {
                     const Text(
                       "Confirm your booking",
                       style: TextStyle(
-                        fontSize: 29,
+                        fontSize: 28,
                         height: 1.2,
                         fontWeight: FontWeight.w700,
                         color: Colors.black87,
@@ -59,7 +59,7 @@ class BookingSummaryScreen extends StatelessWidget {
                       "Review the details before confirming your service.",
                       style: TextStyle(
                         color: Colors.grey,
-                        fontSize: 15,
+                        fontSize: 16,
                         height: 1.4,
                       ),
                     ),
@@ -94,7 +94,7 @@ class BookingSummaryScreen extends StatelessWidget {
                             ? "No description provided."
                             : request.issueDescription,
                         style: const TextStyle(
-                          fontSize: 15.5,
+                          fontSize: 16,
                           height: 1.5,
                           color: Colors.black87,
                         ),
@@ -159,7 +159,7 @@ class BookingSummaryScreen extends StatelessWidget {
                                           style: TextStyle(
                                             color:
                                                 Colors.grey.shade600,
-                                            fontSize: 13,
+                                            fontSize: 14,
                                           ),
                                         ),
                                       ],
@@ -197,7 +197,7 @@ class BookingSummaryScreen extends StatelessWidget {
                                       Text(
                                         "Professional's quote",
                                         style: TextStyle(
-                                          fontSize: 13,
+                                          fontSize: 14,
                                           color: Colors.black87,
                                         ),
                                       ),
@@ -208,7 +208,7 @@ class BookingSummaryScreen extends StatelessWidget {
                                   "₹${professional.quote.toStringAsFixed(0)}",
                                   style: const TextStyle(
                                     color: primaryBlue,
-                                    fontSize: 25,
+                                    fontSize: 24,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
@@ -224,7 +224,7 @@ class BookingSummaryScreen extends StatelessWidget {
                               professional.quoteDescription,
                               style: TextStyle(
                                 color: Colors.grey.shade700,
-                                fontSize: 13.5,
+                                fontSize: 14,
                                 height: 1.35,
                               ),
                             ),
@@ -289,7 +289,7 @@ class BookingSummaryScreen extends StatelessWidget {
                               "You will only be charged according to the booking terms after confirming the service.",
                               style: TextStyle(
                                 color: Color(0xFF356344),
-                                fontSize: 13,
+                                fontSize: 14,
                                 height: 1.4,
                               ),
                             ),
@@ -375,7 +375,7 @@ class BookingSummaryScreen extends StatelessWidget {
                   child: const Text(
                     "Confirm Booking",
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -457,7 +457,7 @@ class BookingSummaryScreen extends StatelessWidget {
               Text(
                 value,
                 style: const TextStyle(
-                  fontSize: 15.5,
+                  fontSize: 16,
                   height: 1.35,
                   fontWeight: FontWeight.w600,
                   color: Colors.black87,

@@ -23,7 +23,7 @@ class CategoryGrid extends StatelessWidget {
             "Browse Categories",
             style: TextStyle(
               color: Color(0xFF0F172A),
-              fontSize: 21,
+              fontSize: 20,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.3,
             ),
@@ -81,7 +81,7 @@ class CategoryGrid extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Color(0xFF334155),
-                            fontSize: 12.5,
+                            fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

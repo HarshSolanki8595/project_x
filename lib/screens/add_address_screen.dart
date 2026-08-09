@@ -151,7 +151,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
         textCapitalization: TextCapitalization.words,
         style: const TextStyle(
           color: darkText,
-          fontSize: 15.5,
+          fontSize: 16,
         ),
         decoration: InputDecoration(
           labelText: required ? "$label *" : label,
@@ -352,7 +352,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                   "Your address helps us connect you with professionals who can visit you.",
                   style: TextStyle(
                     color: secondaryText,
-                    fontSize: 13,
+                    fontSize: 14,
                     height: 1.4,
                   ),
                 ),
@@ -372,7 +372,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
           "Save this address as",
           style: TextStyle(
             color: darkText,
-            fontSize: 17,
+            fontSize: 16,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -471,7 +471,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     "Pick address on map",
                     style: TextStyle(
                       color: darkText,
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -480,7 +480,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     "Select a location and fill the address automatically.",
                     style: TextStyle(
                       color: secondaryText,
-                      fontSize: 12.5,
+                      fontSize: 12,
                     ),
                   ),
                 ],
@@ -517,7 +517,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
           subtitle,
           style: const TextStyle(
             color: secondaryText,
-            fontSize: 13.5,
+            fontSize: 14,
           ),
         ),
       ],
@@ -558,7 +558,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                   "Set as default address",
                   style: TextStyle(
                     color: darkText,
-                    fontSize: 14.5,
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -619,7 +619,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                         ? "Update Address"
                         : "Save Address",
                     style: const TextStyle(
-                      fontSize: 17,
+                      fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
                   ),

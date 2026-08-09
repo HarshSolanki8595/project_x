@@ -55,7 +55,7 @@ class HomeAppBar extends StatelessWidget {
                             "Current Location",
                             style: TextStyle(
                               color: secondaryText,
-                              fontSize: 11,
+                              fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
                           ),

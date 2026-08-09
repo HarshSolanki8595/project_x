@@ -98,7 +98,7 @@ class ReviewBookingScreen extends StatelessWidget {
                       "Make sure everything looks right before sending your request.",
                       style: TextStyle(
                         color: Colors.grey,
-                        fontSize: 15,
+                        fontSize: 16,
                         height: 1.4,
                       ),
                     ),
@@ -114,7 +114,7 @@ class ReviewBookingScreen extends StatelessWidget {
                           Text(
                             request.categoryName,
                             style: const TextStyle(
-                              fontSize: 21,
+                              fontSize: 20,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -124,7 +124,7 @@ class ReviewBookingScreen extends StatelessWidget {
                           Text(
                             request.subCategoryName,
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: 16,
                               color: Colors.grey.shade600,
                             ),
                           ),
@@ -197,7 +197,7 @@ class ReviewBookingScreen extends StatelessWidget {
                                   "No photos attached.",
                                   style: TextStyle(
                                     color: Colors.grey,
-                                    fontSize: 15,
+                                    fontSize: 16,
                                   ),
                                 ),
                               ],
@@ -260,7 +260,7 @@ class ReviewBookingScreen extends StatelessWidget {
                                   ? "No address selected"
                                   : request.address!,
                               style: const TextStyle(
-                                fontSize: 15,
+                                fontSize: 16,
                                 height: 1.5,
                                 color: Colors.black87,
                               ),
@@ -314,7 +314,7 @@ class ReviewBookingScreen extends StatelessWidget {
                                   request.preferredTimeSlot ??
                                       "Not Selected",
                                   style: TextStyle(
-                                    fontSize: 15,
+                                    fontSize: 16,
                                     color: Colors.grey.shade600,
                                   ),
                                 ),
@@ -418,7 +418,7 @@ class ReviewBookingScreen extends StatelessWidget {
                   child: const Text(
                     "Request Quotes",
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

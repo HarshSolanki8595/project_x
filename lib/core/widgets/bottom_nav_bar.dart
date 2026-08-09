@@ -19,173 +19,82 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
-          child: BottomNavigationBar(
-            currentIndex: currentIndex,
-            onTap: onTap,
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: Colors.white,
-            elevation: 0,
-            selectedItemColor: primaryBlue,
-            unselectedItemColor: Colors.grey.shade500,
-            selectedLabelStyle: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-            showUnselectedLabels: true,
-            items: [
-              const BottomNavigationBarItem(
-                icon: Padding(
-                  padding: EdgeInsets.only(bottom: 3),
-                  child: Icon(
-                    Icons.home_outlined,
-                    size: 24,
-                  ),
-                ),
-                activeIcon: Padding(
-                  padding: EdgeInsets.only(bottom: 3),
-                  child: Icon(
-                    Icons.home_rounded,
-                    size: 25,
-                  ),
-                ),
-                label: "Home",
-              ),
+    return BottomNavigationBar(
+      currentIndex: currentIndex,
+      onTap: onTap,
+      type: BottomNavigationBarType.fixed,
 
-              BottomNavigationBarItem(
-                icon: Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      const Icon(
-                        Icons.calendar_today_outlined,
-                        size: 23,
-                      ),
-                      if (bookingCount > 0)
-                        Positioned(
-                          right: -9,
-                          top: -7,
-                          child: _badge(bookingCount),
-                        ),
-                    ],
-                  ),
-                ),
-                activeIcon: Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      const Icon(
-                        Icons.calendar_today_rounded,
-                        size: 24,
-                      ),
-                      if (bookingCount > 0)
-                        Positioned(
-                          right: -9,
-                          top: -7,
-                          child: _badge(bookingCount),
-                        ),
-                    ],
-                  ),
-                ),
-                label: "Bookings",
-              ),
+      selectedItemColor: primaryBlue,
+      unselectedItemColor: const Color(0xFF98A2B3),
 
-              BottomNavigationBarItem(
-                icon: Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      const Icon(
-                        Icons.notifications_none_rounded,
-                        size: 25,
-                      ),
-                      if (notificationCount > 0)
-                        Positioned(
-                          right: -8,
-                          top: -6,
-                          child: _badge(notificationCount),
-                        ),
-                    ],
-                  ),
-                ),
-                activeIcon: Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      const Icon(
-                        Icons.notifications_rounded,
-                        size: 25,
-                      ),
-                      if (notificationCount > 0)
-                        Positioned(
-                          right: -8,
-                          top: -6,
-                          child: _badge(notificationCount),
-                        ),
-                    ],
-                  ),
-                ),
-                label: "Notifications",
-              ),
+      backgroundColor: Colors.white,
 
-              const BottomNavigationBarItem(
-                icon: Padding(
-                  padding: EdgeInsets.only(bottom: 3),
-                  child: Icon(
-                    Icons.person_outline_rounded,
-                    size: 25,
-                  ),
+      selectedFontSize: 14,
+      unselectedFontSize: 14,
+
+      showUnselectedLabels: true,
+
+      elevation: 12,
+
+      items: [
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.home_rounded),
+          label: "Home",
+        ),
+
+        BottomNavigationBarItem(
+          icon: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(Icons.calendar_today_rounded),
+
+              if (bookingCount > 0)
+                Positioned(
+                  right: -8,
+                  top: -6,
+                  child: _badge(bookingCount),
                 ),
-                activeIcon: Padding(
-                  padding: EdgeInsets.only(bottom: 3),
-                  child: Icon(
-                    Icons.person_rounded,
-                    size: 25,
-                  ),
-                ),
-                label: "Profile",
-              ),
             ],
           ),
+          label: "Bookings",
         ),
-      ),
+
+        BottomNavigationBarItem(
+          icon: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(
+                Icons.notifications_none_rounded,
+              ),
+
+              if (notificationCount > 0)
+                Positioned(
+                  right: -8,
+                  top: -6,
+                  child: _badge(notificationCount),
+                ),
+            ],
+          ),
+          label: "Notifications",
+        ),
+
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline_rounded),
+          label: "Profile",
+        ),
+      ],
     );
   }
 
   static Widget _badge(int count) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 5,
-        vertical: 2,
-      ),
+      padding: const EdgeInsets.all(4),
       constraints: const BoxConstraints(
-        minWidth: 18,
-        minHeight: 18,
+        minWidth: 20,
+        minHeight: 20,
       ),
       decoration: const BoxDecoration(
-        color: Colors.red,
+        color: Color(0xFFE53935),
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -193,7 +102,7 @@ class BottomNavBar extends StatelessWidget {
           count > 99 ? "99+" : "$count",
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 9,
+            fontSize: 12,
             fontWeight: FontWeight.w700,
           ),
         ),

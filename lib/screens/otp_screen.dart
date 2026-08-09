@@ -164,7 +164,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
         style: const TextStyle(
           color: primaryBlue,
-          fontSize: 22,
+          fontSize: 20,
           fontWeight: FontWeight.w700,
         ),
 
@@ -331,7 +331,7 @@ class _OtpScreenState extends State<OtpScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: darkText,
-                    fontSize: 31,
+                    fontSize: 30,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.6,
                     height: 1.15,
@@ -420,7 +420,7 @@ class _OtpScreenState extends State<OtpScreen> {
                     "Resend OTP",
                     style: TextStyle(
                       color: primaryBlue,
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight:
                           FontWeight.w600,
                     ),
@@ -503,7 +503,7 @@ class _OtpScreenState extends State<OtpScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: lightText,
-                    fontSize: 13,
+                    fontSize: 14,
                   ),
                 ),
               ),

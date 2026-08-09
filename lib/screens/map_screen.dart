@@ -5,8 +5,6 @@ import 'package:geolocator/geolocator.dart';
 import '../models/place_prediction.dart';
 import '../core/services/location_service.dart';
 import '../core/services/places_service.dart';
-import '../core/widgets/address_bottom_sheet.dart';
-import '../core/widgets/address_search_bar.dart';
 import '../core/widgets/center_location_pin.dart';
 import 'address_search_screen.dart';
 
@@ -14,23 +12,41 @@ class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
   @override
-  State<MapScreen> createState() => _MapScreenState();
+  State<MapScreen> createState() =>
+      _MapScreenState();
 }
 
 class _MapScreenState extends State<MapScreen> {
-  static const Color primaryBlue = Color(0xFF1557FF);
+  static const Color primaryBlue =
+      Color(0xFF1557FF);
+
+  static const Color lightBlue =
+      Color(0xFFEEF3FF);
+
+  static const Color background =
+      Color(0xFFF7F8FC);
+
+  static const Color textPrimary =
+      Color(0xFF101828);
+
+  static const Color textSecondary =
+      Color(0xFF667085);
 
   GoogleMapController? _mapController;
 
-  final LocationService _locationService = LocationService();
-  final PlacesService _placesService = PlacesService();
+  final LocationService _locationService =
+      LocationService();
 
-  String _selectedAddress = "Fetching your location...";
+  final PlacesService _placesService =
+      PlacesService();
 
-  LatLng _selectedLatLng = const LatLng(
-    19.0760,
-    72.8777,
-  );
+  String _selectedAddress =
+      "Fetching your location...";
+
+  LatLng _selectedLatLng =
+      const LatLng(19.0760, 72.8777);
+
+  Map<String, String> _addressComponents = {};
 
   static const CameraPosition _initialPosition =
       CameraPosition(
@@ -41,8 +57,6 @@ class _MapScreenState extends State<MapScreen> {
     zoom: 14,
   );
 
-  Map<String, String> _addressComponents = {};
-
   @override
   void initState() {
     super.initState();
@@ -52,7 +66,8 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> _moveToCurrentLocation() async {
     try {
       final Position position =
-          await _locationService.getCurrentLocation();
+          await _locationService
+              .getCurrentLocation();
 
       _selectedLatLng = LatLng(
         position.latitude,
@@ -82,13 +97,15 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _updateAddress() async {
     final address =
-        await _locationService.getAddressFromCoordinates(
+        await _locationService
+            .getAddressFromCoordinates(
       _selectedLatLng.latitude,
       _selectedLatLng.longitude,
     );
 
     final components =
-        await _locationService.getAddressComponents(
+        await _locationService
+            .getAddressComponents(
       _selectedLatLng.latitude,
       _selectedLatLng.longitude,
     );
@@ -106,7 +123,8 @@ class _MapScreenState extends State<MapScreen> {
         await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => const AddressSearchScreen(),
+        builder: (_) =>
+            const AddressSearchScreen(),
       ),
     );
 
@@ -114,7 +132,8 @@ class _MapScreenState extends State<MapScreen> {
 
     try {
       final location =
-          await _placesService.getPlaceLocation(
+          await _placesService
+              .getPlaceLocation(
         prediction.placeId,
       );
 
@@ -145,26 +164,27 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: background,
 
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: background,
         elevation: 0,
-        centerTitle: false,
-        titleSpacing: 4,
+
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_rounded,
+            color: textPrimary,
+            size: 30,
           ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () =>
+              Navigator.pop(context),
         ),
+
         title: const Text(
           "Select Service Address",
           style: TextStyle(
-            fontSize: 20,
+            color: textPrimary,
+            fontSize: 28,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -173,10 +193,13 @@ class _MapScreenState extends State<MapScreen> {
       body: Stack(
         children: [
           GoogleMap(
-            initialCameraPosition: _initialPosition,
+            initialCameraPosition:
+                _initialPosition,
+
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
-            compassEnabled: true,
+
+            compassEnabled: false,
             zoomControlsEnabled: false,
 
             onMapCreated: (controller) {
@@ -185,7 +208,8 @@ class _MapScreenState extends State<MapScreen> {
             },
 
             onCameraMove: (position) {
-              _selectedLatLng = position.target;
+              _selectedLatLng =
+                  position.target;
             },
 
             onCameraIdle: () {
@@ -195,63 +219,243 @@ class _MapScreenState extends State<MapScreen> {
 
           const CenterLocationPin(),
 
+          // SEARCH
           Positioned(
-            top: 16,
+            top: 20,
             left: 20,
             right: 20,
-            child: AddressSearchBar(
+            child: GestureDetector(
               onTap: _openSearch,
+              child: Container(
+                height: 68,
+
+                padding:
+                    const EdgeInsets.symmetric(
+                  horizontal: 20,
+                ),
+
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius:
+                      BorderRadius.circular(20),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 14,
+                      offset: Offset(0, 5),
+                    ),
+                  ],
+                ),
+
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.search_rounded,
+                      color: primaryBlue,
+                      size: 32,
+                    ),
+
+                    const SizedBox(width: 16),
+
+                    const Expanded(
+                      child: Text(
+                        "Search address",
+                        style: TextStyle(
+                          color:
+                              Color(0xFF98A2B3),
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+
+                    const Icon(
+                      Icons.mic_none_rounded,
+                      color: primaryBlue,
+                      size: 30,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
 
+          // CURRENT LOCATION
           Positioned(
             right: 20,
-            bottom: 210,
+            bottom: 245,
             child: Material(
               color: Colors.white,
-              elevation: 4,
-              shadowColor: Colors.black26,
+              elevation: 5,
               shape: const CircleBorder(),
               child: InkWell(
-                customBorder: const CircleBorder(),
+                customBorder:
+                    const CircleBorder(),
                 onTap: _moveToCurrentLocation,
-                child: Container(
-                  height: 52,
-                  width: 52,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
+                child: const Padding(
+                  padding: EdgeInsets.all(17),
+                  child: Icon(
                     Icons.my_location_rounded,
                     color: primaryBlue,
-                    size: 24,
+                    size: 30,
                   ),
                 ),
               ),
             ),
           ),
+
+          // BOTTOM SHEET
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _buildAddressSheet(),
+          ),
         ],
       ),
+    );
+  }
 
-      bottomSheet: AddressBottomSheet(
-        address: _selectedAddress,
-        onConfirm: () {
-          Navigator.pop(
-            context,
-            {
-              "address": _selectedAddress,
-              "house": _addressComponents["house"],
-              "street": _addressComponents["street"],
-              "area": _addressComponents["area"],
-              "city": _addressComponents["city"],
-              "state": _addressComponents["state"],
-              "pincode": _addressComponents["pincode"],
-              "latitude": _selectedLatLng.latitude,
-              "longitude": _selectedLatLng.longitude,
-            },
-          );
-        },
+  Widget _buildAddressSheet() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        28,
+        18,
+        28,
+        28,
+      ),
+
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(30),
+        ),
+      ),
+
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 55,
+              height: 5,
+              decoration: BoxDecoration(
+                color: const Color(0xFFD0D5DD),
+                borderRadius:
+                    BorderRadius.circular(10),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
+          const Text(
+            "Selected Address",
+            style: TextStyle(
+              color: textPrimary,
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          Row(
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 48,
+                width: 48,
+                decoration: BoxDecoration(
+                  color: lightBlue,
+                  borderRadius:
+                      BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.location_on_rounded,
+                  color: primaryBlue,
+                  size: 28,
+                ),
+              ),
+
+              const SizedBox(width: 16),
+
+              Expanded(
+                child: Text(
+                  _selectedAddress,
+                  maxLines: 3,
+                  overflow:
+                      TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: textPrimary,
+                    fontSize: 16,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
+          SizedBox(
+            width: double.infinity,
+            height: 62,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(
+                  context,
+                  {
+                    "address":
+                        _selectedAddress,
+                    "house":
+                        _addressComponents[
+                            "house"],
+                    "street":
+                        _addressComponents[
+                            "street"],
+                    "area":
+                        _addressComponents[
+                            "area"],
+                    "city":
+                        _addressComponents[
+                            "city"],
+                    "state":
+                        _addressComponents[
+                            "state"],
+                    "pincode":
+                        _addressComponents[
+                            "pincode"],
+                    "latitude":
+                        _selectedLatLng
+                            .latitude,
+                    "longitude":
+                        _selectedLatLng
+                            .longitude,
+                  },
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryBlue,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape:
+                    RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(20),
+                ),
+              ),
+              child: const Text(
+                "Confirm Location",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

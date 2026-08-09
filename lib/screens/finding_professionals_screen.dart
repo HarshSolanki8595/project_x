@@ -100,7 +100,7 @@ class _FindingProfessionalsScreenState
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 14.5,
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: Colors.black87,
                   ),
@@ -109,7 +109,7 @@ class _FindingProfessionalsScreenState
                 Text(
                   subtitle,
                   style: TextStyle(
-                    fontSize: 12.5,
+                    fontSize: 12,
                     color: Colors.grey.shade600,
                   ),
                 ),
@@ -181,7 +181,7 @@ class _FindingProfessionalsScreenState
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.grey,
-                  fontSize: 15,
+                  fontSize: 16,
                   height: 1.5,
                 ),
               ),
@@ -255,7 +255,7 @@ class _FindingProfessionalsScreenState
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.grey,
-                  fontSize: 12.5,
+                  fontSize: 12,
                   height: 1.45,
                 ),
               ),

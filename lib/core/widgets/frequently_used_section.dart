@@ -52,7 +52,7 @@ class FrequentlyUsedSection extends StatelessWidget {
             "Frequently Used",
             style: TextStyle(
               color: Color(0xFF0F172A),
-              fontSize: 21,
+              fontSize: 20,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.3,
             ),
@@ -105,7 +105,7 @@ class FrequentlyUsedSection extends StatelessWidget {
                           style: const TextStyle(
                             color: Color(0xFF334155),
                             fontWeight: FontWeight.w600,
-                            fontSize: 12.5,
+                            fontSize: 12,
                           ),
                         ),
                       ),

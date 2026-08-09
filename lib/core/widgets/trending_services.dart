@@ -46,7 +46,7 @@ class TrendingServices extends StatelessWidget {
             "Trending Services",
             style: TextStyle(
               color: Color(0xFF0F172A),
-              fontSize: 21,
+              fontSize: 20,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.3,
             ),
@@ -103,7 +103,7 @@ class TrendingServices extends StatelessWidget {
                         item["subtitle"],
                         style: const TextStyle(
                           color: Color(0xFF64748B),
-                          fontSize: 13,
+                          fontSize: 14,
                         ),
                       ),
                       const SizedBox(height: 13),
@@ -113,7 +113,7 @@ class TrendingServices extends StatelessWidget {
                             "Book Now",
                             style: TextStyle(
                               color: Color(0xFF0D47FF),
-                              fontSize: 13,
+                              fontSize: 14,
                               fontWeight: FontWeight.w700,
                             ),
                           ),

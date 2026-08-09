@@ -61,7 +61,7 @@ class ContinueBookingCard extends StatelessWidget {
                     "Continue Booking",
                     style: TextStyle(
                       color: Color(0xFF0F172A),
-                      fontSize: 19,
+                      fontSize: 18,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -91,7 +91,7 @@ class ContinueBookingCard extends StatelessWidget {
               serviceName,
               style: const TextStyle(
                 color: Color(0xFF0F172A),
-                fontSize: 17,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -128,7 +128,7 @@ class ContinueBookingCard extends StatelessWidget {
                     status,
                     style: const TextStyle(
                       color: Color(0xFF334155),
-                      fontSize: 13,
+                      fontSize: 14,
                     ),
                   ),
                 ),
@@ -151,7 +151,7 @@ class ContinueBookingCard extends StatelessWidget {
                 child: const Text(
                   "Continue",
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

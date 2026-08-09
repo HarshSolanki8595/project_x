@@ -69,7 +69,7 @@ class AskProjectXCard extends StatelessWidget {
                             "Ask Habio",
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 22,
+                              fontSize: 20,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -78,7 +78,7 @@ class AskProjectXCard extends StatelessWidget {
                             "Describe your problem in simple words.",
                             style: TextStyle(
                               color: Colors.white70,
-                              fontSize: 13,
+                              fontSize: 14,
                               height: 1.3,
                             ),
                           ),
@@ -118,7 +118,7 @@ class AskProjectXCard extends StatelessWidget {
                           "Example: My washing machine is making a loud noise.",
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 13,
+                            fontSize: 14,
                             height: 1.35,
                           ),
                         ),
@@ -176,7 +176,7 @@ class AskProjectXCard extends StatelessWidget {
                     "Powered by Habio AI",
                     style: TextStyle(
                       color: Colors.white70,
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
