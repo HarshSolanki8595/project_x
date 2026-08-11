@@ -1,6 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/booking.dart';
 
@@ -20,347 +19,158 @@ class BookingDetailsScreen extends StatefulWidget {
 class _BookingDetailsScreenState
     extends State<BookingDetailsScreen> {
   // ============================================================
-  // HABIO BLUE
+  // HABIO DESIGN SYSTEM
   // ============================================================
 
-  static const Color primaryBlue = Color(0xFF1557FF);
-  static const Color lightBlue = Color(0xFFEEF3FF);
-  static const Color background = Color(0xFFF7F8FC);
+  static const Color primaryBlue =
+      Color(0xFF1557FF);
 
-  static const Color textPrimary = Color(0xFF0F172A);
-  static const Color textSecondary = Color(0xFF64748B);
+  static const Color lightBlue =
+      Color(0xFFEEF3FF);
 
-  bool _cancelling = false;
+  static const Color background =
+      Color(0xFFF7F8FC);
+
+  static const Color textPrimary =
+      Color(0xFF0F172A);
+
+  static const Color textSecondary =
+      Color(0xFF64748B);
+
+  static const Color borderColor =
+      Color(0xFFE1E7EF);
+
+  static const Color danger =
+      Color(0xFFD92D20);
+
+  static const Color dangerBackground =
+      Color(0xFFFDECEC);
+
+  // ============================================================
+  // STATE
+  // ============================================================
+
+  bool _isCancelling = false;
+
+  // ============================================================
+  // GETTERS
+  // ============================================================
+
+  Booking get booking => widget.booking;
 
   // ============================================================
   // CANCEL BOOKING
   // ============================================================
 
   Future<void> _cancelBooking() async {
-    String selectedReason = "No longer needed";
+    if (_isCancelling) return;
 
-    final otherController = TextEditingController();
-
-    final result = await showDialog<String>(
+    final shouldCancel =
+        await showDialog<bool>(
       context: context,
-
       builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (
-            context,
-            setDialogState,
-          ) {
-            final reasons = [
-              "Found another professional",
-              "No longer needed",
-              "Price is high",
-              "Other",
-            ];
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(20),
+          ),
 
-            return AlertDialog(
-              backgroundColor: Colors.white,
+          title: const Text(
+            "Cancel Booking?",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: textPrimary,
+            ),
+          ),
 
-              shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(24),
+          content: const Text(
+            "Are you sure you want to cancel this booking?",
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.4,
+              color: textSecondary,
+            ),
+          ),
+
+          actionsPadding:
+              const EdgeInsets.fromLTRB(
+            16,
+            0,
+            16,
+            14,
+          ),
+
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(
+                  dialogContext,
+                  false,
+                );
+              },
+              child: const Text(
+                "Keep Booking",
+                style: TextStyle(
+                  color: primaryBlue,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
+            ),
 
-              title: const Text(
+            TextButton(
+              onPressed: () {
+                Navigator.pop(
+                  dialogContext,
+                  true,
+                );
+              },
+              child: const Text(
                 "Cancel Booking",
                 style: TextStyle(
-                  fontSize: 23,
+                  color: danger,
                   fontWeight: FontWeight.w700,
-                  color: textPrimary,
                 ),
               ),
-
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-
-                  children: [
-                    const Text(
-                      "Why do you want to cancel this booking?",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: textSecondary,
-                      ),
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    ...reasons.map(
-                      (reason) {
-                        return RadioListTile<String>(
-                          value: reason,
-                          groupValue: selectedReason,
-
-                          activeColor: primaryBlue,
-
-                          contentPadding:
-                              EdgeInsets.zero,
-
-                          title: Text(
-                            reason,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: textPrimary,
-                            ),
-                          ),
-
-                          onChanged: (value) {
-                            if (value == null) {
-                              return;
-                            }
-
-                            setDialogState(() {
-                              selectedReason =
-                                  value;
-                            });
-                          },
-                        );
-                      },
-                    ),
-
-                    if (selectedReason == "Other")
-                      TextField(
-                        controller:
-                            otherController,
-
-                        maxLines: 3,
-
-                        cursorColor: primaryBlue,
-
-                        decoration:
-                            InputDecoration(
-                          hintText:
-                              "Tell us more...",
-                          filled: true,
-                          fillColor:
-                              const Color(
-                            0xFFF7F8FC,
-                          ),
-
-                          border:
-                              OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius
-                                    .circular(
-                              15,
-                            ),
-                            borderSide:
-                                const BorderSide(
-                              color:
-                                  Color(
-                                0xFFE1E5EC,
-                              ),
-                            ),
-                          ),
-
-                          focusedBorder:
-                              OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius
-                                    .circular(
-                              15,
-                            ),
-                            borderSide:
-                                const BorderSide(
-                              color:
-                                  primaryBlue,
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-
-              actionsPadding:
-                  const EdgeInsets.fromLTRB(
-                20,
-                0,
-                20,
-                20,
-              ),
-
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(
-                      dialogContext,
-                    );
-                  },
-
-                  child: const Text(
-                    "Keep Booking",
-                    style: TextStyle(
-                      color: textSecondary,
-                      fontWeight:
-                          FontWeight.w600,
-                    ),
-                  ),
-                ),
-
-                ElevatedButton(
-                  style:
-                      ElevatedButton.styleFrom(
-                    backgroundColor:
-                        const Color(
-                      0xFFD92D20,
-                    ),
-                    foregroundColor:
-                        Colors.white,
-                    elevation: 0,
-
-                    shape:
-                        RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(
-                        14,
-                      ),
-                    ),
-                  ),
-
-                  onPressed: () {
-                    final reason =
-                        selectedReason ==
-                                "Other"
-                            ? otherController
-                                .text
-                                .trim()
-                            : selectedReason;
-
-                    Navigator.pop(
-                      dialogContext,
-                      reason.isEmpty
-                          ? "Other"
-                          : reason,
-                    );
-                  },
-
-                  child: const Text(
-                    "Cancel Booking",
-                    style: TextStyle(
-                      fontWeight:
-                          FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
+            ),
+          ],
         );
       },
     );
 
-    otherController.dispose();
-
-    if (result == null) {
-      return;
-    }
-
-    await _performCancellation(result);
-  }
-
-  // ============================================================
-  // FIRESTORE CANCELLATION
-  // ============================================================
-
-  Future<void> _performCancellation(
-    String reason,
-  ) async {
-    final user =
-        FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      return;
-    }
+    if (shouldCancel != true) return;
 
     setState(() {
-      _cancelling = true;
+      _isCancelling = true;
     });
 
     try {
-      final bookingsRef =
-          FirebaseFirestore.instance
-              .collection("users")
-              .doc(user.uid)
-              .collection("bookings");
+      // ========================================================
+      // FIRESTORE
+      // ========================================================
 
-      // --------------------------------------------------------
-      // First try bookingId as the Firestore document ID.
-      // --------------------------------------------------------
-
-      final directDoc =
-          bookingsRef.doc(
-        widget.booking.bookingId,
-      );
-
-      final directSnapshot =
-          await directDoc.get();
-
-      if (directSnapshot.exists) {
-        await directDoc.update({
-          "status": "cancelled",
-          "cancellationReason": reason,
-          "cancelledAt":
-              FieldValue.serverTimestamp(),
-        });
-      } else {
-        // ------------------------------------------------------
-        // Fallback: locate the booking using bookingId field.
-        // This protects us if the document ID and booking ID
-        // are different.
-        // ------------------------------------------------------
-
-        final query =
-            await bookingsRef
-                .where(
-                  "bookingId",
-                  isEqualTo:
-                      widget.booking.bookingId,
-                )
-                .limit(1)
-                .get();
-
-        if (query.docs.isEmpty) {
-          throw Exception(
-            "Booking could not be found.",
-          );
-        }
-
-        await query.docs.first.reference
-            .update({
-          "status": "cancelled",
-          "cancellationReason":
-              reason,
-          "cancelledAt":
-              FieldValue.serverTimestamp(),
-        });
-      }
+      await FirebaseFirestore.instance
+          .collection("bookings")
+          .doc(booking.bookingId)
+          .update({
+        "status": "cancelled",
+        "cancelledAt":
+            FieldValue.serverTimestamp(),
+        "cancelledBy": "customer",
+      });
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Booking cancelled successfully.",
-          ),
-          backgroundColor:
-              Color(0xFF35A853),
-        ),
-      );
+      setState(() {
+        _isCancelling = false;
+      });
 
-      // --------------------------------------------------------
-      // Return TRUE to BookingsScreen.
-      // It will automatically switch to Cancelled.
-      // --------------------------------------------------------
+      // ========================================================
+      // RETURN TRUE
+      //
+      // My Bookings already listens for this result and moves
+      // the user to the Cancelled tab.
+      // ========================================================
 
       Navigator.pop(
         context,
@@ -369,22 +179,20 @@ class _BookingDetailsScreenState
     } catch (e) {
       if (!mounted) return;
 
+      setState(() {
+        _isCancelling = false;
+      });
+
       ScaffoldMessenger.of(context)
           .showSnackBar(
         SnackBar(
           content: Text(
-            "Could not cancel booking.\n$e",
+            "Unable to cancel booking.\n$e",
           ),
-          backgroundColor:
-              const Color(0xFFD92D20),
+          behavior:
+              SnackBarBehavior.floating,
         ),
       );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _cancelling = false;
-        });
-      }
     }
   }
 
@@ -394,20 +202,12 @@ class _BookingDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final booking = widget.booking;
-
-    final canCancel =
-        booking.status ==
-                BookingStatus.awaitingAcceptance ||
-            booking.status ==
-                BookingStatus.accepted ||
-            booking.status ==
-                BookingStatus.onTheWay ||
-            booking.status ==
-                BookingStatus.inProgress;
-
     return Scaffold(
       backgroundColor: background,
+
+      // ========================================================
+      // APP BAR
+      // ========================================================
 
       appBar: AppBar(
         backgroundColor: background,
@@ -418,12 +218,15 @@ class _BookingDetailsScreenState
         title: const Text(
           "Booking Details",
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: textPrimary,
           ),
         ),
       ),
+
+      // ========================================================
+      // BODY
+      // ========================================================
 
       body: SafeArea(
         child: Column(
@@ -436,9 +239,9 @@ class _BookingDetailsScreenState
                 padding:
                     const EdgeInsets.fromLTRB(
                   20,
-                  10,
+                  8,
                   20,
-                  30,
+                  24,
                 ),
 
                 child: Column(
@@ -446,233 +249,65 @@ class _BookingDetailsScreenState
                       CrossAxisAlignment.start,
 
                   children: [
-                    // =================================================
+                    // ==================================================
                     // BOOKING HEADER
-                    // =================================================
+                    // ==================================================
 
-                    _buildHeaderCard(
-                      booking,
-                    ),
+                    _buildBookingHeader(),
 
-                    const SizedBox(height: 24),
-
-                    // =================================================
+                    // ==================================================
                     // PROFESSIONAL
-                    // =================================================
+                    // ==================================================
 
                     _sectionTitle(
                       "Professional",
                     ),
 
-                    const SizedBox(height: 10),
+                    _buildProfessionalCard(),
 
-                    _buildProfessionalCard(
-                      booking,
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // =================================================
-                    // SERVICE
-                    // =================================================
+                    // ==================================================
+                    // SERVICE DETAILS
+                    // ==================================================
 
                     _sectionTitle(
                       "Service Details",
                     ),
 
-                    const SizedBox(height: 10),
+                    _buildServiceDetailsCard(),
 
-                    _buildServiceCard(
-                      booking,
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // =================================================
-                    // ADDRESS
-                    // =================================================
-
-                    _sectionTitle(
-                      "Service Address",
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    _buildInfoCard(
-                      icon:
-                          Icons.location_on_rounded,
-                      title: "Address",
-                      value:
-                          booking.request.address ??
-                              "Address not available",
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // =================================================
+                    // ==================================================
                     // SCHEDULE
-                    // =================================================
+                    // ==================================================
 
                     _sectionTitle(
                       "Schedule",
                     ),
 
-                    const SizedBox(height: 10),
+                    _buildScheduleCard(),
 
-                    _buildScheduleCard(
-                      booking,
-                    ),
-
-                    // =================================================
-                    // ISSUE
-                    // =================================================
-
-                    if (booking.request
-                            .issueDescription
-                            .trim()
-                            .isNotEmpty) ...[
-                      const SizedBox(height: 24),
-
-                      _sectionTitle(
-                        "Issue Description",
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      _buildInfoCard(
-                        icon: Icons
-                            .description_outlined,
-                        title: "What you described",
-                        value: booking
-                            .request
-                            .issueDescription,
-                      ),
-                    ],
-
-                    const SizedBox(height: 24),
-
-                    // =================================================
-                    // STATUS
-                    // =================================================
+                    // ==================================================
+                    // ADDRESS
+                    // ==================================================
 
                     _sectionTitle(
-                      "Booking Status",
+                      "Service Address",
                     ),
 
-                    const SizedBox(height: 10),
+                    _buildAddressCard(),
 
-                    _buildStatusTimeline(
-                      booking.status,
+                    const SizedBox(
+                      height: 4,
                     ),
-
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),
             ),
 
             // ========================================================
-            // BOTTOM ACTION
+            // FIXED CANCEL BUTTON
             // ========================================================
 
-            if (canCancel)
-              Container(
-                width: double.infinity,
-
-                padding:
-                    const EdgeInsets.fromLTRB(
-                  20,
-                  12,
-                  20,
-                  20,
-                ),
-
-                decoration: BoxDecoration(
-                  color: Colors.white,
-
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black
-                          .withValues(
-                        alpha: 0.06,
-                      ),
-                      blurRadius: 14,
-                      offset:
-                          const Offset(0, -4),
-                    ),
-                  ],
-                ),
-
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 58,
-
-                  child: OutlinedButton.icon(
-                    onPressed:
-                        _cancelling
-                            ? null
-                            : _cancelBooking,
-
-                    icon: _cancelling
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child:
-                                CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color:
-                                  Color(
-                                0xFFD92D20,
-                              ),
-                            ),
-                          )
-                        : const Icon(
-                            Icons
-                                .cancel_outlined,
-                            color:
-                                Color(
-                              0xFFD92D20,
-                            ),
-                          ),
-
-                    label: Text(
-                      _cancelling
-                          ? "Cancelling..."
-                          : "Cancel Booking",
-
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight:
-                            FontWeight.w700,
-                        color:
-                            Color(
-                          0xFFD92D20,
-                        ),
-                      ),
-                    ),
-
-                    style:
-                        OutlinedButton.styleFrom(
-                      side:
-                          const BorderSide(
-                        color:
-                            Color(
-                          0xFFF1A7A2,
-                        ),
-                        width: 1.5,
-                      ),
-
-                      shape:
-                          RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(
-                          18,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            _buildBottomAction(),
           ],
         ),
       ),
@@ -680,24 +315,32 @@ class _BookingDetailsScreenState
   }
 
   // ============================================================
-  // HEADER CARD
+  // BOOKING HEADER
   // ============================================================
 
-  Widget _buildHeaderCard(
-    Booking booking,
-  ) {
+  Widget _buildBookingHeader() {
     return Container(
       width: double.infinity,
 
-      padding: const EdgeInsets.all(20),
+      padding:
+          const EdgeInsets.fromLTRB(
+        18,
+        17,
+        18,
+        16,
+      ),
+
+      margin:
+          const EdgeInsets.only(
+        bottom: 20,
+      ),
 
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius:
             BorderRadius.circular(22),
-
         border: Border.all(
-          color: const Color(0xFFE1E7EF),
+          color: borderColor,
         ),
       ),
 
@@ -716,16 +359,25 @@ class _BookingDetailsScreenState
                   booking.request
                       .subCategoryName,
 
+                  maxLines: 3,
+
+                  overflow:
+                      TextOverflow.ellipsis,
+
                   style: const TextStyle(
-                    fontSize: 25,
+                    fontSize: 27,
+                    height: 1.05,
                     fontWeight:
-                        FontWeight.w700,
+                        FontWeight.w800,
                     color: textPrimary,
+                    letterSpacing: -0.7,
                   ),
                 ),
               ),
 
-              const SizedBox(width: 12),
+              const SizedBox(
+                width: 10,
+              ),
 
               _statusChip(
                 booking.status,
@@ -733,17 +385,36 @@ class _BookingDetailsScreenState
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(
+            height: 14,
+          ),
 
           Row(
             children: [
-              const Icon(
-                Icons.confirmation_number_outlined,
-                color: primaryBlue,
-                size: 21,
+              Container(
+                height: 38,
+                width: 38,
+
+                decoration:
+                    BoxDecoration(
+                  color: lightBlue,
+                  borderRadius:
+                      BorderRadius.circular(
+                    11,
+                  ),
+                ),
+
+                child: const Icon(
+                  Icons
+                      .confirmation_number_outlined,
+                  color: primaryBlue,
+                  size: 20,
+                ),
               ),
 
-              const SizedBox(width: 9),
+              const SizedBox(
+                width: 10,
+              ),
 
               const Text(
                 "Booking ID",
@@ -753,12 +424,16 @@ class _BookingDetailsScreenState
                 ),
               ),
 
-              const SizedBox(width: 8),
+              const SizedBox(
+                width: 8,
+              ),
 
               Expanded(
                 child: Text(
                   booking.bookingId,
+
                   maxLines: 1,
+
                   overflow:
                       TextOverflow.ellipsis,
 
@@ -781,13 +456,10 @@ class _BookingDetailsScreenState
   // PROFESSIONAL CARD
   // ============================================================
 
-  Widget _buildProfessionalCard(
-    Booking booking,
-  ) {
-    final professional =
-        booking.professional;
-
+  Widget _buildProfessionalCard() {
     return _card(
+      marginBottom: 18,
+
       child: Column(
         children: [
           Row(
@@ -796,25 +468,28 @@ class _BookingDetailsScreenState
 
             children: [
               Container(
-                height: 68,
-                width: 68,
+                height: 66,
+                width: 66,
 
-                decoration: BoxDecoration(
+                decoration:
+                    BoxDecoration(
                   color: lightBlue,
                   borderRadius:
                       BorderRadius.circular(
-                    19,
+                    17,
                   ),
                 ),
 
                 child: const Icon(
                   Icons.person_rounded,
                   color: primaryBlue,
-                  size: 37,
+                  size: 36,
                 ),
               ),
 
-              const SizedBox(width: 16),
+              const SizedBox(
+                width: 13,
+              ),
 
               Expanded(
                 child: Column(
@@ -823,59 +498,67 @@ class _BookingDetailsScreenState
 
                   children: [
                     Text(
-                      professional.name,
+                      booking.professional.name,
+
                       maxLines: 2,
+
                       overflow:
                           TextOverflow.ellipsis,
 
                       style: const TextStyle(
                         fontSize: 20,
+                        height: 1.15,
                         fontWeight:
                             FontWeight.w700,
                         color: textPrimary,
                       ),
                     ),
 
-                    const SizedBox(height: 8),
+                    const SizedBox(
+                      height: 7,
+                    ),
 
                     Row(
                       children: [
                         const Icon(
                           Icons.star_rounded,
                           color:
-                              Color(
-                            0xFFFFC107,
-                          ),
-                          size: 20,
+                              Color(0xFFFFC107),
+                          size: 19,
                         ),
 
-                        const SizedBox(width: 5),
+                        const SizedBox(
+                          width: 4,
+                        ),
 
                         Text(
-                          "${professional.rating}",
+                          "${booking.professional.rating}",
+
                           style:
                               const TextStyle(
                             fontSize: 15,
                             fontWeight:
-                                FontWeight.w600,
+                                FontWeight.w700,
                             color:
                                 textPrimary,
                           ),
                         ),
 
-                        const SizedBox(width: 5),
+                        const SizedBox(
+                          width: 7,
+                        ),
 
-                        Expanded(
+                        Flexible(
                           child: Text(
-                            "(${professional.reviews} reviews)",
-                            maxLines: 1,
+                            "(${booking.professional.reviews} reviews)",
+
                             overflow:
                                 TextOverflow
                                     .ellipsis,
 
                             style:
                                 const TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                               color:
                                   textSecondary,
                             ),
@@ -884,14 +567,18 @@ class _BookingDetailsScreenState
                       ],
                     ),
 
-                    const SizedBox(height: 6),
+                    const SizedBox(
+                      height: 7,
+                    ),
 
                     Text(
-                      "${professional.experience} Years Experience",
+                      "${booking.professional.experience} Years Experience",
 
-                      style: const TextStyle(
+                      style:
+                          const TextStyle(
                         fontSize: 14,
-                        color: textSecondary,
+                        color:
+                            textSecondary,
                       ),
                     ),
                   ],
@@ -900,21 +587,30 @@ class _BookingDetailsScreenState
             ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(
+            height: 15,
+          ),
+
+          // --------------------------------------------------------
+          // AGREED QUOTE
+          // --------------------------------------------------------
 
           Container(
             width: double.infinity,
 
             padding:
                 const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 15,
+              horizontal: 14,
+              vertical: 12,
             ),
 
-            decoration: BoxDecoration(
+            decoration:
+                BoxDecoration(
               color: lightBlue,
               borderRadius:
-                  BorderRadius.circular(17),
+                  BorderRadius.circular(
+                16,
+              ),
             ),
 
             child: Row(
@@ -930,12 +626,13 @@ class _BookingDetailsScreenState
                 ),
 
                 Text(
-                  "₹${professional.quote.toStringAsFixed(0)}",
+                  "₹${booking.professional.quote.toStringAsFixed(0)}",
 
-                  style: const TextStyle(
-                    fontSize: 25,
+                  style:
+                      const TextStyle(
+                    fontSize: 28,
                     fontWeight:
-                        FontWeight.w700,
+                        FontWeight.w800,
                     color: primaryBlue,
                   ),
                 ),
@@ -943,21 +640,29 @@ class _BookingDetailsScreenState
             ),
           ),
 
-          if (professional.quoteDescription
+          if (booking.professional.quoteDescription
               .trim()
               .isNotEmpty) ...[
-            const SizedBox(height: 14),
+            const SizedBox(
+              height: 10,
+            ),
 
             Align(
               alignment:
                   Alignment.centerLeft,
 
               child: Text(
-                professional.quoteDescription,
+                booking.professional
+                    .quoteDescription,
+
+                maxLines: 2,
+
+                overflow:
+                    TextOverflow.ellipsis,
 
                 style: const TextStyle(
-                  fontSize: 15,
-                  height: 1.4,
+                  fontSize: 13.5,
+                  height: 1.35,
                   color: textSecondary,
                 ),
               ),
@@ -969,28 +674,48 @@ class _BookingDetailsScreenState
   }
 
   // ============================================================
-  // SERVICE CARD
+  // SERVICE DETAILS CARD
   // ============================================================
 
-  Widget _buildServiceCard(
-    Booking booking,
-  ) {
+  Widget _buildServiceDetailsCard() {
     return _card(
+      marginBottom: 18,
+
       child: Column(
         children: [
           _detailRow(
-            Icons.category_outlined,
+            Icons
+                .home_repair_service_rounded,
             "Category",
             booking.request.categoryName,
           ),
 
-          const Divider(height: 26),
+          const SizedBox(
+            height: 12,
+          ),
 
           _detailRow(
-            Icons.handyman_outlined,
+            Icons.handyman_rounded,
             "Service",
-            booking.request.subCategoryName,
+            booking.request
+                .subCategoryName,
           ),
+
+          if (booking.request.issueDescription
+              .trim()
+              .isNotEmpty) ...[
+            const SizedBox(
+              height: 12,
+            ),
+
+            _detailRow(
+              Icons.description_outlined,
+              "Issue",
+              booking.request
+                  .issueDescription,
+              maxLines: 3,
+            ),
+          ],
         ],
       ),
     );
@@ -1000,9 +725,7 @@ class _BookingDetailsScreenState
   // SCHEDULE CARD
   // ============================================================
 
-  Widget _buildScheduleCard(
-    Booking booking,
-  ) {
+  Widget _buildScheduleCard() {
     final date =
         booking.request.preferredDate;
 
@@ -1010,6 +733,8 @@ class _BookingDetailsScreenState
         booking.request.preferredTimeSlot;
 
     return _card(
+      marginBottom: 18,
+
       child: Column(
         children: [
           if (date != null)
@@ -1020,16 +745,16 @@ class _BookingDetailsScreenState
             ),
 
           if (date != null &&
-              time != null &&
-              time.isNotEmpty)
-            const Divider(height: 26),
+              (time ?? "").isNotEmpty)
+            const SizedBox(
+              height: 12,
+            ),
 
-          if (time != null &&
-              time.isNotEmpty)
+          if ((time ?? "").isNotEmpty)
             _detailRow(
               Icons.access_time_rounded,
-              "Preferred Time",
-              time,
+              "Time",
+              time!,
             ),
         ],
       ),
@@ -1037,47 +762,86 @@ class _BookingDetailsScreenState
   }
 
   // ============================================================
-  // INFO CARD
+  // ADDRESS CARD
   // ============================================================
 
-  Widget _buildInfoCard({
-    required IconData icon,
-    required String title,
-    required String value,
-  }) {
+  Widget _buildAddressCard() {
+    final address =
+        booking.request.address ?? "";
+
     return _card(
-      child: _detailRow(
-        icon,
-        title,
-        value,
+      marginBottom: 18,
+
+      child: Row(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+
+        children: [
+          Container(
+            height: 44,
+            width: 44,
+
+            decoration:
+                BoxDecoration(
+              color: lightBlue,
+              borderRadius:
+                  BorderRadius.circular(
+                13,
+              ),
+            ),
+
+            child: const Icon(
+              Icons.location_on_rounded,
+              color: primaryBlue,
+              size: 23,
+            ),
+          ),
+
+          const SizedBox(
+            width: 11,
+          ),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+
+              children: [
+                const Text(
+                  "Service Address",
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: textSecondary,
+                  ),
+                ),
+
+                const SizedBox(
+                  height: 3,
+                ),
+
+                Text(
+                  address.isEmpty
+                      ? "Address not available"
+                      : address,
+
+                  maxLines: 4,
+
+                  overflow:
+                      TextOverflow.ellipsis,
+
+                  style: const TextStyle(
+                    fontSize: 14,
+                    height: 1.35,
+                    fontWeight:
+                        FontWeight.w600,
+                    color: textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
-    );
-  }
-
-  // ============================================================
-  // GENERIC CARD
-  // ============================================================
-
-  Widget _card({
-    required Widget child,
-  }) {
-    return Container(
-      width: double.infinity,
-
-      padding: const EdgeInsets.all(18),
-
-      decoration: BoxDecoration(
-        color: Colors.white,
-
-        borderRadius:
-            BorderRadius.circular(20),
-
-        border: Border.all(
-          color: const Color(0xFFE1E7EF),
-        ),
-      ),
-
-      child: child,
     );
   }
 
@@ -1087,32 +851,38 @@ class _BookingDetailsScreenState
 
   Widget _detailRow(
     IconData icon,
-    String title,
-    String value,
-  ) {
+    String label,
+    String value, {
+    int maxLines = 2,
+  }) {
     return Row(
       crossAxisAlignment:
           CrossAxisAlignment.start,
 
       children: [
         Container(
-          height: 46,
-          width: 46,
+          height: 40,
+          width: 40,
 
-          decoration: BoxDecoration(
+          decoration:
+              BoxDecoration(
             color: lightBlue,
             borderRadius:
-                BorderRadius.circular(14),
+                BorderRadius.circular(
+              12,
+            ),
           ),
 
           child: Icon(
             icon,
             color: primaryBlue,
-            size: 24,
+            size: 20,
           ),
         ),
 
-        const SizedBox(width: 14),
+        const SizedBox(
+          width: 10,
+        ),
 
         Expanded(
           child: Column(
@@ -1121,24 +891,33 @@ class _BookingDetailsScreenState
 
             children: [
               Text(
-                title,
+                label,
 
-                style: const TextStyle(
-                  fontSize: 13,
+                style:
+                    const TextStyle(
+                  fontSize: 11.5,
                   color: textSecondary,
                 ),
               ),
 
-              const SizedBox(height: 5),
+              const SizedBox(
+                height: 3,
+              ),
 
               Text(
                 value,
 
-                style: const TextStyle(
-                  fontSize: 16,
-                  height: 1.4,
+                maxLines: maxLines,
+
+                overflow:
+                    TextOverflow.ellipsis,
+
+                style:
+                    const TextStyle(
+                  fontSize: 14,
+                  height: 1.3,
                   fontWeight:
-                      FontWeight.w500,
+                      FontWeight.w600,
                   color: textPrimary,
                 ),
               ),
@@ -1150,186 +929,64 @@ class _BookingDetailsScreenState
   }
 
   // ============================================================
-  // STATUS TIMELINE
+  // SECTION TITLE
   // ============================================================
 
-  Widget _buildStatusTimeline(
-    BookingStatus status,
+  Widget _sectionTitle(
+    String title,
   ) {
-    if (status == BookingStatus.cancelled) {
-      return _card(
-        child: Row(
-          children: [
-            Container(
-              height: 46,
-              width: 46,
+    return Padding(
+      padding:
+          const EdgeInsets.only(
+        bottom: 8,
+      ),
 
-              decoration: BoxDecoration(
-                color: const Color(
-                  0xFFFDECEC,
-                ),
-                borderRadius:
-                    BorderRadius.circular(
-                  14,
-                ),
-              ),
+      child: Text(
+        title,
 
-              child: const Icon(
-                Icons.cancel_rounded,
-                color:
-                    Color(0xFFD92D20),
-              ),
-            ),
-
-            const SizedBox(width: 14),
-
-            const Expanded(
-              child: Text(
-                "This booking has been cancelled.",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight:
-                      FontWeight.w600,
-                  color: textPrimary,
-                ),
-              ),
-            ),
-          ],
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight:
+              FontWeight.w700,
+          color: textPrimary,
+          letterSpacing: -0.2,
         ),
-      );
-    }
-
-    final steps = [
-      (
-        "Booking Requested",
-        BookingStatus.awaitingAcceptance,
-      ),
-      (
-        "Professional Accepted",
-        BookingStatus.accepted,
-      ),
-      (
-        "Professional On The Way",
-        BookingStatus.onTheWay,
-      ),
-      (
-        "Service In Progress",
-        BookingStatus.inProgress,
-      ),
-      (
-        "Service Completed",
-        BookingStatus.completed,
-      ),
-    ];
-
-    int currentIndex = 0;
-
-    switch (status) {
-      case BookingStatus.awaitingAcceptance:
-        currentIndex = 0;
-        break;
-
-      case BookingStatus.accepted:
-        currentIndex = 1;
-        break;
-
-      case BookingStatus.onTheWay:
-        currentIndex = 2;
-        break;
-
-      case BookingStatus.inProgress:
-        currentIndex = 3;
-        break;
-
-      case BookingStatus.completed:
-        currentIndex = 4;
-        break;
-
-      case BookingStatus.cancelled:
-        currentIndex = 0;
-        break;
-    }
-
-    return _card(
-      child: Column(
-        children: [
-          for (int i = 0;
-              i < steps.length;
-              i++)
-            _timelineItem(
-              title: steps[i].$1,
-              completed:
-                  i <= currentIndex,
-              isLast:
-                  i == steps.length - 1,
-            ),
-        ],
       ),
     );
   }
 
-  Widget _timelineItem({
-    required String title,
-    required bool completed,
-    required bool isLast,
+  // ============================================================
+  // CARD
+  // ============================================================
+
+  Widget _card({
+    required Widget child,
+    double marginBottom = 18,
   }) {
-    return Row(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+    return Container(
+      width: double.infinity,
 
-      children: [
-        Column(
-          children: [
-            Icon(
-              completed
-                  ? Icons.check_circle_rounded
-                  : Icons.radio_button_unchecked,
-              color: completed
-                  ? const Color(0xFF35A853)
-                  : const Color(0xFF64748B),
-              size: 23,
-            ),
+      margin:
+          EdgeInsets.only(
+        bottom: marginBottom,
+      ),
 
-            if (!isLast)
-              Container(
-                height: 32,
-                width: 2,
-                color: completed
-                    ? const Color(
-                        0xFFB7E2C3,
-                      )
-                    : const Color(
-                        0xFFE4E7EC,
-                      ),
-              ),
-          ],
+      padding:
+          const EdgeInsets.all(15),
+
+      decoration:
+          BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            BorderRadius.circular(
+          18,
         ),
-
-        const SizedBox(width: 14),
-
-        Expanded(
-          child: Padding(
-            padding:
-                const EdgeInsets.only(
-              top: 2,
-            ),
-
-            child: Text(
-              title,
-
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: completed
-                    ? FontWeight.w600
-                    : FontWeight.w400,
-                color: completed
-                    ? textPrimary
-                    : textSecondary,
-              ),
-            ),
-          ),
+        border: Border.all(
+          color: borderColor,
         ),
-      ],
+      ),
+
+      child: child,
     );
   }
 
@@ -1345,12 +1002,14 @@ class _BookingDetailsScreenState
     String label;
 
     switch (status) {
-      case BookingStatus.awaitingAcceptance:
+      case BookingStatus
+          .awaitingAcceptance:
         background =
             const Color(0xFFFFF1D6);
         foreground =
             const Color(0xFFE89B16);
-        label = "Awaiting Acceptance";
+        label =
+            "Awaiting Acceptance";
         break;
 
       case BookingStatus.accepted:
@@ -1383,49 +1042,160 @@ class _BookingDetailsScreenState
 
       case BookingStatus.cancelled:
         background =
-            const Color(0xFFFDECEC);
-        foreground =
-            const Color(0xFFD92D20);
+            dangerBackground;
+        foreground = danger;
         label = "Cancelled";
         break;
     }
 
-    return Container(
-      padding:
-          const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 9,
-      ),
+    return Flexible(
+      child: Container(
+        padding:
+            const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 9,
+        ),
 
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius:
-            BorderRadius.circular(20),
-      ),
+        decoration:
+            BoxDecoration(
+          color: background,
+          borderRadius:
+              BorderRadius.circular(
+            20,
+          ),
+        ),
 
-      child: Text(
-        label,
+        child: Text(
+          label,
 
-        maxLines: 1,
+          maxLines: 1,
 
-        overflow:
-            TextOverflow.ellipsis,
+          overflow:
+              TextOverflow.ellipsis,
 
-        style: TextStyle(
-          color: foreground,
-          fontSize: 12.5,
-          fontWeight:
-              FontWeight.w700,
+          style: TextStyle(
+            color: foreground,
+            fontSize: 12,
+            fontWeight:
+                FontWeight.w700,
+          ),
         ),
       ),
     );
   }
 
   // ============================================================
-  // DATE
+  // BOTTOM ACTION
   // ============================================================
 
-    String _formatDate(DateTime date) {
+  Widget _buildBottomAction() {
+    final canCancel =
+        booking.status !=
+            BookingStatus.cancelled &&
+        booking.status !=
+            BookingStatus.completed;
+
+    if (!canCancel) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding:
+          const EdgeInsets.fromLTRB(
+        20,
+        10,
+        20,
+        16,
+      ),
+
+      decoration:
+          BoxDecoration(
+        color: Colors.white,
+
+        boxShadow: [
+          BoxShadow(
+            color:
+                Colors.black.withValues(
+              alpha: .05,
+            ),
+            blurRadius: 10,
+            offset:
+                const Offset(0, -3),
+          ),
+        ],
+      ),
+
+      child: SizedBox(
+        width: double.infinity,
+        height: 54,
+
+        child: OutlinedButton.icon(
+          onPressed:
+              _isCancelling
+                  ? null
+                  : _cancelBooking,
+
+          style:
+              OutlinedButton.styleFrom(
+            foregroundColor:
+                danger,
+
+            side: BorderSide(
+              color: danger.withValues(
+                alpha: .35,
+              ),
+              width: 1.5,
+            ),
+
+            shape:
+                RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(
+                17,
+              ),
+            ),
+          ),
+
+          icon: _isCancelling
+              ? const SizedBox(
+                  height: 18,
+                  width: 18,
+                  child:
+                      CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: danger,
+                  ),
+                )
+              : const Icon(
+                  Icons
+                      .cancel_outlined,
+                  size: 21,
+                ),
+
+          label: Text(
+            _isCancelling
+                ? "Cancelling..."
+                : "Cancel Booking",
+
+            style:
+                const TextStyle(
+              fontSize: 16,
+              fontWeight:
+                  FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // DATE FORMAT
+  // ============================================================
+
+  String _formatDate(
+    DateTime date,
+  ) {
     const months = [
       "Jan",
       "Feb",
@@ -1441,17 +1211,8 @@ class _BookingDetailsScreenState
       "Dec",
     ];
 
-    return "${date.day} ${months[date.month - 1]} ${date.year}";
-  }
-
-  Widget _sectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 21,
-        fontWeight: FontWeight.w700,
-        color: textPrimary,
-      ),
-    );
+    return "${date.day} "
+        "${months[date.month - 1]} "
+        "${date.year}";
   }
 }
