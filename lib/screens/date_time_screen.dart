@@ -16,13 +16,31 @@ class DateTimeScreen extends StatefulWidget {
 }
 
 class _DateTimeScreenState extends State<DateTimeScreen> {
+  // ============================================================
+  // HABIO DESIGN SYSTEM
+  // ============================================================
+
   static const Color primaryBlue = Color(0xFF1557FF);
+  static const Color lightBlue = Color(0xFFEEF3FF);
+  static const Color background = Color(0xFFF7F8FC);
+
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color borderColor = Color(0xFFE1E7EF);
+
+  // ============================================================
+  // STATE
+  // ============================================================
 
   DateTime selectedDate = DateTime.now();
 
-  String selectedSlot = "Evening";
+  String selectedSlot = "Anytime";
 
-  Future<void> _pickDate() async {
+  // ============================================================
+  // DATE PICKER
+  // ============================================================
+
+  Future<void> pickDate() async {
     final picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
@@ -40,12 +58,117 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
       },
     );
 
-    if (picked != null) {
-      setState(() {
-        selectedDate = picked;
-      });
-    }
+    if (picked == null) return;
+
+    setState(() {
+      selectedDate = picked;
+    });
   }
+
+  // ============================================================
+  // TIME OPTION
+  // ============================================================
+
+  Widget _buildTimeOption(
+    String title,
+    IconData icon,
+  ) {
+    final bool selected = selectedSlot == title;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () {
+          setState(() {
+            selectedSlot = title;
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+          decoration: BoxDecoration(
+            color: selected ? lightBlue : Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: selected ? primaryBlue : borderColor,
+              width: selected ? 1.6 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                height: 44,
+                width: 44,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? const Color(0xFFE0E9FF)
+                      : const Color(0xFFF5F6F8),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  icon,
+                  color: selected
+                      ? primaryBlue
+                      : textSecondary,
+                  size: 23,
+                ),
+              ),
+
+              const SizedBox(width: 13),
+
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: selected
+                        ? FontWeight.w700
+                        : FontWeight.w500,
+                    color: textPrimary,
+                  ),
+                ),
+              ),
+
+              Container(
+                height: 23,
+                width: 23,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: selected
+                        ? primaryBlue
+                        : const Color(0xFF94A3B8),
+                    width: 2,
+                  ),
+                ),
+                child: selected
+                    ? Center(
+                        child: Container(
+                          height: 11,
+                          width: 11,
+                          decoration: const BoxDecoration(
+                            color: primaryBlue,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // CONTINUE
+  // ============================================================
 
   void _continue() {
     widget.request.preferredDate = selectedDate;
@@ -61,121 +184,26 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
     );
   }
 
-  Widget _timeSlotCard({
-    required String title,
-    required IconData icon,
-  }) {
-    final bool selected = selectedSlot == title;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedSlot = title;
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 18,
-          vertical: 14,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? primaryBlue.withValues(alpha: 0.08)
-              : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: selected
-                ? primaryBlue
-                : Colors.grey.shade300,
-            width: selected ? 2 : 1.2,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              height: 56,
-              width: 56,
-              decoration: BoxDecoration(
-                color: selected
-                    ? primaryBlue.withValues(alpha: 0.10)
-                    : const Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(
-                icon,
-                color: selected
-                    ? primaryBlue
-                    : Colors.grey.shade600,
-                size: 30,
-              ),
-            ),
-
-            const SizedBox(width: 18),
-
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight:
-                      selected ? FontWeight.w700 : FontWeight.w500,
-                  color: Colors.black87,
-                ),
-              ),
-            ),
-
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              height: 28,
-              width: 28,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: selected
-                      ? primaryBlue
-                      : Colors.grey.shade400,
-                  width: 2,
-                ),
-              ),
-              child: selected
-                  ? Center(
-                      child: Container(
-                        height: 14,
-                        width: 14,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: primaryBlue,
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formattedDate() {
-    return "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}";
-  }
+  // ============================================================
+  // BUILD
+  // ============================================================
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
+      backgroundColor: background,
 
       appBar: AppBar(
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        foregroundColor: textPrimary,
         elevation: 0,
+        scrolledUnderElevation: 0,
+
         title: const Text(
           "Schedule Service",
           style: TextStyle(
             fontSize: 20,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -188,90 +216,104 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(
                   20,
-                  28,
+                  14,
                   20,
-                  24,
+                  20,
                 ),
                 child: Column(
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
                   children: [
+                    // =================================================
+                    // TITLE
+                    // =================================================
+
                     const Text(
                       "When do you need the\nservice?",
                       style: TextStyle(
-                        fontSize: 30,
+                        fontSize: 28,
                         height: 1.15,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.black87,
+                        fontWeight: FontWeight.w700,
+                        color: textPrimary,
+                        letterSpacing: -0.5,
                       ),
                     ),
 
-                    const SizedBox(height: 42),
+                    const SizedBox(height: 22),
+
+                    // =================================================
+                    // DATE
+                    // =================================================
 
                     const Text(
                       "Select a date",
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 17,
                         fontWeight: FontWeight.w700,
+                        color: textPrimary,
                       ),
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 9),
 
-                    GestureDetector(
-                      onTap: _pickDate,
+                    InkWell(
+                      borderRadius:
+                          BorderRadius.circular(18),
+                      onTap: pickDate,
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 18,
-                          vertical: 16,
+                        padding:
+                            const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 13,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius:
-                              BorderRadius.circular(20),
+                              BorderRadius.circular(18),
                           border: Border.all(
-                            color: Colors.grey.shade300,
+                            color: borderColor,
                           ),
                         ),
                         child: Row(
                           children: [
                             Container(
-                              height: 56,
-                              width: 56,
+                              height: 48,
+                              width: 48,
                               decoration: BoxDecoration(
-                                color: primaryBlue
-                                    .withValues(alpha: .10),
+                                color: lightBlue,
                                 borderRadius:
-                                    BorderRadius.circular(16),
+                                    BorderRadius.circular(14),
                               ),
                               child: const Icon(
                                 Icons.calendar_month_rounded,
                                 color: primaryBlue,
-                                size: 30,
+                                size: 25,
                               ),
                             ),
 
-                            const SizedBox(width: 18),
+                            const SizedBox(width: 13),
 
                             Expanded(
                               child: Column(
                                 crossAxisAlignment:
                                     CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  const Text(
                                     "Service date",
                                     style: TextStyle(
-                                      color:
-                                          Colors.grey.shade500,
-                                      fontSize: 14,
+                                      color: textSecondary,
+                                      fontSize: 12,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+
+                                  const SizedBox(height: 3),
+
                                   Text(
-                                    _formattedDate(),
+                                    "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}",
                                     style: const TextStyle(
-                                      fontSize: 20,
+                                      color: textPrimary,
+                                      fontSize: 17,
                                       fontWeight:
                                           FontWeight.w700,
                                     ),
@@ -283,61 +325,80 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
                             const Icon(
                               Icons.edit_calendar_rounded,
                               color: primaryBlue,
-                              size: 30,
+                              size: 23,
                             ),
                           ],
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 38),
+                    const SizedBox(height: 22),
+
+                    // =================================================
+                    // TIME
+                    // =================================================
 
                     const Text(
                       "Preferred time",
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 17,
                         fontWeight: FontWeight.w700,
+                        color: textPrimary,
                       ),
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 9),
 
-                    _timeSlotCard(
-                      title: "Morning",
-                      icon: Icons.wb_sunny_outlined,
+                    _buildTimeOption(
+                      "Morning",
+                      Icons.wb_sunny_outlined,
                     ),
 
-                    _timeSlotCard(
-                      title: "Afternoon",
-                      icon: Icons.wb_sunny_rounded,
+                    _buildTimeOption(
+                      "Afternoon",
+                      Icons.wb_sunny_rounded,
                     ),
 
-                    _timeSlotCard(
-                      title: "Evening",
-                      icon: Icons.nightlight_outlined,
+                    _buildTimeOption(
+                      "Evening",
+                      Icons.nightlight_outlined,
                     ),
 
-                    _timeSlotCard(
-                      title: "Anytime",
-                      icon: Icons.access_time_rounded,
+                    _buildTimeOption(
+                      "Anytime",
+                      Icons.access_time_rounded,
                     ),
                   ],
                 ),
               ),
             ),
 
-            // Fixed bottom button.
+            // =========================================================
+            // BOTTOM BUTTON
+            // =========================================================
+
             Container(
-              color: const Color(0xFFF7F8FC),
               padding: const EdgeInsets.fromLTRB(
                 20,
                 10,
                 20,
                 16,
               ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(
+                      alpha: .05,
+                    ),
+                    blurRadius: 10,
+                    offset: const Offset(0, -3),
+                  ),
+                ],
+              ),
               child: SizedBox(
                 width: double.infinity,
-                height: 58,
+                height: 54,
                 child: ElevatedButton(
                   onPressed: _continue,
                   style: ElevatedButton.styleFrom(
@@ -346,13 +407,13 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius:
-                          BorderRadius.circular(18),
+                          BorderRadius.circular(17),
                     ),
                   ),
                   child: const Text(
                     "Continue",
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
                   ),

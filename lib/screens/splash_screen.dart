@@ -91,7 +91,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    const background = Color(0xFF0D47FF);
+    const background = Color(0xFF1557FF);
 
     final size = MediaQuery.of(context).size;
 

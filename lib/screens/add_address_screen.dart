@@ -19,10 +19,10 @@ class AddAddressScreen extends StatefulWidget {
 }
 
 class _AddAddressScreenState extends State<AddAddressScreen> {
-  static const Color primaryBlue = Color(0xFF0D47FF);
+  static const Color primaryBlue = Color(0xFF1557FF);
   static const Color darkText = Color(0xFF0F172A);
   static const Color secondaryText = Color(0xFF64748B);
-  static const Color pageBackground = Color(0xFFF7F9FC);
+  static const Color pageBackground = Color(0xFFF7F8FC);
 
   final _houseController = TextEditingController();
   final _buildingController = TextEditingController();
@@ -164,7 +164,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
             color: secondaryText,
           ),
           hintStyle: const TextStyle(
-            color: Color(0xFF94A3B8),
+            color: Color(0xFF64748B),
           ),
           filled: true,
           fillColor: Colors.white,
@@ -323,7 +323,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
             height: 52,
             width: 52,
             decoration: BoxDecoration(
-              color: const Color(0xFFEFF3FF),
+              color: const Color(0xFFEEF3FF),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(
@@ -420,7 +420,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
       backgroundColor: Colors.white,
       side: BorderSide(
         color: selected
-            ? const Color(0xFFB8C9FF)
+            ? const Color(0xFFEEF3FF)
             : const Color(0xFFE1E7EF),
       ),
       shape: RoundedRectangleBorder(
@@ -442,7 +442,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFEFF3FF),
+          color: const Color(0xFFEEF3FF),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: const Color(0xFFD7E2FF),
@@ -540,7 +540,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
             height: 42,
             width: 42,
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5FF),
+              color: const Color(0xFFEEF3FF),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(

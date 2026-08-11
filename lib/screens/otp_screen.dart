@@ -35,11 +35,11 @@ class _OtpScreenState extends State<OtpScreen> {
 
   bool _isLoading = false;
 
-  static const Color primaryBlue = Color(0xFF0D47FF);
+  static const Color primaryBlue = Color(0xFF1557FF);
   static const Color darkText = Color(0xFF0F172A);
   static const Color secondaryText = Color(0xFF64748B);
-  static const Color lightText = Color(0xFF94A3B8);
-  static const Color borderColor = Color(0xFFD1D5DB);
+  static const Color lightText = Color(0xFF64748B);
+  static const Color borderColor = Color(0xFFE1E7EF);
 
   bool get isOtpComplete =>
       controllers.every(
@@ -401,7 +401,7 @@ class _OtpScreenState extends State<OtpScreen> {
                     foregroundColor: primaryBlue,
 
                     backgroundColor:
-                        const Color(0xFFF1F5FF),
+                        const Color(0xFFEEF3FF),
 
                     padding:
                         const EdgeInsets.symmetric(

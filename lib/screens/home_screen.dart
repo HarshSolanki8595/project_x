@@ -27,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool hasActiveBooking = false;
   String userName = "User";
 
-  static const Color backgroundColor = Color(0xFFF7F9FC);
+  static const Color backgroundColor = Color(0xFFF7F8FC);
   static const Color darkText = Color(0xFF0F172A);
   static const Color secondaryText = Color(0xFF64748B);
 

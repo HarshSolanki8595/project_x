@@ -19,10 +19,10 @@ class AddressScreen extends StatefulWidget {
 }
 
 class _AddressScreenState extends State<AddressScreen> {
-  static const Color primaryBlue = Color(0xFF0D47FF);
+  static const Color primaryBlue = Color(0xFF1557FF);
   static const Color darkText = Color(0xFF0F172A);
   static const Color secondaryText = Color(0xFF64748B);
-  static const Color pageBackground = Color(0xFFF7F9FC);
+  static const Color pageBackground = Color(0xFFF7F8FC);
 
   Address? _selectedAddress;
 
@@ -148,7 +148,7 @@ class _AddressScreenState extends State<AddressScreen> {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.all(17),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFFF1F5FF) : Colors.white,
+          color: selected ? const Color(0xFFEEF3FF) : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: selected
@@ -175,7 +175,7 @@ class _AddressScreenState extends State<AddressScreen> {
               decoration: BoxDecoration(
                 color: selected
                     ? const Color(0xFFE2EAFF)
-                    : const Color(0xFFF1F5FF),
+                    : const Color(0xFFEEF3FF),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
@@ -243,7 +243,7 @@ class _AddressScreenState extends State<AddressScreen> {
                     : Icons.radio_button_unchecked_rounded,
                 color: selected
                     ? primaryBlue
-                    : const Color(0xFF94A3B8),
+                    : const Color(0xFF64748B),
                 size: 24,
               ),
             ),
@@ -375,7 +375,7 @@ class _AddressScreenState extends State<AddressScreen> {
           backgroundColor: primaryBlue,
           disabledBackgroundColor: const Color(0xFFE8EDF5),
           foregroundColor: Colors.white,
-          disabledForegroundColor: const Color(0xFF94A3B8),
+          disabledForegroundColor: const Color(0xFF64748B),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(17),

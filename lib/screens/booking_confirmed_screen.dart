@@ -195,7 +195,7 @@ class BookingConfirmedScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEFF3FF),
+                  color: const Color(0xFFEEF3FF),
                   borderRadius: BorderRadius.circular(17),
                 ),
                 child: const Row(
@@ -212,7 +212,7 @@ class BookingConfirmedScreen extends StatelessWidget {
                       child: Text(
                         "You can compare updates and booking activity from your Home screen.",
                         style: TextStyle(
-                          color: Color(0xFF334155),
+                          color: Color(0xFF64748B),
                           fontSize: 14,
                           height: 1.4,
                         ),

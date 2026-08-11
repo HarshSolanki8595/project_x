@@ -217,7 +217,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     margin: const EdgeInsets.symmetric(
                                       horizontal: 12,
                                     ),
-                                    color: const Color(0xFFE2E8F0),
+                                    color: const Color(0xFFE1E7EF),
                                   ),
                               ],
                             );
@@ -246,8 +246,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     width: currentPage == index ? 28 : 8,
                     decoration: BoxDecoration(
                       color: currentPage == index
-                          ? const Color(0xFF0D47FF)
-                          : const Color(0xFFD1D5DB),
+                          ? const Color(0xFF1557FF)
+                          : const Color(0xFFE1E7EF),
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
@@ -273,7 +273,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0D47FF),
+                    backgroundColor: const Color(0xFF1557FF),
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -332,7 +332,7 @@ class _FeatureBadge extends StatelessWidget {
           ),
           child: Icon(
             icon,
-            color: const Color(0xFF0D47FF),
+            color: const Color(0xFF1557FF),
             size: 20,
           ),
         ),

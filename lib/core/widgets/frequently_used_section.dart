@@ -79,7 +79,7 @@ class FrequentlyUsedSection extends StatelessWidget {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: const Color(0xFFE8EDF4),
+                      color: const Color(0xFFEEF3FF),
                     ),
                   ),
                   child: Column(
@@ -103,7 +103,7 @@ class FrequentlyUsedSection extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            color: Color(0xFF334155),
+                            color: Color(0xFF64748B),
                             fontWeight: FontWeight.w600,
                             fontSize: 12,
                           ),

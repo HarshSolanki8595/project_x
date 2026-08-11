@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_theme.dart';
 
 class AddressBottomSheet extends StatelessWidget {
   final String address;
@@ -60,7 +61,7 @@ class AddressBottomSheet extends StatelessWidget {
                 children: [
                   const Icon(
                     Icons.location_on,
-                    color: Colors.deepPurple,
+                    color: AppTheme.primaryBlue,
                   ),
 
                   const SizedBox(width: 10),
@@ -85,7 +86,7 @@ class AddressBottomSheet extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: onConfirm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: AppTheme.primaryBlue,
                     shape: RoundedRectangleBorder(
                       borderRadius:
                           BorderRadius.circular(14),

@@ -19,10 +19,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isLoading = false;
 
-  static const Color primaryBlue = Color(0xFF0D47FF);
+  static const Color primaryBlue = Color(0xFF1557FF);
   static const Color darkText = Color(0xFF0F172A);
   static const Color secondaryText = Color(0xFF64748B);
-  static const Color lightBorder = Color(0xFFD1D5DB);
+  static const Color lightBorder = Color(0xFFE1E7EF);
 
   @override
   void dispose() {
@@ -299,7 +299,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             hintText:
                                 "Enter mobile number",
                             hintStyle: TextStyle(
-                              color: Color(0xFF9CA3AF),
+                              color: Color(0xFF64748B),
                               fontSize: 16,
                               fontWeight:
                                   FontWeight.w400,
@@ -379,7 +379,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const Expanded(
                       child: Divider(
-                        color: Color(0xFFE2E8F0),
+                        color: Color(0xFFE1E7EF),
                         thickness: 1,
                       ),
                     ),
@@ -403,7 +403,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const Expanded(
                       child: Divider(
-                        color: Color(0xFFE2E8F0),
+                        color: Color(0xFFE1E7EF),
                         thickness: 1,
                       ),
                     ),
@@ -511,7 +511,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         "Terms & Privacy Policy",
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Color(0xFF9CA3AF),
+                          color: Color(0xFF64748B),
                           fontSize: 12,
                           height: 1.5,
                         ),

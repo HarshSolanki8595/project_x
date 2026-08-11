@@ -24,10 +24,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        backgroundColor: const Color(0xFFFFF7FF),
+        backgroundColor: const Color(0xFFEEF3FF),
 
         appBar: AppBar(
-          backgroundColor: const Color(0xFFFFF7FF),
+          backgroundColor: const Color(0xFFEEF3FF),
           elevation: 0,
           scrolledUnderElevation: 0,
 
@@ -548,7 +548,7 @@ class _BookingInfoRow extends StatelessWidget {
           '$title: ',
           style: const TextStyle(
             fontSize: 16,
-            color: Color(0xFF777178),
+            color: Color(0xFF64748B),
             fontWeight: FontWeight.w500,
           ),
         ),

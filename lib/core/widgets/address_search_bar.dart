@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_theme.dart';
 
 class AddressSearchBar extends StatelessWidget {
   final VoidCallback onTap;
@@ -27,7 +28,7 @@ class AddressSearchBar extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.search,
-                    color: Colors.deepPurple,
+                    color: AppTheme.primaryBlue,
                   ),
 
                   SizedBox(width: 12),
@@ -44,7 +45,7 @@ class AddressSearchBar extends StatelessWidget {
 
                   Icon(
                     Icons.mic_none,
-                    color: Colors.deepPurple,
+                    color: AppTheme.primaryBlue,
                   ),
                 ],
               ),

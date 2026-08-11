@@ -30,7 +30,7 @@ class EmergencyCard extends StatelessWidget {
                 height: 55,
                 width: 55,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFF3B30),
+                  color: const Color(0xFFD92D20),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Icon(
@@ -68,7 +68,7 @@ class EmergencyCard extends StatelessWidget {
               const Icon(
                 Icons.arrow_forward_ios_rounded,
                 size: 17,
-                color: Color(0xFFFF3B30),
+                color: Color(0xFFD92D20),
               ),
             ],
           ),

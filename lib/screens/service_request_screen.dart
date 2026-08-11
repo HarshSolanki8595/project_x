@@ -22,10 +22,10 @@ class ServiceRequestScreen extends StatefulWidget {
 }
 
 class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
-  static const Color primaryBlue = Color(0xFF0D47FF);
+  static const Color primaryBlue = Color(0xFF1557FF);
   static const Color darkText = Color(0xFF0F172A);
   static const Color secondaryText = Color(0xFF64748B);
-  static const Color pageBackground = Color(0xFFF7F9FC);
+  static const Color pageBackground = Color(0xFFF7F8FC);
 
   final TextEditingController issueController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
@@ -151,7 +151,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
             height: 52,
             width: 52,
             decoration: BoxDecoration(
-              color: const Color(0xFFEFF3FF),
+              color: const Color(0xFFEEF3FF),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(
@@ -235,7 +235,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
               contentPadding: EdgeInsets.fromLTRB(17, 16, 17, 16),
               hintText: "Describe the problem...",
               hintStyle: TextStyle(
-                color: Color(0xFF94A3B8),
+                color: Color(0xFF64748B),
                 fontSize: 16,
               ),
             ),
@@ -246,7 +246,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(13),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F5FF),
+            color: const Color(0xFFEEF3FF),
             borderRadius: BorderRadius.circular(14),
           ),
           child: const Row(
@@ -386,7 +386,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                   height: 38,
                   width: 38,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEFF3FF),
+                    color: const Color(0xFFEEF3FF),
                     borderRadius: BorderRadius.circular(11),
                   ),
                   child: const Icon(
@@ -476,7 +476,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
             decoration: BoxDecoration(
               color: isEmergency
                   ? const Color(0xFFFFE1E1)
-                  : const Color(0xFFF1F5FF),
+                  : const Color(0xFFEEF3FF),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(

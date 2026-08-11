@@ -27,10 +27,10 @@ class _MapScreenState extends State<MapScreen> {
       Color(0xFFF7F8FC);
 
   static const Color textPrimary =
-      Color(0xFF101828);
+      Color(0xFF0F172A);
 
   static const Color textSecondary =
-      Color(0xFF667085);
+      Color(0xFF64748B);
 
   GoogleMapController? _mapController;
 
@@ -262,7 +262,7 @@ class _MapScreenState extends State<MapScreen> {
                         "Search address",
                         style: TextStyle(
                           color:
-                              Color(0xFF98A2B3),
+                              Color(0xFF64748B),
                           fontSize: 18,
                         ),
                       ),

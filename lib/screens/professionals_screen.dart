@@ -12,17 +12,33 @@ class ProfessionalsScreen extends StatelessWidget {
     required this.request,
   });
 
+  // ============================================================
+  // HABIO DESIGN SYSTEM
+  // ============================================================
+
   static const Color primaryBlue = Color(0xFF1557FF);
-  static const Color backgroundColor = Color(0xFFF7F8FC);
+  static const Color lightBlue = Color(0xFFEEF3FF);
+  static const Color background = Color(0xFFF7F8FC);
+
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color borderColor = Color(0xFFE1E7EF);
+
+  // ============================================================
+  // BUILD
+  // ============================================================
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: background,
+
       appBar: AppBar(
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        foregroundColor: textPrimary,
         elevation: 0,
+        scrolledUnderElevation: 0,
+
         title: const Text(
           "Professionals & Quotes",
           style: TextStyle(
@@ -31,35 +47,62 @@ class ProfessionalsScreen extends StatelessWidget {
           ),
         ),
       ),
+
       body: ListView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 30),
+        padding: const EdgeInsets.fromLTRB(
+          16,
+          14,
+          16,
+          24,
+        ),
         children: [
+          // =========================================================
+          // HEADER
+          // =========================================================
+
           const Text(
             "Choose the right professional",
             style: TextStyle(
-              fontSize: 28,
-              height: 1.2,
+              fontSize: 27,
+              height: 1.15,
               fontWeight: FontWeight.w700,
-              color: Colors.black87,
+              color: textPrimary,
+              letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: 7),
+
+          const SizedBox(height: 5),
+
           const Text(
             "Compare verified professionals, their experience and their quotes before deciding.",
             style: TextStyle(
-              color: Colors.grey,
+              color: textSecondary,
               fontSize: 14,
-              height: 1.45,
+              height: 1.4,
             ),
           ),
-          const SizedBox(height: 20),
-          _buildMarketplaceMessage(),
-          const SizedBox(height: 22),
+
+          const SizedBox(height: 15),
+
+          // =========================================================
+          // MARKETPLACE MESSAGE
+          // =========================================================
+
+          _marketplaceMessage(),
+
+          const SizedBox(height: 14),
+
+          // =========================================================
+          // PROFESSIONALS
+          // =========================================================
+
           ...dummyProfessionals.map(
             (professional) => Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: _buildProfessionalCard(
+              padding: const EdgeInsets.only(
+                bottom: 12,
+              ),
+              child: _professionalCard(
                 context,
                 professional,
               ),
@@ -70,11 +113,18 @@ class ProfessionalsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMarketplaceMessage() {
+  // ============================================================
+  // MARKETPLACE MESSAGE
+  // ============================================================
+
+  Widget _marketplaceMessage() {
     return Container(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 14,
+        vertical: 12,
+      ),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFF3FF),
+        color: lightBlue,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: const Color(0xFFD7E2FF),
@@ -85,16 +135,18 @@ class ProfessionalsScreen extends StatelessWidget {
           Icon(
             Icons.compare_arrows_rounded,
             color: primaryBlue,
-            size: 25,
+            size: 24,
           ),
-          SizedBox(width: 12),
+
+          SizedBox(width: 10),
+
           Expanded(
             child: Text(
               "Professionals decide their price. You decide which offer gives you the best value.",
               style: TextStyle(
-                color: Color(0xFF334155),
-                fontSize: 14,
-                height: 1.4,
+                color: Color(0xFF475569),
+                fontSize: 13,
+                height: 1.35,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -104,47 +156,62 @@ class ProfessionalsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfessionalCard(
+  // ============================================================
+  // PROFESSIONAL CARD
+  // ============================================================
+
+  Widget _professionalCard(
     BuildContext context,
     Professional professional,
   ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.grey.shade200,
+          color: borderColor,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: .035),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
+            color: Colors.black.withValues(
+              alpha: .025,
+            ),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(15),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
           children: [
+            // =====================================================
+            // PROFESSIONAL HEADER
+            // =====================================================
+
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
               children: [
                 Container(
-                  height: 58,
-                  width: 58,
+                  height: 52,
+                  width: 52,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEFF3FF),
-                    borderRadius: BorderRadius.circular(17),
+                    color: lightBlue,
+                    borderRadius:
+                        BorderRadius.circular(15),
                   ),
                   child: const Icon(
                     Icons.person_outline_rounded,
                     color: primaryBlue,
-                    size: 31,
+                    size: 29,
                   ),
                 ),
-                const SizedBox(width: 13),
+
+                const SizedBox(width: 11),
+
                 Expanded(
                   child: Column(
                     crossAxisAlignment:
@@ -152,75 +219,101 @@ class ProfessionalsScreen extends StatelessWidget {
                     children: [
                       Text(
                         professional.name,
+                        maxLines: 2,
+                        overflow:
+                            TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
+                          fontSize: 17,
+                          height: 1.15,
+                          fontWeight:
+                              FontWeight.w700,
+                          color: textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 7),
-                      if (professional.verified)
+
+                      if (professional.verified) ...[
+                        const SizedBox(height: 6),
+
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 9,
-                            vertical: 5,
+                          padding:
+                              const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEAF7EF),
+                            color:
+                                const Color(0xFFE8F7EE),
                             borderRadius:
-                                BorderRadius.circular(20),
+                                BorderRadius.circular(
+                              20,
+                            ),
                           ),
                           child: const Row(
-                            mainAxisSize: MainAxisSize.min,
+                            mainAxisSize:
+                                MainAxisSize.min,
                             children: [
                               Icon(
                                 Icons.verified_rounded,
-                                color: Colors.green,
-                                size: 15,
+                                color:
+                                    Color(0xFF35A853),
+                                size: 14,
                               ),
                               SizedBox(width: 4),
                               Text(
                                 "Verified Professional",
                                 style: TextStyle(
-                                  color: Colors.green,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
+                                  color:
+                                      Color(0xFF35A853),
+                                  fontSize: 11,
+                                  fontWeight:
+                                      FontWeight.w700,
                                 ),
                               ),
                             ],
                           ),
                         ),
+                      ],
                     ],
                   ),
                 ),
               ],
             ),
 
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
+
+            // =====================================================
+            // STATS
+            // =====================================================
 
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 13,
-                vertical: 11,
+              padding:
+                  const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 9,
               ),
               decoration: BoxDecoration(
                 color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(15),
+                borderRadius:
+                    BorderRadius.circular(14),
               ),
               child: Row(
                 children: [
                   _infoItem(
                     Icons.star_rounded,
-                    Colors.amber.shade700,
+                    const Color(0xFFF59E0B),
                     "${professional.rating}",
                   ),
-                  _verticalDivider(),
+
+                  _divider(),
+
                   _infoItem(
                     Icons.reviews_outlined,
-                    Colors.blueGrey,
+                    const Color(0xFF64748B),
                     "${professional.reviews} reviews",
                   ),
-                  _verticalDivider(),
+
+                  _divider(),
+
                   _infoItem(
                     Icons.work_outline_rounded,
                     primaryBlue,
@@ -230,39 +323,50 @@ class ProfessionalsScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 11),
+
+            // =====================================================
+            // DETAILS
+            // =====================================================
 
             _detailRow(
               Icons.build_circle_outlined,
               "${professional.jobsCompleted} jobs completed",
             ),
-            const SizedBox(height: 9),
+
+            const SizedBox(height: 7),
+
             _detailRow(
               Icons.location_on_outlined,
               "${professional.distance} km away",
             ),
-            const SizedBox(height: 9),
+
+            const SizedBox(height: 7),
+
             _detailRow(
               Icons.access_time_rounded,
               "Can arrive in ${professional.arrivalTime}",
             ),
 
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
+
+            // =====================================================
+            // QUOTE
+            // =====================================================
 
             Container(
               padding: const EdgeInsets.fromLTRB(
-                15,
-                14,
-                15,
-                14,
+                13,
+                11,
+                13,
+                11,
               ),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5FF),
-                borderRadius: BorderRadius.circular(17),
+                color: lightBlue,
+                borderRadius:
+                    BorderRadius.circular(16),
               ),
               child: Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.center,
                 children: [
                   Expanded(
                     child: Column(
@@ -272,44 +376,59 @@ class ProfessionalsScreen extends StatelessWidget {
                         const Text(
                           "Their quote",
                           style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                            color: textSecondary,
+                            fontSize: 11,
+                            fontWeight:
+                                FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(height: 3),
+
+                        const SizedBox(height: 2),
+
                         Text(
                           "₹${professional.quote.toStringAsFixed(0)}",
                           style: const TextStyle(
                             color: primaryBlue,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 24,
+                            fontWeight:
+                                FontWeight.w800,
                           ),
                         ),
                       ],
                     ),
                   ),
+
                   const Icon(
                     Icons.request_quote_outlined,
                     color: primaryBlue,
-                    size: 28,
+                    size: 27,
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
+
+            // =====================================================
+            // QUOTE DESCRIPTION
+            // =====================================================
 
             Text(
               professional.quoteDescription,
-              style: TextStyle(
-                color: Colors.grey.shade700,
-                fontSize: 14,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: textSecondary,
+                fontSize: 13,
                 height: 1.35,
               ),
             ),
 
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
+
+            // =====================================================
+            // ACTIONS
+            // =====================================================
 
             Row(
               children: [
@@ -321,27 +440,38 @@ class ProfessionalsScreen extends StatelessWidget {
                         professional,
                       );
                     },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: primaryBlue,
+                    style:
+                        OutlinedButton.styleFrom(
+                      foregroundColor:
+                          primaryBlue,
                       side: const BorderSide(
-                        color: Color(0xFFB8C9FF),
+                        color: Color(0xFFD7E0F2),
                       ),
                       minimumSize:
-                          const Size.fromHeight(50),
-                      shape: RoundedRectangleBorder(
+                          const Size.fromHeight(48),
+                      padding:
+                          EdgeInsets.zero,
+                      shape:
+                          RoundedRectangleBorder(
                         borderRadius:
-                            BorderRadius.circular(14),
+                            BorderRadius.circular(
+                          15,
+                        ),
                       ),
                     ),
                     child: const Text(
                       "View Profile",
                       style: TextStyle(
-                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        fontWeight:
+                            FontWeight.w700,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 11),
+
+                const SizedBox(width: 9),
+
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
@@ -351,26 +481,37 @@ class ProfessionalsScreen extends StatelessWidget {
                           builder: (_) =>
                               BookingSummaryScreen(
                             request: request,
-                            professional: professional,
+                            professional:
+                                professional,
                           ),
                         ),
                       );
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryBlue,
-                      foregroundColor: Colors.white,
+                    style:
+                        ElevatedButton.styleFrom(
+                      backgroundColor:
+                          primaryBlue,
+                      foregroundColor:
+                          Colors.white,
                       elevation: 0,
                       minimumSize:
-                          const Size.fromHeight(50),
-                      shape: RoundedRectangleBorder(
+                          const Size.fromHeight(48),
+                      padding:
+                          EdgeInsets.zero,
+                      shape:
+                          RoundedRectangleBorder(
                         borderRadius:
-                            BorderRadius.circular(14),
+                            BorderRadius.circular(
+                          15,
+                        ),
                       ),
                     ),
                     child: const Text(
                       "Choose",
                       style: TextStyle(
-                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        fontWeight:
+                            FontWeight.w700,
                       ),
                     ),
                   ),
@@ -383,6 +524,10 @@ class ProfessionalsScreen extends StatelessWidget {
     );
   }
 
+  // ============================================================
+  // STAT ITEM
+  // ============================================================
+
   Widget _infoItem(
     IconData icon,
     Color color,
@@ -390,22 +535,28 @@ class ProfessionalsScreen extends StatelessWidget {
   ) {
     return Expanded(
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment:
+            MainAxisAlignment.center,
         children: [
           Icon(
             icon,
             color: color,
-            size: 17,
+            size: 16,
           ),
-          const SizedBox(width: 5),
+
+          const SizedBox(width: 4),
+
           Flexible(
             child: Text(
               text,
-              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              overflow:
+                  TextOverflow.ellipsis,
               style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                fontSize: 11.5,
+                fontWeight:
+                    FontWeight.w600,
+                color: textPrimary,
               ),
             ),
           ),
@@ -414,13 +565,21 @@ class ProfessionalsScreen extends StatelessWidget {
     );
   }
 
-  Widget _verticalDivider() {
+  // ============================================================
+  // DIVIDER
+  // ============================================================
+
+  Widget _divider() {
     return Container(
-      height: 22,
+      height: 20,
       width: 1,
-      color: Colors.grey.shade300,
+      color: const Color(0xFFE2E8F0),
     );
   }
+
+  // ============================================================
+  // DETAIL ROW
+  // ============================================================
 
   Widget _detailRow(
     IconData icon,
@@ -430,20 +589,31 @@ class ProfessionalsScreen extends StatelessWidget {
       children: [
         Icon(
           icon,
-          color: Colors.grey.shade600,
-          size: 19,
+          color: textSecondary,
+          size: 17,
         ),
-        const SizedBox(width: 9),
-        Text(
-          text,
-          style: TextStyle(
-            color: Colors.grey.shade700,
-            fontSize: 14,
+
+        const SizedBox(width: 8),
+
+        Expanded(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow:
+                TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: textSecondary,
+              fontSize: 13,
+            ),
           ),
         ),
       ],
     );
   }
+
+  // ============================================================
+  // PROFESSIONAL PROFILE BOTTOM SHEET
+  // ============================================================
 
   void _showProfessionalProfile(
     BuildContext context,
@@ -455,58 +625,66 @@ class ProfessionalsScreen extends StatelessWidget {
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(26),
+          top: Radius.circular(24),
         ),
       ),
       builder: (context) {
         return SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(
-              22,
-              12,
-              22,
-              22,
+              20,
+              10,
+              20,
+              20,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Handle
+
                 Container(
                   height: 4,
-                  width: 42,
+                  width: 40,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(10),
+                    color: const Color(0xFFD1D5DB),
+                    borderRadius:
+                        BorderRadius.circular(10),
                   ),
                 ),
 
-                const SizedBox(height: 22),
+                const SizedBox(height: 16),
+
+                // Avatar
 
                 Container(
-                  height: 76,
-                  width: 76,
+                  height: 68,
+                  width: 68,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEFF3FF),
-                    borderRadius: BorderRadius.circular(24),
+                    color: lightBlue,
+                    borderRadius:
+                        BorderRadius.circular(21),
                   ),
                   child: const Icon(
                     Icons.person_outline_rounded,
                     color: primaryBlue,
-                    size: 40,
+                    size: 36,
                   ),
                 ),
 
-                const SizedBox(height: 14),
+                const SizedBox(height: 10),
 
                 Text(
                   professional.name,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 21,
+                    fontWeight:
+                        FontWeight.w700,
+                    color: textPrimary,
                   ),
                 ),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
 
                 if (professional.verified)
                   const Row(
@@ -515,96 +693,205 @@ class ProfessionalsScreen extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.verified_rounded,
-                        color: Colors.green,
-                        size: 17,
+                        color: Color(0xFF35A853),
+                        size: 16,
                       ),
-                      SizedBox(width: 5),
+                      SizedBox(width: 4),
                       Text(
                         "Verified Professional",
                         style: TextStyle(
-                          color: Colors.green,
-                          fontWeight: FontWeight.w600,
+                          color:
+                              Color(0xFF35A853),
+                          fontSize: 13,
+                          fontWeight:
+                              FontWeight.w600,
                         ),
                       ),
                     ],
                   ),
 
-                const SizedBox(height: 18),
-
-                Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _profileStat(
-                      "${professional.rating}",
-                      "Rating",
-                      Icons.star_rounded,
-                    ),
-                    _profileStat(
-                      "${professional.experience}",
-                      "Years",
-                      Icons.work_outline_rounded,
-                    ),
-                    _profileStat(
-                      "${professional.jobsCompleted}",
-                      "Jobs",
-                      Icons.build_circle_outlined,
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 18),
+                const SizedBox(height: 13),
 
                 Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(15),
+                  padding:
+                      const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 9,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius:
+                        BorderRadius.circular(14),
                   ),
-                  child: Column(
+                  child: Row(
+                    mainAxisAlignment:
+                        MainAxisAlignment.center,
                     children: [
-                      _profileDetail(
-                        Icons.reviews_outlined,
-                        "${professional.reviews} Reviews",
+                      const Icon(
+                        Icons.star_rounded,
+                        color:
+                            Color(0xFFF59E0B),
+                        size: 17,
                       ),
-                      const SizedBox(height: 9),
-                      _profileDetail(
-                        Icons.location_on_outlined,
-                        "${professional.distance} km away",
+                      const SizedBox(width: 5),
+                      Text(
+                        "${professional.rating}",
+                        style: const TextStyle(
+                          fontWeight:
+                              FontWeight.w700,
+                          fontSize: 13,
+                        ),
                       ),
-                      const SizedBox(height: 9),
-                      _profileDetail(
-                        Icons.access_time_rounded,
-                        "Can arrive in ${professional.arrivalTime}",
+                      const SizedBox(width: 8),
+                      Text(
+                        "${professional.reviews} reviews",
+                        style: const TextStyle(
+                          color: textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        height: 16,
+                        width: 1,
+                        color:
+                            const Color(
+                          0xFFD1D5DB,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "${professional.experience} yrs",
+                        style: const TextStyle(
+                          color: textSecondary,
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 18),
+                const SizedBox(height: 13),
+
+                // Quote
+
+                Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.all(13),
+                  decoration: BoxDecoration(
+                    color: lightBlue,
+                    borderRadius:
+                        BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment:
+                              CrossAxisAlignment
+                                  .start,
+                          children: [
+                            Text(
+                              "Their quote",
+                              style: TextStyle(
+                                color:
+                                    textSecondary,
+                                fontSize: 11,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              "Service quotation",
+                              style: TextStyle(
+                                color:
+                                    textPrimary,
+                                fontSize: 13,
+                                fontWeight:
+                                    FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        "₹${professional.quote.toStringAsFixed(0)}",
+                        style: const TextStyle(
+                          color: primaryBlue,
+                          fontSize: 23,
+                          fontWeight:
+                              FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // About
+
+                if (professional
+                    .quoteDescription
+                    .isNotEmpty)
+                  Align(
+                    alignment:
+                        Alignment.centerLeft,
+                    child: Text(
+                      professional
+                          .quoteDescription,
+                      style:
+                          const TextStyle(
+                        color:
+                            textSecondary,
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+
+                const SizedBox(height: 15),
 
                 SizedBox(
                   width: double.infinity,
                   height: 52,
-                  child: OutlinedButton(
+                  child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              BookingSummaryScreen(
+                            request: request,
+                            professional:
+                                professional,
+                          ),
+                        ),
+                      );
                     },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: primaryBlue,
-                      side: const BorderSide(
-                        color: Color(0xFFB8C9FF),
-                      ),
-                      shape: RoundedRectangleBorder(
+                    style:
+                        ElevatedButton.styleFrom(
+                      backgroundColor:
+                          primaryBlue,
+                      foregroundColor:
+                          Colors.white,
+                      elevation: 0,
+                      shape:
+                          RoundedRectangleBorder(
                         borderRadius:
-                            BorderRadius.circular(15),
+                            BorderRadius.circular(
+                          16,
+                        ),
                       ),
                     ),
                     child: const Text(
-                      "Close",
+                      "Choose Professional",
                       style: TextStyle(
-                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                        fontWeight:
+                            FontWeight.w700,
                       ),
                     ),
                   ),
@@ -614,61 +901,6 @@ class ProfessionalsScreen extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-
-  Widget _profileStat(
-    String value,
-    String label,
-    IconData icon,
-  ) {
-    return Column(
-      children: [
-        Icon(
-          icon,
-          color: primaryBlue,
-          size: 21,
-        ),
-        const SizedBox(height: 5),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.grey,
-            fontSize: 12,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _profileDetail(
-    IconData icon,
-    String text,
-  ) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          color: primaryBlue,
-          size: 19,
-        ),
-        const SizedBox(width: 9),
-        Text(
-          text,
-          style: const TextStyle(
-            fontSize: 14,
-            color: Colors.black87,
-          ),
-        ),
-      ],
     );
   }
 }

@@ -18,7 +18,7 @@ class ContinueBookingCard extends StatelessWidget {
   final double progress;
   final VoidCallback? onContinue;
 
-  static const Color primaryBlue = Color(0xFF0D47FF);
+  static const Color primaryBlue = Color(0xFF1557FF);
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class ContinueBookingCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(21),
           border: Border.all(
-            color: const Color(0xFFE8EDF4),
+            color: const Color(0xFFEEF3FF),
           ),
         ),
         child: Column(
@@ -46,7 +46,7 @@ class ContinueBookingCard extends StatelessWidget {
                   height: 48,
                   width: 48,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5FF),
+                    color: const Color(0xFFEEF3FF),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Icon(
@@ -109,7 +109,7 @@ class ContinueBookingCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 7,
-                backgroundColor: const Color(0xFFE8EDF4),
+                backgroundColor: const Color(0xFFEEF3FF),
                 valueColor:
                     const AlwaysStoppedAnimation<Color>(primaryBlue),
               ),
@@ -127,7 +127,7 @@ class ContinueBookingCard extends StatelessWidget {
                   child: Text(
                     status,
                     style: const TextStyle(
-                      color: Color(0xFF334155),
+                      color: Color(0xFF64748B),
                       fontSize: 14,
                     ),
                   ),

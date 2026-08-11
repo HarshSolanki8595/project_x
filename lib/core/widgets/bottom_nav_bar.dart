@@ -25,7 +25,7 @@ class BottomNavBar extends StatelessWidget {
       type: BottomNavigationBarType.fixed,
 
       selectedItemColor: primaryBlue,
-      unselectedItemColor: const Color(0xFF98A2B3),
+      unselectedItemColor: const Color(0xFF64748B),
 
       backgroundColor: Colors.white,
 
@@ -94,7 +94,7 @@ class BottomNavBar extends StatelessWidget {
         minHeight: 20,
       ),
       decoration: const BoxDecoration(
-        color: Color(0xFFE53935),
+        color: Color(0xFFD92D20),
         shape: BoxShape.circle,
       ),
       child: Center(

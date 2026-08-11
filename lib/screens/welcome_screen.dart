@@ -6,10 +6,10 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryBlue = Color(0xFF0D47FF);
+    const Color primaryBlue = Color(0xFF1557FF);
     const Color darkText = Color(0xFF0F172A);
     const Color secondaryText = Color(0xFF64748B);
-    const Color lightText = Color(0xFF94A3B8);
+    const Color lightText = Color(0xFF64748B);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -171,7 +171,7 @@ class WelcomeScreen extends StatelessWidget {
                 children: [
                   const Expanded(
                     child: Divider(
-                      color: Color(0xFFE2E8F0),
+                      color: Color(0xFFE1E7EF),
                       thickness: 1,
                     ),
                   ),
@@ -192,7 +192,7 @@ class WelcomeScreen extends StatelessWidget {
 
                   const Expanded(
                     child: Divider(
-                      color: Color(0xFFE2E8F0),
+                      color: Color(0xFFE1E7EF),
                       thickness: 1,
                     ),
                   ),

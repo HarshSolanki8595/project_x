@@ -11,9 +11,9 @@ class AppTheme {
   static const Color background = Color(0xFFF7F8FC);
   static const Color surface = Colors.white;
 
-  static const Color textPrimary = Color(0xFF101828);
-  static const Color textSecondary = Color(0xFF667085);
-  static const Color border = Color(0xFFE1E5EC);
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color border = Color(0xFFE1E7EF);
 
   static ThemeData get lightTheme {
     return ThemeData(
@@ -167,7 +167,7 @@ class AppTheme {
 
         hintStyle: const TextStyle(
           fontSize: 17,
-          color: Color(0xFF98A2B3),
+          color: Color(0xFF64748B),
           fontWeight: FontWeight.w400,
         ),
 
@@ -312,7 +312,7 @@ class AppTheme {
               return primaryBlue;
             }
 
-            return const Color(0xFF98A2B3);
+            return const Color(0xFF64748B);
           },
         ),
       ),
@@ -324,7 +324,7 @@ class AppTheme {
               return primaryBlue;
             }
 
-            return const Color(0xFF667085);
+            return const Color(0xFF64748B);
           },
         ),
       ),

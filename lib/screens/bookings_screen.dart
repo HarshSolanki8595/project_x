@@ -23,8 +23,8 @@ class _BookingsScreenState extends State<BookingsScreen>
   static const Color lightBlue = Color(0xFFEEF3FF);
   static const Color background = Color(0xFFF7F8FC);
 
-  static const Color textPrimary = Color(0xFF101828);
-  static const Color textSecondary = Color(0xFF667085);
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF64748B);
 
   late TabController _tabController;
 
@@ -59,7 +59,7 @@ class _BookingsScreenState extends State<BookingsScreen>
           child: Text(
             "Please login first.",
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               color: textSecondary,
             ),
           ),
@@ -79,7 +79,7 @@ class _BookingsScreenState extends State<BookingsScreen>
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_rounded,
-            size: 30,
+            size: 22,
           ),
           onPressed: () {
             Navigator.pop(context);
@@ -89,7 +89,7 @@ class _BookingsScreenState extends State<BookingsScreen>
         title: const Text(
           "My Bookings",
           style: TextStyle(
-            fontSize: 28,
+            fontSize: 20,
             fontWeight: FontWeight.w600,
             color: textPrimary,
           ),
@@ -107,18 +107,18 @@ class _BookingsScreenState extends State<BookingsScreen>
           unselectedLabelColor: textSecondary,
 
           labelStyle: const TextStyle(
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: FontWeight.w700,
           ),
 
           unselectedLabelStyle: const TextStyle(
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: FontWeight.w400,
           ),
 
           indicatorColor: primaryBlue,
 
-          indicatorWeight: 3,
+          indicatorWeight: 2.5,
 
           indicatorSize: TabBarIndicatorSize.label,
 
@@ -149,13 +149,13 @@ class _BookingsScreenState extends State<BookingsScreen>
           if (snapshot.hasError) {
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(20),
                 child: Text(
                   "Unable to load your bookings.\n\n${snapshot.error}",
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: textSecondary,
-                    fontSize: 15,
+                    fontSize: 13,
                   ),
                 ),
               ),
@@ -227,10 +227,10 @@ class _BookingsScreenState extends State<BookingsScreen>
       physics: const BouncingScrollPhysics(),
 
       padding: const EdgeInsets.fromLTRB(
+        16,
+        14,
+        16,
         20,
-        20,
-        20,
-        30,
       ),
 
       itemCount: bookings.length,
@@ -240,7 +240,7 @@ class _BookingsScreenState extends State<BookingsScreen>
 
         return Padding(
           padding: const EdgeInsets.only(
-            bottom: 16,
+            bottom: 10,
           ),
           child: _bookingCard(
             context,
@@ -262,10 +262,10 @@ class _BookingsScreenState extends State<BookingsScreen>
     return Material(
       color: Colors.white,
 
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(18),
 
       child: InkWell(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
 
         onTap: () async {
           final result = await Navigator.push(
@@ -290,25 +290,25 @@ class _BookingsScreenState extends State<BookingsScreen>
         child: Container(
           width: double.infinity,
 
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
 
           decoration: BoxDecoration(
             color: Colors.white,
 
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(18),
 
             border: Border.all(
-              color: const Color(0xFFE2E6ED),
+              color: const Color(0xFFE1E7EF),
               width: 1,
             ),
 
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(
-                  alpha: 0.045,
+                  alpha: 0.035,
                 ),
-                blurRadius: 14,
-                offset: const Offset(0, 6),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -334,14 +334,14 @@ class _BookingsScreenState extends State<BookingsScreen>
                       overflow: TextOverflow.ellipsis,
 
                       style: const TextStyle(
-                        fontSize: 23,
+                        fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: textPrimary,
                       ),
                     ),
                   ),
 
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
 
                   Flexible(
                     child: _statusChip(
@@ -351,7 +351,7 @@ class _BookingsScreenState extends State<BookingsScreen>
                 ],
               ),
 
-              const SizedBox(height: 22),
+              const SizedBox(height: 14),
 
               // =================================================
               // PROFESSIONAL + PRICE
@@ -363,23 +363,23 @@ class _BookingsScreenState extends State<BookingsScreen>
 
                 children: [
                   Container(
-                    height: 64,
-                    width: 64,
+                    height: 44,
+                    width: 44,
 
                     decoration: BoxDecoration(
                       color: lightBlue,
                       borderRadius:
-                          BorderRadius.circular(18),
+                          BorderRadius.circular(12),
                     ),
 
                     child: const Icon(
                       Icons.person_rounded,
                       color: primaryBlue,
-                      size: 34,
+                      size: 22,
                     ),
                   ),
 
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 10),
 
                   Expanded(
                     child: Column(
@@ -394,24 +394,24 @@ class _BookingsScreenState extends State<BookingsScreen>
                               TextOverflow.ellipsis,
 
                           style: const TextStyle(
-                            fontSize: 19,
+                            fontSize: 14,
                             fontWeight:
                                 FontWeight.w600,
                             color: textPrimary,
                           ),
                         ),
 
-                        const SizedBox(height: 7),
+                        const SizedBox(height: 4),
 
                         Row(
                           children: [
                             const Icon(
                               Icons.star_rounded,
                               color: Color(0xFFFFC107),
-                              size: 20,
+                              size: 16,
                             ),
 
-                            const SizedBox(width: 5),
+                            const SizedBox(width: 4),
 
                             Expanded(
                               child: Text(
@@ -423,7 +423,7 @@ class _BookingsScreenState extends State<BookingsScreen>
                                     TextOverflow.ellipsis,
 
                                 style: const TextStyle(
-                                  fontSize: 15,
+                                  fontSize: 12,
                                   color:
                                       textSecondary,
                                 ),
@@ -435,7 +435,7 @@ class _BookingsScreenState extends State<BookingsScreen>
                     ),
                   ),
 
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
 
                   // ------------------------------------------------
                   // PRICE
@@ -445,7 +445,7 @@ class _BookingsScreenState extends State<BookingsScreen>
                     "₹${booking.professional.quote.toStringAsFixed(0)}",
 
                     style: const TextStyle(
-                      fontSize: 25,
+                      fontSize: 17,
                       fontWeight: FontWeight.w700,
                       color: primaryBlue,
                     ),
@@ -453,14 +453,14 @@ class _BookingsScreenState extends State<BookingsScreen>
                 ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
 
               const Divider(
                 height: 1,
                 color: Color(0xFFE4E7EC),
               ),
 
-              const SizedBox(height: 17),
+              const SizedBox(height: 12),
 
               // =================================================
               // DATE
@@ -474,7 +474,7 @@ class _BookingsScreenState extends State<BookingsScreen>
                   ),
                 ),
 
-              const SizedBox(height: 13),
+              const SizedBox(height: 8),
 
               // =================================================
               // TIME
@@ -494,7 +494,7 @@ class _BookingsScreenState extends State<BookingsScreen>
 
               if ((booking.request.address ?? "")
                   .isNotEmpty) ...[
-                const SizedBox(height: 13),
+                const SizedBox(height: 8),
 
                 _infoLine(
                   Icons.location_on_rounded,
@@ -503,7 +503,7 @@ class _BookingsScreenState extends State<BookingsScreen>
                 ),
               ],
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
 
               // =================================================
               // VIEW DETAILS
@@ -531,17 +531,26 @@ class _BookingsScreenState extends State<BookingsScreen>
                     }
                   },
 
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize:
+                        MaterialTapTargetSize.shrinkWrap,
+                  ),
+
                   icon: const Icon(
                     Icons.arrow_forward_rounded,
                     color: primaryBlue,
-                    size: 25,
+                    size: 18,
                   ),
 
                   label: const Text(
                     "View Details",
                     style: TextStyle(
                       color: primaryBlue,
-                      fontSize: 17,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -570,11 +579,11 @@ class _BookingsScreenState extends State<BookingsScreen>
       children: [
         Icon(
           icon,
-          color: const Color(0xFF98A2B3),
-          size: 22,
+          color: const Color(0xFF64748B),
+          size: 16,
         ),
 
-        const SizedBox(width: 14),
+        const SizedBox(width: 8),
 
         Expanded(
           child: Text(
@@ -585,7 +594,7 @@ class _BookingsScreenState extends State<BookingsScreen>
             overflow: TextOverflow.ellipsis,
 
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 13,
               color: textPrimary,
               height: 1.35,
             ),
@@ -644,8 +653,8 @@ class _BookingsScreenState extends State<BookingsScreen>
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 9,
+        horizontal: 10,
+        vertical: 6,
       ),
 
       decoration: BoxDecoration(
@@ -660,7 +669,7 @@ class _BookingsScreenState extends State<BookingsScreen>
 
         style: TextStyle(
           color: foreground,
-          fontSize: 13,
+          fontSize: 11,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -674,7 +683,7 @@ class _BookingsScreenState extends State<BookingsScreen>
   Widget _emptyState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(30),
+        padding: const EdgeInsets.all(24),
 
         child: Column(
           mainAxisAlignment:
@@ -682,8 +691,8 @@ class _BookingsScreenState extends State<BookingsScreen>
 
           children: [
             Container(
-              height: 82,
-              width: 82,
+              height: 64,
+              width: 64,
 
               decoration: BoxDecoration(
                 color: lightBlue,
@@ -693,28 +702,28 @@ class _BookingsScreenState extends State<BookingsScreen>
               child: const Icon(
                 Icons.receipt_long_rounded,
                 color: primaryBlue,
-                size: 40,
+                size: 28,
               ),
             ),
 
-            const SizedBox(height: 22),
+            const SizedBox(height: 16),
 
             const Text(
               "No bookings found",
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: textPrimary,
               ),
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
 
             const Text(
               "Your bookings will appear here.",
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: 13,
                 color: textSecondary,
               ),
             ),

@@ -12,8 +12,8 @@ class ProfileScreen extends StatelessWidget {
   static const Color primaryBlue = Color(0xFF1557FF);
   static const Color lightBlue = Color(0xFFEEF3FF);
   static const Color background = Color(0xFFF7F8FC);
-  static const Color textPrimary = Color(0xFF101828);
-  static const Color textSecondary = Color(0xFF667085);
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF64748B);
 
   @override
   Widget build(BuildContext context) {
@@ -181,13 +181,13 @@ class ProfileScreen extends StatelessWidget {
                 leading: const Icon(
                   Icons.logout_rounded,
                   size: 30,
-                  color: Color(0xFFE53935),
+                  color: Color(0xFFD92D20),
                 ),
 
                 title: const Text(
                   "Logout",
                   style: TextStyle(
-                    color: Color(0xFFE53935),
+                    color: Color(0xFFD92D20),
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
                   ),

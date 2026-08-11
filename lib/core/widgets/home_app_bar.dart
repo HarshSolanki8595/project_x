@@ -12,7 +12,7 @@ class HomeAppBar extends StatelessWidget {
   final VoidCallback? onLocationTap;
   final VoidCallback? onNotificationTap;
 
-  static const Color primaryBlue = Color(0xFF0D47FF);
+  static const Color primaryBlue = Color(0xFF1557FF);
   static const Color darkText = Color(0xFF0F172A);
   static const Color secondaryText = Color(0xFF64748B);
 
@@ -37,7 +37,7 @@ class HomeAppBar extends StatelessWidget {
                       height: 44,
                       width: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5FF),
+                        color: const Color(0xFFEEF3FF),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Icon(
@@ -102,7 +102,7 @@ class HomeAppBar extends StatelessWidget {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(15),
                     border: Border.all(
-                      color: const Color(0xFFE2E8F0),
+                      color: const Color(0xFFE1E7EF),
                     ),
                   ),
                   child: const Icon(
@@ -119,7 +119,7 @@ class HomeAppBar extends StatelessWidget {
                   height: 9,
                   width: 9,
                   decoration: const BoxDecoration(
-                    color: Color(0xFFFF3B30),
+                    color: Color(0xFFD92D20),
                     shape: BoxShape.circle,
                   ),
                 ),

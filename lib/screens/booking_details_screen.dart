@@ -27,8 +27,8 @@ class _BookingDetailsScreenState
   static const Color lightBlue = Color(0xFFEEF3FF);
   static const Color background = Color(0xFFF7F8FC);
 
-  static const Color textPrimary = Color(0xFF101828);
-  static const Color textSecondary = Color(0xFF667085);
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF64748B);
 
   bool _cancelling = false;
 
@@ -697,7 +697,7 @@ class _BookingDetailsScreenState
             BorderRadius.circular(22),
 
         border: Border.all(
-          color: const Color(0xFFE2E6ED),
+          color: const Color(0xFFE1E7EF),
         ),
       ),
 
@@ -1073,7 +1073,7 @@ class _BookingDetailsScreenState
             BorderRadius.circular(20),
 
         border: Border.all(
-          color: const Color(0xFFE2E6ED),
+          color: const Color(0xFFE1E7EF),
         ),
       ),
 
@@ -1286,7 +1286,7 @@ class _BookingDetailsScreenState
                   : Icons.radio_button_unchecked,
               color: completed
                   ? const Color(0xFF35A853)
-                  : const Color(0xFF98A2B3),
+                  : const Color(0xFF64748B),
               size: 23,
             ),
 

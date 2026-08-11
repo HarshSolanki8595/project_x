@@ -24,12 +24,12 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
   bool _isLoading = false;
 
-  static const Color primaryBlue = Color(0xFF0D47FF);
+  static const Color primaryBlue = Color(0xFF1557FF);
   static const Color darkText = Color(0xFF0F172A);
   static const Color secondaryText = Color(0xFF64748B);
-  static const Color lightText = Color(0xFF94A3B8);
-  static const Color borderColor = Color(0xFFD1D5DB);
-  static const Color softBlue = Color(0xFFF1F5FF);
+  static const Color lightText = Color(0xFF64748B);
+  static const Color borderColor = Color(0xFFE1E7EF);
+  static const Color softBlue = Color(0xFFEEF3FF);
 
   @override
   void dispose() {
@@ -239,7 +239,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                   hintText: "Enter your full name",
 
                   hintStyle: const TextStyle(
-                    color: Color(0xFF9CA3AF),
+                    color: Color(0xFF64748B),
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
                   ),

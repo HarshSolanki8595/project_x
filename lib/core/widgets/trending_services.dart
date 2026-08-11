@@ -74,7 +74,7 @@ class TrendingServices extends StatelessWidget {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(21),
                     border: Border.all(
-                      color: const Color(0xFFE8EDF4),
+                      color: const Color(0xFFEEF3FF),
                     ),
                   ),
                   child: Column(
@@ -112,7 +112,7 @@ class TrendingServices extends StatelessWidget {
                           Text(
                             "Book Now",
                             style: TextStyle(
-                              color: Color(0xFF0D47FF),
+                              color: Color(0xFF1557FF),
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                             ),
@@ -120,7 +120,7 @@ class TrendingServices extends StatelessWidget {
                           SizedBox(width: 5),
                           Icon(
                             Icons.arrow_forward_rounded,
-                            color: Color(0xFF0D47FF),
+                            color: Color(0xFF1557FF),
                             size: 17,
                           ),
                         ],

@@ -12,7 +12,7 @@ class HomeSearchBar extends StatelessWidget {
   final VoidCallback? onVoiceTap;
   final TextEditingController? controller;
 
-  static const Color primaryBlue = Color(0xFF0D47FF);
+  static const Color primaryBlue = Color(0xFF1557FF);
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +32,7 @@ class HomeSearchBar extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
-                color: const Color(0xFFE2E8F0),
+                color: const Color(0xFFE1E7EF),
               ),
             ),
             child: Row(
@@ -51,7 +51,7 @@ class HomeSearchBar extends StatelessWidget {
                         border: InputBorder.none,
                         hintText: "Search services...",
                         hintStyle: TextStyle(
-                          color: Color(0xFF94A3B8),
+                          color: Color(0xFF64748B),
                           fontSize: 16,
                         ),
                       ),
@@ -61,7 +61,7 @@ class HomeSearchBar extends StatelessWidget {
                 Container(
                   height: 32,
                   width: 1,
-                  color: const Color(0xFFE2E8F0),
+                  color: const Color(0xFFE1E7EF),
                 ),
                 const SizedBox(width: 11),
                 InkWell(
@@ -71,7 +71,7 @@ class HomeSearchBar extends StatelessWidget {
                     height: 42,
                     width: 42,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFF1F5FF),
+                      color: Color(0xFFEEF3FF),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(

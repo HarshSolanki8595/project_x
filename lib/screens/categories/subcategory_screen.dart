@@ -24,7 +24,7 @@ final Category? category =
     ServiceCategories.getCategoryByName(categoryName);
 
     return Scaffold(
-      backgroundColor: const Color(0xffF7F8FC),
+      backgroundColor: const Color(0xFFF7F8FC),
 
       appBar: AppBar(
         elevation: 0,

@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../theme/app_theme.dart';
 
 class MapAddressPickerScreen extends StatefulWidget {
   const MapAddressPickerScreen({super.key});
@@ -412,7 +413,7 @@ if (_predictions.isNotEmpty)
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
-                                  Colors.deepPurple,
+                                  AppTheme.primaryBlue,
                               shape:
                                   RoundedRectangleBorder(
                                 borderRadius:

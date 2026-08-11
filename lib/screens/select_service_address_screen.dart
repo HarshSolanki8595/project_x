@@ -101,10 +101,10 @@ class _SelectServiceAddressScreenState
         Theme.of(context).colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF7FF),
+      backgroundColor: const Color(0xFFEEF3FF),
 
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFFF7FF),
+        backgroundColor: const Color(0xFFEEF3FF),
         elevation: 0,
         scrolledUnderElevation: 0,
 
@@ -186,7 +186,7 @@ class _SelectServiceAddressScreenState
                       'Select a saved address or add a new one.',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Color(0xFF777178),
+                        color: Color(0xFF64748B),
                       ),
                     ),
 
@@ -354,7 +354,7 @@ class _SelectServiceAddressScreenState
                     18,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFF7FF),
+                    color: const Color(0xFFEEF3FF),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black
@@ -477,7 +477,7 @@ class _CurrentLocationButton extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       color:
-                          Color(0xFF777178),
+                          Color(0xFF64748B),
                     ),
                   ),
                 ],
@@ -487,7 +487,7 @@ class _CurrentLocationButton extends StatelessWidget {
             Icon(
               Icons.arrow_forward_ios_rounded,
               size: 17,
-              color: Color(0xFF777178),
+              color: Color(0xFF64748B),
             ),
           ],
         ),

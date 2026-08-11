@@ -112,7 +112,7 @@ class BookingSummaryScreen extends StatelessWidget {
                                 height: 58,
                                 width: 58,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFEFF3FF),
+                                  color: const Color(0xFFEEF3FF),
                                   borderRadius:
                                       BorderRadius.circular(17),
                                 ),
@@ -175,7 +175,7 @@ class BookingSummaryScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5FF),
+                              color: const Color(0xFFEEF3FF),
                               borderRadius:
                                   BorderRadius.circular(16),
                             ),

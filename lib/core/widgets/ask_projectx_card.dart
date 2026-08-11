@@ -12,7 +12,7 @@ class AskProjectXCard extends StatelessWidget {
   final VoidCallback? onVoiceTap;
   final VoidCallback? onCameraTap;
 
-  static const Color primaryBlue = Color(0xFF0D47FF);
+  static const Color primaryBlue = Color(0xFF1557FF);
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class AskProjectXCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(25),
             gradient: const LinearGradient(
               colors: [
-                Color(0xFF0D47FF),
+                Color(0xFF1557FF),
                 Color(0xFF2864FF),
               ],
               begin: Alignment.topLeft,
