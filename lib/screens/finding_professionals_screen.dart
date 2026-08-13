@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../models/service_request.dart';
+import '../services/marketplace_request_service.dart';
+import '../services/request_processing_service.dart';
 import 'professionals_screen.dart';
 
 class FindingProfessionalsScreen extends StatefulWidget {
@@ -27,6 +29,11 @@ class _FindingProfessionalsScreenState
   late AnimationController _controller;
   late Animation<double> _animation;
 
+  Timer? _navigationTimer;
+
+  bool _requestProcessed = false;
+  String? _processingError;
+
   @override
   void initState() {
     super.initState();
@@ -46,28 +53,207 @@ class _FindingProfessionalsScreenState
       ),
     );
 
-    Timer(
-      const Duration(seconds: 3),
-      () {
-        if (!mounted) return;
+    _processMarketplaceRequest();
+  }
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ProfessionalsScreen(
-              request: widget.request,
-            ),
-          ),
+  // ============================================================
+  // PROCESS REAL MARKETPLACE REQUEST
+  // ============================================================
+
+  void _processMarketplaceRequest() {
+    try {
+      // ----------------------------------------------------------
+      // 1. CHECK LOCATION
+      // ----------------------------------------------------------
+
+      if (widget.request.latitude == null ||
+          widget.request.longitude == null) {
+        throw StateError(
+          'Customer location is required before matching '
+          'professionals.',
         );
-      },
+      }
+
+      // ----------------------------------------------------------
+      // 2. PROCESS CUSTOMER REQUEST
+      // ----------------------------------------------------------
+      //
+      // Customer words
+      //       ↓
+      // RequestClassifier
+      //       ↓
+      // Request Type ID
+      //       ↓
+      // Capability ID
+      //       ↓
+      // ServiceRequestModel
+      //       ↓
+      // MatchingService
+      //
+
+      final MatchingResult? result =
+          RequestProcessingService.processRequest(
+        customerId:
+            widget.request.customerId ??
+            'CUST_000001',
+        customerText:
+            widget.request.issueDescription,
+        latitude:
+            widget.request.latitude!,
+        longitude:
+            widget.request.longitude!,
+        urgency:
+            widget.request.urgency,
+      );
+
+      // ----------------------------------------------------------
+      // 3. REQUEST COULD NOT BE CLASSIFIED
+      // ----------------------------------------------------------
+
+      if (result == null) {
+        throw StateError(
+          'Project X could not understand the service request.',
+        );
+      }
+
+      // ----------------------------------------------------------
+      // 4. COPY MARKETPLACE IDENTIFIERS BACK TO CUSTOMER REQUEST
+      // ----------------------------------------------------------
+      //
+      // The existing customer UI continues using ServiceRequest.
+      //
+      // The marketplace now gives it:
+      //
+      // requestId
+      // requestTypeId
+      // capabilityId
+      //
+
+      widget.request.requestId =
+          result.request.requestId;
+
+      widget.request.requestTypeId =
+          result.request.requestTypeId;
+
+      widget.request.capabilityId =
+          result.request.capabilityId;
+
+      widget.request.customerId =
+          result.request.customerId;
+
+      // ----------------------------------------------------------
+      // 5. CREATE PROFESSIONAL OPPORTUNITIES
+      // ----------------------------------------------------------
+      //
+      // Every eligible professional receives an opportunity.
+      //
+      // Example:
+      //
+      // REQ_000001
+      //    ├── OPP_000001 → PRO_000001
+      //    ├── OPP_000002 → PRO_000002
+      //    └── OPP_000003 → PRO_000003
+      //
+
+      final marketplaceResult =
+          MarketplaceRequestService
+              .matchAndCreateOpportunities(
+        result.request,
+      );
+
+      // ----------------------------------------------------------
+      // 6. LOG MARKETPLACE RESULT
+      // ----------------------------------------------------------
+
+      debugPrint(
+        '========== PROJECT X REQUEST PROCESSED ==========',
+      );
+
+      debugPrint(
+        'Request ID: ${result.request.requestId}',
+      );
+
+      debugPrint(
+        'Request Type ID: ${result.request.requestTypeId}',
+      );
+
+      debugPrint(
+        'Capability ID: ${result.request.capabilityId}',
+      );
+
+      debugPrint(
+        'Matched Professionals: '
+        '${marketplaceResult.matchedProfessionalIds.length}',
+      );
+
+      for (final professionalId
+          in marketplaceResult.matchedProfessionalIds) {
+        debugPrint(
+          'MATCHED → $professionalId',
+        );
+      }
+
+      debugPrint(
+        'Opportunities Created: '
+        '${marketplaceResult.opportunities.length}',
+      );
+
+      for (final opportunity
+          in marketplaceResult.opportunities) {
+        debugPrint(
+          'OPPORTUNITY → '
+          '${opportunity.opportunityId} | '
+          'Request: ${opportunity.requestId} | '
+          'Professional: ${opportunity.professionalId}',
+        );
+      }
+
+      // ----------------------------------------------------------
+      // 7. MARK PROCESSING COMPLETE
+      // ----------------------------------------------------------
+
+      _requestProcessed = true;
+
+      _navigationTimer = Timer(
+        const Duration(seconds: 3),
+        _openProfessionalsScreen,
+      );
+    } catch (error) {
+      debugPrint(
+        'PROJECT X MARKETPLACE REQUEST ERROR: $error',
+      );
+
+      _processingError = error.toString();
+
+      _navigationTimer = Timer(
+        const Duration(seconds: 3),
+        _openProfessionalsScreen,
+      );
+    }
+  }
+
+  // ============================================================
+  // OPEN PROFESSIONALS SCREEN
+  // ============================================================
+
+  void _openProfessionalsScreen() {
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProfessionalsScreen(
+          request: widget.request,
+        ),
+      ),
     );
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  // ============================================================
+  // STATUS ITEM
+  // ============================================================
 
   Widget _statusItem({
     required IconData icon,
@@ -95,7 +281,8 @@ class _FindingProfessionalsScreenState
           const SizedBox(width: 13),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
@@ -116,9 +303,11 @@ class _FindingProfessionalsScreenState
               ],
             ),
           ),
-          const Icon(
+          Icon(
             Icons.check_circle_rounded,
-            color: Colors.green,
+            color: _requestProcessed
+                ? Colors.green
+                : Colors.grey.shade400,
             size: 21,
           ),
         ],
@@ -126,16 +315,25 @@ class _FindingProfessionalsScreenState
     );
   }
 
+  // ============================================================
+  // BUILD
+  // ============================================================
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(22, 28, 22, 24),
+          padding:
+              const EdgeInsets.fromLTRB(22, 28, 22, 24),
           child: Column(
             children: [
               const Spacer(flex: 2),
+
+              // ------------------------------------------------
+              // SEARCH ANIMATION
+              // ------------------------------------------------
 
               ScaleTransition(
                 scale: _animation,
@@ -147,7 +345,9 @@ class _FindingProfessionalsScreenState
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: primaryBlue.withValues(alpha: 0.20),
+                        color: primaryBlue.withValues(
+                          alpha: 0.20,
+                        ),
                         blurRadius: 28,
                         spreadRadius: 6,
                       ),
@@ -163,8 +363,12 @@ class _FindingProfessionalsScreenState
 
               const SizedBox(height: 32),
 
+              // ------------------------------------------------
+              // TITLE
+              // ------------------------------------------------
+
               const Text(
-                "Finding Professionals",
+                'Finding Professionals',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 28,
@@ -177,7 +381,8 @@ class _FindingProfessionalsScreenState
               const SizedBox(height: 10),
 
               const Text(
-                "Searching nearby verified professionals\nwho can help with your request.",
+                'Searching nearby verified professionals\n'
+                'who can help with your request.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.grey,
@@ -188,17 +393,23 @@ class _FindingProfessionalsScreenState
 
               const SizedBox(height: 30),
 
+              // ------------------------------------------------
+              // PROGRESS
+              // ------------------------------------------------
+
               Container(
                 width: double.infinity,
                 height: 7,
                 clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
                   color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius:
+                      BorderRadius.circular(20),
                 ),
                 child: const LinearProgressIndicator(
                   backgroundColor: Colors.transparent,
-                  valueColor: AlwaysStoppedAnimation<Color>(
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(
                     primaryBlue,
                   ),
                 ),
@@ -206,12 +417,23 @@ class _FindingProfessionalsScreenState
 
               const SizedBox(height: 28),
 
+              // ------------------------------------------------
+              // STATUS CARD
+              // ------------------------------------------------
+
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(17, 12, 17, 12),
+                padding:
+                    const EdgeInsets.fromLTRB(
+                  17,
+                  12,
+                  17,
+                  12,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius:
+                      BorderRadius.circular(20),
                   border: Border.all(
                     color: Colors.grey.shade200,
                   ),
@@ -219,30 +441,48 @@ class _FindingProfessionalsScreenState
                 child: Column(
                   children: [
                     _statusItem(
-                      icon: Icons.verified_rounded,
-                      iconColor: Colors.green,
-                      title: "Verified Professionals Only",
-                      subtitle: "Matching trusted professionals",
+                      icon:
+                          Icons.verified_rounded,
+                      iconColor:
+                          Colors.green,
+                      title:
+                          'Verified Professionals Only',
+                      subtitle:
+                          'Matching trusted professionals',
                     ),
+
                     Divider(
                       height: 1,
-                      color: Colors.grey.shade200,
+                      color:
+                          Colors.grey.shade200,
                     ),
+
                     _statusItem(
-                      icon: Icons.location_on_rounded,
-                      iconColor: primaryBlue,
-                      title: "Checking Your Location",
-                      subtitle: "Finding professionals nearby",
+                      icon:
+                          Icons.location_on_rounded,
+                      iconColor:
+                          primaryBlue,
+                      title:
+                          'Checking Your Location',
+                      subtitle:
+                          'Finding professionals nearby',
                     ),
+
                     Divider(
                       height: 1,
-                      color: Colors.grey.shade200,
+                      color:
+                          Colors.grey.shade200,
                     ),
+
                     _statusItem(
-                      icon: Icons.request_quote_rounded,
-                      iconColor: Colors.orange,
-                      title: "Request Sent",
-                      subtitle: "Waiting for quotations",
+                      icon:
+                          Icons.request_quote_rounded,
+                      iconColor:
+                          Colors.orange,
+                      title:
+                          'Request Sent',
+                      subtitle:
+                          'Waiting for quotations',
                     ),
                   ],
                 ),
@@ -250,8 +490,13 @@ class _FindingProfessionalsScreenState
 
               const Spacer(flex: 3),
 
+              // ------------------------------------------------
+              // MARKETPLACE MESSAGE
+              // ------------------------------------------------
+
               const Text(
-                "Professionals will decide their price.\nYou decide which offer is right for you.",
+                'Professionals will decide their price.\n'
+                'You decide which offer is right for you.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.grey,
@@ -264,5 +509,16 @@ class _FindingProfessionalsScreenState
         ),
       ),
     );
+  }
+
+  // ============================================================
+  // DISPOSE
+  // ============================================================
+
+  @override
+  void dispose() {
+    _navigationTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
   }
 }

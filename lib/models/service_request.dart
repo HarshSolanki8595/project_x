@@ -1,17 +1,71 @@
 import 'dart:io';
 
 class ServiceRequest {
+  // ============================================================
+  // REQUEST ID GENERATOR
+  // ============================================================
+
+  static int _requestCounter = 1;
+
+  static String _generateRequestId() {
+    final id =
+        'REQ_${_requestCounter.toString().padLeft(6, '0')}';
+
+    _requestCounter++;
+
+    return id;
+  }
+
+  // ============================================================
+  // CUSTOMER REQUEST INFORMATION
+  // ============================================================
+
   String categoryName;
   String subCategoryName;
   String issueDescription;
   bool isEmergency;
 
+  // ============================================================
+  // MEDIA
+  // ============================================================
+
   List<File> photos;
   File? video;
 
+  // ============================================================
+  // LOCATION / SCHEDULE
+  // ============================================================
+
   String? address;
+  double? latitude;
+  double? longitude;
+
   DateTime? preferredDate;
   String? preferredTimeSlot;
+
+  // ============================================================
+  // MARKETPLACE IDENTIFIERS
+  // ============================================================
+
+  String? requestId;
+  String? requestTypeId;
+  String? capabilityId;
+
+  // ============================================================
+  // CUSTOMER
+  // ============================================================
+
+  String? customerId;
+
+  // ============================================================
+  // URGENCY
+  // ============================================================
+
+  String urgency;
+
+  // ============================================================
+  // CONSTRUCTOR
+  // ============================================================
 
   ServiceRequest({
     required this.categoryName,
@@ -21,49 +75,193 @@ class ServiceRequest {
     this.photos = const [],
     this.video,
     this.address,
+    this.latitude,
+    this.longitude,
     this.preferredDate,
     this.preferredTimeSlot,
-  });
+    String? requestId,
+    this.requestTypeId,
+    this.capabilityId,
+    this.customerId,
+    this.urgency = 'NORMAL',
+  }) : requestId = requestId ?? _generateRequestId();
+
+  // ============================================================
+  // COPY WITH
+  // ============================================================
+
+  ServiceRequest copyWith({
+    String? categoryName,
+    String? subCategoryName,
+    String? issueDescription,
+    bool? isEmergency,
+    List<File>? photos,
+    File? video,
+    String? address,
+    double? latitude,
+    double? longitude,
+    DateTime? preferredDate,
+    String? preferredTimeSlot,
+    String? requestId,
+    String? requestTypeId,
+    String? capabilityId,
+    String? customerId,
+    String? urgency,
+  }) {
+    return ServiceRequest(
+      categoryName:
+          categoryName ?? this.categoryName,
+
+      subCategoryName:
+          subCategoryName ?? this.subCategoryName,
+
+      issueDescription:
+          issueDescription ?? this.issueDescription,
+
+      isEmergency:
+          isEmergency ?? this.isEmergency,
+
+      photos:
+          photos ?? this.photos,
+
+      video:
+          video ?? this.video,
+
+      address:
+          address ?? this.address,
+
+      latitude:
+          latitude ?? this.latitude,
+
+      longitude:
+          longitude ?? this.longitude,
+
+      preferredDate:
+          preferredDate ?? this.preferredDate,
+
+      preferredTimeSlot:
+          preferredTimeSlot ?? this.preferredTimeSlot,
+
+      // IMPORTANT:
+      // Preserve the existing request ID.
+      requestId:
+          requestId ?? this.requestId,
+
+      requestTypeId:
+          requestTypeId ?? this.requestTypeId,
+
+      capabilityId:
+          capabilityId ?? this.capabilityId,
+
+      customerId:
+          customerId ?? this.customerId,
+
+      urgency:
+          urgency ?? this.urgency,
+    );
+  }
+
+  // ============================================================
+  // TO MAP
+  // ============================================================
 
   Map<String, dynamic> toMap() {
     return {
-      "categoryName": categoryName,
-      "subCategoryName": subCategoryName,
-      "issueDescription": issueDescription,
-      "isEmergency": isEmergency,
-      "address": address,
-      "preferredDate":
+      'categoryName': categoryName,
+      'subCategoryName': subCategoryName,
+      'issueDescription': issueDescription,
+      'isEmergency': isEmergency,
+
+      'address': address,
+      'latitude': latitude,
+      'longitude': longitude,
+
+      'preferredDate':
           preferredDate?.millisecondsSinceEpoch,
-      "preferredTimeSlot": preferredTimeSlot,
 
-      // Firestore stores URLs later
-      "photos": <String>[],
+      'preferredTimeSlot':
+          preferredTimeSlot,
 
-      "video": null,
+      'requestId':
+          requestId,
+
+      'requestTypeId':
+          requestTypeId,
+
+      'capabilityId':
+          capabilityId,
+
+      'customerId':
+          customerId,
+
+      'urgency':
+          urgency,
+
+      // Firebase Storage URLs will be added later.
+      'photos': <String>[],
+
+      'video': null,
     };
   }
 
+  // ============================================================
+  // FROM MAP
+  // ============================================================
+
   factory ServiceRequest.fromMap(
-      Map<String, dynamic> map) {
+    Map<String, dynamic> map,
+  ) {
     return ServiceRequest(
-      categoryName: map["categoryName"] ?? "",
+      categoryName:
+          map['categoryName'] ?? '',
+
       subCategoryName:
-          map["subCategoryName"] ?? "",
+          map['subCategoryName'] ?? '',
+
       issueDescription:
-          map["issueDescription"] ?? "",
+          map['issueDescription'] ?? '',
+
       isEmergency:
-          map["isEmergency"] ?? false,
-      address: map["address"],
+          map['isEmergency'] ?? false,
+
+      address:
+          map['address'],
+
+      latitude:
+          map['latitude'] == null
+              ? null
+              : (map['latitude'] as num).toDouble(),
+
+      longitude:
+          map['longitude'] == null
+              ? null
+              : (map['longitude'] as num).toDouble(),
+
       preferredDate:
-          map["preferredDate"] == null
+          map['preferredDate'] == null
               ? null
               : DateTime.fromMillisecondsSinceEpoch(
-                  map["preferredDate"],
+                  map['preferredDate'],
                 ),
-      preferredTimeSlot:
-          map["preferredTimeSlot"],
 
-      // We'll populate these after Firebase Storage
+      preferredTimeSlot:
+          map['preferredTimeSlot'],
+
+      requestId:
+          map['requestId'],
+
+      requestTypeId:
+          map['requestTypeId'],
+
+      capabilityId:
+          map['capabilityId'],
+
+      customerId:
+          map['customerId'],
+
+      urgency:
+          map['urgency'] ?? 'NORMAL',
+
       photos: [],
 
       video: null,

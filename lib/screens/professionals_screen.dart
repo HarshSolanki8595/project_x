@@ -1,10 +1,18 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
-import '../models/professional.dart';
+import '../data/professional_data.dart';
+import '../models/marketplace_status.dart';
+import '../models/professional_bid_model.dart';
+import '../models/professional_model.dart';
 import '../models/service_request.dart';
-import 'booking_summary_screen.dart';
+import '../services/bid_service.dart';
+import '../services/order_acceptance_service.dart';
+import '../services/opportunity_service.dart';
 
-class ProfessionalsScreen extends StatelessWidget {
+class ProfessionalsScreen extends StatefulWidget {
   final ServiceRequest request;
 
   const ProfessionalsScreen({
@@ -12,8 +20,15 @@ class ProfessionalsScreen extends StatelessWidget {
     required this.request,
   });
 
+  @override
+  State<ProfessionalsScreen> createState() =>
+      _ProfessionalsScreenState();
+}
+
+class _ProfessionalsScreenState
+    extends State<ProfessionalsScreen> {
   // ============================================================
-  // HABIO DESIGN SYSTEM
+  // DESIGN SYSTEM
   // ============================================================
 
   static const Color primaryBlue = Color(0xFF1557FF);
@@ -25,850 +40,367 @@ class ProfessionalsScreen extends StatelessWidget {
   static const Color borderColor = Color(0xFFE1E7EF);
 
   // ============================================================
-  // BUILD
+  // STATE
+  // ============================================================
+
+  List<ProfessionalBidModel> _bids = [];
+
+  Timer? _refreshTimer;
+
+  bool _acceptingBid = false;
+
+  // ============================================================
+  // LIFECYCLE
   // ============================================================
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: background,
+  void initState() {
+    super.initState();
 
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: textPrimary,
-        elevation: 0,
-        scrolledUnderElevation: 0,
+    _loadBids();
 
-        title: const Text(
-          "Professionals & Quotes",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-
-      body: ListView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(
-          16,
-          14,
-          16,
-          24,
-        ),
-        children: [
-          // =========================================================
-          // HEADER
-          // =========================================================
-
-          const Text(
-            "Choose the right professional",
-            style: TextStyle(
-              fontSize: 27,
-              height: 1.15,
-              fontWeight: FontWeight.w700,
-              color: textPrimary,
-              letterSpacing: -0.5,
-            ),
-          ),
-
-          const SizedBox(height: 5),
-
-          const Text(
-            "Compare verified professionals, their experience and their quotes before deciding.",
-            style: TextStyle(
-              color: textSecondary,
-              fontSize: 14,
-              height: 1.4,
-            ),
-          ),
-
-          const SizedBox(height: 15),
-
-          // =========================================================
-          // MARKETPLACE MESSAGE
-          // =========================================================
-
-          _marketplaceMessage(),
-
-          const SizedBox(height: 14),
-
-          // =========================================================
-          // PROFESSIONALS
-          // =========================================================
-
-          ...dummyProfessionals.map(
-            (professional) => Padding(
-              padding: const EdgeInsets.only(
-                bottom: 12,
-              ),
-              child: _professionalCard(
-                context,
-                professional,
-              ),
-            ),
-          ),
-        ],
-      ),
+    // ----------------------------------------------------------
+    // REFRESH PERIODICALLY
+    // ----------------------------------------------------------
+    //
+    // This allows the customer screen to automatically update
+    // when professionals submit bids.
+    //
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 2),
+      (_) {
+        _loadBids();
+      },
     );
   }
 
-  // ============================================================
-  // MARKETPLACE MESSAGE
-  // ============================================================
-
-  Widget _marketplaceMessage() {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 12,
-      ),
-      decoration: BoxDecoration(
-        color: lightBlue,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: const Color(0xFFD7E2FF),
-        ),
-      ),
-      child: const Row(
-        children: [
-          Icon(
-            Icons.compare_arrows_rounded,
-            color: primaryBlue,
-            size: 24,
-          ),
-
-          SizedBox(width: 10),
-
-          Expanded(
-            child: Text(
-              "Professionals decide their price. You decide which offer gives you the best value.",
-              style: TextStyle(
-                color: Color(0xFF475569),
-                fontSize: 13,
-                height: 1.35,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   // ============================================================
-  // PROFESSIONAL CARD
+  // LOAD BIDS
   // ============================================================
 
-  Widget _professionalCard(
-    BuildContext context,
-    Professional professional,
+  void _loadBids() {
+    final requestId = widget.request.requestId;
+
+    if (requestId == null ||
+        requestId.trim().isEmpty) {
+      return;
+    }
+
+    final bids =
+        BidService.getBidsForRequest(requestId);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _bids = bids
+          .where(
+            (bid) =>
+                bid.status ==
+                    MarketplaceStatus.submitted ||
+                bid.status ==
+                    MarketplaceStatus.accepted,
+          )
+          .toList();
+    });
+  }
+
+  // ============================================================
+  // FIND PROFESSIONAL
+  // ============================================================
+
+  ProfessionalModel? _findProfessional(
+    String professionalId,
   ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: borderColor,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(
-              alpha: .025,
-            ),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-          children: [
-            // =====================================================
-            // PROFESSIONAL HEADER
-            // =====================================================
+    for (final professional
+        in ProfessionalData.professionals) {
+      if (professional.professionalId ==
+          professionalId) {
+        return professional;
+      }
+    }
 
-            Row(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: 52,
-                  width: 52,
-                  decoration: BoxDecoration(
-                    color: lightBlue,
-                    borderRadius:
-                        BorderRadius.circular(15),
-                  ),
-                  child: const Icon(
-                    Icons.person_outline_rounded,
-                    color: primaryBlue,
-                    size: 29,
-                  ),
-                ),
-
-                const SizedBox(width: 11),
-
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        professional.name,
-                        maxLines: 2,
-                        overflow:
-                            TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          height: 1.15,
-                          fontWeight:
-                              FontWeight.w700,
-                          color: textPrimary,
-                        ),
-                      ),
-
-                      if (professional.verified) ...[
-                        const SizedBox(height: 6),
-
-                        Container(
-                          padding:
-                              const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                const Color(0xFFE8F7EE),
-                            borderRadius:
-                                BorderRadius.circular(
-                              20,
-                            ),
-                          ),
-                          child: const Row(
-                            mainAxisSize:
-                                MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.verified_rounded,
-                                color:
-                                    Color(0xFF35A853),
-                                size: 14,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                "Verified Professional",
-                                style: TextStyle(
-                                  color:
-                                      Color(0xFF35A853),
-                                  fontSize: 11,
-                                  fontWeight:
-                                      FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            // =====================================================
-            // STATS
-            // =====================================================
-
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 9,
-              ),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius:
-                    BorderRadius.circular(14),
-              ),
-              child: Row(
-                children: [
-                  _infoItem(
-                    Icons.star_rounded,
-                    const Color(0xFFF59E0B),
-                    "${professional.rating}",
-                  ),
-
-                  _divider(),
-
-                  _infoItem(
-                    Icons.reviews_outlined,
-                    const Color(0xFF64748B),
-                    "${professional.reviews} reviews",
-                  ),
-
-                  _divider(),
-
-                  _infoItem(
-                    Icons.work_outline_rounded,
-                    primaryBlue,
-                    "${professional.experience} yrs",
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 11),
-
-            // =====================================================
-            // DETAILS
-            // =====================================================
-
-            _detailRow(
-              Icons.build_circle_outlined,
-              "${professional.jobsCompleted} jobs completed",
-            ),
-
-            const SizedBox(height: 7),
-
-            _detailRow(
-              Icons.location_on_outlined,
-              "${professional.distance} km away",
-            ),
-
-            const SizedBox(height: 7),
-
-            _detailRow(
-              Icons.access_time_rounded,
-              "Can arrive in ${professional.arrivalTime}",
-            ),
-
-            const SizedBox(height: 12),
-
-            // =====================================================
-            // QUOTE
-            // =====================================================
-
-            Container(
-              padding: const EdgeInsets.fromLTRB(
-                13,
-                11,
-                13,
-                11,
-              ),
-              decoration: BoxDecoration(
-                color: lightBlue,
-                borderRadius:
-                    BorderRadius.circular(16),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Their quote",
-                          style: TextStyle(
-                            color: textSecondary,
-                            fontSize: 11,
-                            fontWeight:
-                                FontWeight.w500,
-                          ),
-                        ),
-
-                        const SizedBox(height: 2),
-
-                        Text(
-                          "₹${professional.quote.toStringAsFixed(0)}",
-                          style: const TextStyle(
-                            color: primaryBlue,
-                            fontSize: 24,
-                            fontWeight:
-                                FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const Icon(
-                    Icons.request_quote_outlined,
-                    color: primaryBlue,
-                    size: 27,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            // =====================================================
-            // QUOTE DESCRIPTION
-            // =====================================================
-
-            Text(
-              professional.quoteDescription,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: textSecondary,
-                fontSize: 13,
-                height: 1.35,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // =====================================================
-            // ACTIONS
-            // =====================================================
-
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      _showProfessionalProfile(
-                        context,
-                        professional,
-                      );
-                    },
-                    style:
-                        OutlinedButton.styleFrom(
-                      foregroundColor:
-                          primaryBlue,
-                      side: const BorderSide(
-                        color: Color(0xFFD7E0F2),
-                      ),
-                      minimumSize:
-                          const Size.fromHeight(48),
-                      padding:
-                          EdgeInsets.zero,
-                      shape:
-                          RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(
-                          15,
-                        ),
-                      ),
-                    ),
-                    child: const Text(
-                      "View Profile",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight:
-                            FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 9),
-
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              BookingSummaryScreen(
-                            request: request,
-                            professional:
-                                professional,
-                          ),
-                        ),
-                      );
-                    },
-                    style:
-                        ElevatedButton.styleFrom(
-                      backgroundColor:
-                          primaryBlue,
-                      foregroundColor:
-                          Colors.white,
-                      elevation: 0,
-                      minimumSize:
-                          const Size.fromHeight(48),
-                      padding:
-                          EdgeInsets.zero,
-                      shape:
-                          RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(
-                          15,
-                        ),
-                      ),
-                    ),
-                    child: const Text(
-                      "Choose",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight:
-                            FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
+    return null;
   }
 
   // ============================================================
-  // STAT ITEM
+  // DISTANCE
   // ============================================================
 
-  Widget _infoItem(
-    IconData icon,
-    Color color,
-    String text,
+  double _calculateDistanceKm(
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
   ) {
-    return Expanded(
-      child: Row(
-        mainAxisAlignment:
-            MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: color,
-            size: 16,
-          ),
+    const earthRadiusKm = 6371.0;
 
-          const SizedBox(width: 4),
+    final dLat =
+        _degreesToRadians(lat2 - lat1);
 
-          Flexible(
-            child: Text(
-              text,
-              maxLines: 1,
-              overflow:
-                  TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 11.5,
-                fontWeight:
-                    FontWeight.w600,
-                color: textPrimary,
-              ),
+    final dLon =
+        _degreesToRadians(lon2 - lon1);
+
+    final a =
+        math.sin(dLat / 2) *
+            math.sin(dLat / 2) +
+        math.cos(
+              _degreesToRadians(lat1),
+            ) *
+            math.cos(
+              _degreesToRadians(lat2),
+            ) *
+            math.sin(dLon / 2) *
+            math.sin(dLon / 2);
+
+    final c =
+        2 *
+        math.atan2(
+          math.sqrt(a),
+          math.sqrt(1 - a),
+        );
+
+    return earthRadiusKm * c;
+  }
+
+  double _degreesToRadians(double degrees) {
+    return degrees * math.pi / 180;
+  }
+
+  // ============================================================
+  // ACCEPT BID
+  // ============================================================
+
+  Future<void> _acceptBid(
+    ProfessionalBidModel bid,
+  ) async {
+    if (_acceptingBid) {
+      return;
+    }
+
+    final professional =
+        _findProfessional(
+      bid.professionalId,
+    );
+
+    if (professional == null) {
+      _showMessage(
+        'Professional information could not be found.',
+      );
+      return;
+    }
+
+    final shouldAccept =
+        await _showAcceptConfirmation(
+      bid,
+      professional,
+    );
+
+    if (!shouldAccept) {
+      return;
+    }
+
+    setState(() {
+      _acceptingBid = true;
+    });
+
+    try {
+      final order =
+          OrderAcceptanceService.acceptBid(
+        bidId: bid.bidId,
+      );
+
+      _loadBids();
+
+      if (!mounted) {
+        return;
+      }
+
+      await _showOrderCreatedDialog(
+        orderId: order.orderId,
+        professionalName:
+            professional.name,
+        price: bid.quotedPrice,
+        estimatedTime:
+            bid.estimatedTime,
+      );
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      _showMessage(
+        e.toString().replaceFirst(
+              'Bad state: ',
+              '',
             ),
-          ),
-        ],
-      ),
-    );
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _acceptingBid = false;
+        });
+      }
+    }
   }
 
   // ============================================================
-  // DIVIDER
+  // ACCEPT CONFIRMATION
   // ============================================================
 
-  Widget _divider() {
-    return Container(
-      height: 20,
-      width: 1,
-      color: const Color(0xFFE2E8F0),
-    );
-  }
-
-  // ============================================================
-  // DETAIL ROW
-  // ============================================================
-
-  Widget _detailRow(
-    IconData icon,
-    String text,
-  ) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          color: textSecondary,
-          size: 17,
-        ),
-
-        const SizedBox(width: 8),
-
-        Expanded(
-          child: Text(
-            text,
-            maxLines: 1,
-            overflow:
-                TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: textSecondary,
-              fontSize: 13,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ============================================================
-  // PROFESSIONAL PROFILE BOTTOM SHEET
-  // ============================================================
-
-  void _showProfessionalProfile(
-    BuildContext context,
-    Professional professional,
-  ) {
-    showModalBottomSheet(
+  Future<bool> _showAcceptConfirmation(
+    ProfessionalBidModel bid,
+    ProfessionalModel professional,
+  ) async {
+    final result =
+        await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: Colors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(24),
+      shape:
+          const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(
+          top: Radius.circular(26),
         ),
       ),
       builder: (context) {
         return SafeArea(
-          child: SingleChildScrollView(
+          child: Padding(
             padding: const EdgeInsets.fromLTRB(
               20,
-              10,
+              12,
               20,
               20,
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize:
+                  MainAxisSize.min,
               children: [
-                // Handle
-
                 Container(
                   height: 4,
-                  width: 40,
+                  width: 42,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD1D5DB),
+                    color:
+                        Colors.grey.shade300,
                     borderRadius:
-                        BorderRadius.circular(10),
+                        BorderRadius.circular(
+                      10,
+                    ),
                   ),
                 ),
 
-                const SizedBox(height: 16),
-
-                // Avatar
+                const SizedBox(height: 20),
 
                 Container(
-                  height: 68,
-                  width: 68,
+                  height: 60,
+                  width: 60,
                   decoration: BoxDecoration(
                     color: lightBlue,
                     borderRadius:
-                        BorderRadius.circular(21),
+                        BorderRadius.circular(
+                      18,
+                    ),
                   ),
                   child: const Icon(
                     Icons.person_outline_rounded,
                     color: primaryBlue,
-                    size: 36,
+                    size: 32,
                   ),
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
 
                 Text(
                   professional.name,
-                  textAlign: TextAlign.center,
+                  textAlign:
+                      TextAlign.center,
                   style: const TextStyle(
+                    color: textPrimary,
                     fontSize: 21,
                     fontWeight:
                         FontWeight.w700,
-                    color: textPrimary,
                   ),
                 ),
 
                 const SizedBox(height: 6),
 
-                if (professional.verified)
-                  const Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.verified_rounded,
-                        color: Color(0xFF35A853),
-                        size: 16,
-                      ),
-                      SizedBox(width: 4),
-                      Text(
-                        "Verified Professional",
-                        style: TextStyle(
-                          color:
-                              Color(0xFF35A853),
-                          fontSize: 13,
-                          fontWeight:
-                              FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                const SizedBox(height: 13),
-
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 9,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius:
-                        BorderRadius.circular(14),
-                  ),
-                  child: Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.star_rounded,
-                        color:
-                            Color(0xFFF59E0B),
-                        size: 17,
-                      ),
-                      const SizedBox(width: 5),
-                      Text(
-                        "${professional.rating}",
-                        style: const TextStyle(
-                          fontWeight:
-                              FontWeight.w700,
-                          fontSize: 13,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "${professional.reviews} reviews",
-                        style: const TextStyle(
-                          color: textSecondary,
-                          fontSize: 13,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        height: 16,
-                        width: 1,
-                        color:
-                            const Color(
-                          0xFFD1D5DB,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "${professional.experience} yrs",
-                        style: const TextStyle(
-                          color: textSecondary,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
+                Text(
+                  '₹${bid.quotedPrice.toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    color: primaryBlue,
+                    fontSize: 28,
+                    fontWeight:
+                        FontWeight.w800,
                   ),
                 ),
 
-                const SizedBox(height: 13),
+                const SizedBox(height: 3),
 
-                // Quote
-
-                Container(
-                  width: double.infinity,
-                  padding:
-                      const EdgeInsets.all(13),
-                  decoration: BoxDecoration(
-                    color: lightBlue,
-                    borderRadius:
-                        BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    children: [
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment
-                                  .start,
-                          children: [
-                            Text(
-                              "Their quote",
-                              style: TextStyle(
-                                color:
-                                    textSecondary,
-                                fontSize: 11,
-                              ),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              "Service quotation",
-                              style: TextStyle(
-                                color:
-                                    textPrimary,
-                                fontSize: 13,
-                                fontWeight:
-                                    FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text(
-                        "₹${professional.quote.toStringAsFixed(0)}",
-                        style: const TextStyle(
-                          color: primaryBlue,
-                          fontSize: 23,
-                          fontWeight:
-                              FontWeight.w800,
-                        ),
-                      ),
-                    ],
+                Text(
+                  'Estimated time: ${bid.estimatedTime}',
+                  style: const TextStyle(
+                    color: textSecondary,
+                    fontSize: 13,
                   ),
                 ),
 
-                const SizedBox(height: 10),
+                if (bid.message.trim().isNotEmpty) ...[
+                  const SizedBox(height: 14),
 
-                // About
-
-                if (professional
-                    .quoteDescription
-                    .isNotEmpty)
-                  Align(
-                    alignment:
-                        Alignment.centerLeft,
+                  Container(
+                    width: double.infinity,
+                    padding:
+                        const EdgeInsets.all(13),
+                    decoration: BoxDecoration(
+                      color:
+                          const Color(0xFFF8FAFC),
+                      borderRadius:
+                          BorderRadius.circular(
+                        15,
+                      ),
+                    ),
                     child: Text(
-                      professional
-                          .quoteDescription,
+                      bid.message,
                       style:
                           const TextStyle(
-                        color:
-                            textSecondary,
+                        color: textSecondary,
                         fontSize: 13,
                         height: 1.4,
                       ),
                     ),
                   ),
+                ],
 
-                const SizedBox(height: 15),
+                const SizedBox(height: 20),
+
+                const Text(
+                  'Accepting this offer will create your order and close the other offers for this request.',
+                  textAlign:
+                      TextAlign.center,
+                  style: TextStyle(
+                    color: textSecondary,
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
+                ),
+
+                const SizedBox(height: 18),
 
                 SizedBox(
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.pop(context);
-
-                      Navigator.push(
+                      Navigator.pop(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              BookingSummaryScreen(
-                            request: request,
-                            professional:
-                                professional,
-                          ),
-                        ),
+                        true,
                       );
                     },
                     style:
@@ -887,11 +419,34 @@ class ProfessionalsScreen extends StatelessWidget {
                       ),
                     ),
                     child: const Text(
-                      "Choose Professional",
+                      'Accept This Offer',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight:
                             FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 9),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pop(
+                        context,
+                        false,
+                      );
+                    },
+                    child: const Text(
+                      'Not Now',
+                      style: TextStyle(
+                        color: textSecondary,
+                        fontWeight:
+                            FontWeight.w600,
                       ),
                     ),
                   ),
@@ -901,6 +456,1108 @@ class ProfessionalsScreen extends StatelessWidget {
           ),
         );
       },
+    );
+
+    return result ?? false;
+  }
+
+  // ============================================================
+  // ORDER CREATED DIALOG
+  // ============================================================
+
+  Future<void> _showOrderCreatedDialog({
+    required String orderId,
+    required String professionalName,
+    required double price,
+    required String estimatedTime,
+  }) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(22),
+          ),
+          title: const Column(
+            children: [
+              CircleAvatar(
+                radius: 30,
+                backgroundColor:
+                    Color(0xFFE8F7EE),
+                child: Icon(
+                  Icons.check_rounded,
+                  color: Colors.green,
+                  size: 36,
+                ),
+              ),
+              SizedBox(height: 14),
+              Text(
+                'Order Confirmed',
+                textAlign:
+                    TextAlign.center,
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize:
+                MainAxisSize.min,
+            children: [
+              Text(
+                professionalName,
+                textAlign:
+                    TextAlign.center,
+                style:
+                    const TextStyle(
+                  fontWeight:
+                      FontWeight.w700,
+                  fontSize: 16,
+                  color: textPrimary,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              Text(
+                '₹${price.toStringAsFixed(0)}',
+                style:
+                    const TextStyle(
+                  color: primaryBlue,
+                  fontSize: 24,
+                  fontWeight:
+                      FontWeight.w800,
+                ),
+              ),
+
+              const SizedBox(height: 4),
+
+              Text(
+                estimatedTime,
+                style:
+                    const TextStyle(
+                  color: textSecondary,
+                  fontSize: 13,
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              Container(
+                padding:
+                    const EdgeInsets.all(10),
+                decoration:
+                    BoxDecoration(
+                  color:
+                      const Color(0xFFF8FAFC),
+                  borderRadius:
+                      BorderRadius.circular(
+                    12,
+                  ),
+                ),
+                child: Text(
+                  'Order ID: $orderId',
+                  style:
+                      const TextStyle(
+                    color: textSecondary,
+                    fontSize: 12,
+                    fontWeight:
+                        FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(
+                    context,
+                  );
+                  Navigator.pop(
+                    context,
+                  );
+                },
+                style:
+                    ElevatedButton.styleFrom(
+                  backgroundColor:
+                      primaryBlue,
+                  foregroundColor:
+                      Colors.white,
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'Done',
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ============================================================
+  // MESSAGE
+  // ============================================================
+
+  void _showMessage(
+    String message,
+  ) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
+  }
+
+  // ============================================================
+  // BUILD
+  // ============================================================
+
+  @override
+  Widget build(BuildContext context) {
+    final requestId =
+        widget.request.requestId;
+
+    return Scaffold(
+      backgroundColor: background,
+
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: textPrimary,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+
+        title: const Text(
+          'Professionals & Quotes',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+
+      body: requestId == null ||
+              requestId.trim().isEmpty
+          ? _buildMissingRequest()
+          : _buildMarketplace(),
+    );
+  }
+
+  // ============================================================
+  // MISSING REQUEST
+  // ============================================================
+
+  Widget _buildMissingRequest() {
+    return Center(
+      child: Padding(
+        padding:
+            const EdgeInsets.all(30),
+        child: Column(
+          mainAxisAlignment:
+              MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline_rounded,
+              color: Colors.orange,
+              size: 48,
+            ),
+
+            const SizedBox(height: 15),
+
+            const Text(
+              'Request information is missing.',
+              textAlign:
+                  TextAlign.center,
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight:
+                    FontWeight.w700,
+                color: textPrimary,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            const Text(
+              'Please create the service request again.',
+              textAlign:
+                  TextAlign.center,
+              style: TextStyle(
+                color: textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // MARKETPLACE
+  // ============================================================
+
+  Widget _buildMarketplace() {
+    return RefreshIndicator(
+      color: primaryBlue,
+      onRefresh: () async {
+        _loadBids();
+      },
+      child: ListView(
+        physics:
+            const AlwaysScrollableScrollPhysics(
+          parent:
+              BouncingScrollPhysics(),
+        ),
+        padding:
+            const EdgeInsets.fromLTRB(
+          16,
+          14,
+          16,
+          30,
+        ),
+        children: [
+          // ------------------------------------------------------
+          // HEADER
+          // ------------------------------------------------------
+
+          const Text(
+            'Choose the right professional',
+            style: TextStyle(
+              fontSize: 27,
+              height: 1.15,
+              fontWeight:
+                  FontWeight.w700,
+              color: textPrimary,
+              letterSpacing: -0.5,
+            ),
+          ),
+
+          const SizedBox(height: 5),
+
+          const Text(
+            'Compare verified professionals, their offers and their experience before deciding.',
+            style: TextStyle(
+              color: textSecondary,
+              fontSize: 14,
+              height: 1.4,
+            ),
+          ),
+
+          const SizedBox(height: 15),
+
+          _marketplaceMessage(),
+
+          const SizedBox(height: 14),
+
+          // ------------------------------------------------------
+          // REQUEST INFORMATION
+          // ------------------------------------------------------
+
+          _requestInformation(),
+
+          const SizedBox(height: 14),
+
+          // ------------------------------------------------------
+          // BIDS
+          // ------------------------------------------------------
+
+          if (_bids.isEmpty)
+            _buildWaitingForBids()
+          else
+            ..._bids.map(
+              (bid) => Padding(
+                padding:
+                    const EdgeInsets.only(
+                  bottom: 12,
+                ),
+                child:
+                    _professionalBidCard(
+                  bid,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // MARKETPLACE MESSAGE
+  // ============================================================
+
+  Widget _marketplaceMessage() {
+    return Container(
+      padding:
+          const EdgeInsets.symmetric(
+        horizontal: 14,
+        vertical: 12,
+      ),
+      decoration: BoxDecoration(
+        color: lightBlue,
+        borderRadius:
+            BorderRadius.circular(18),
+        border: Border.all(
+          color:
+              const Color(0xFFD7E2FF),
+        ),
+      ),
+      child: const Row(
+        children: [
+          Icon(
+            Icons.compare_arrows_rounded,
+            color: primaryBlue,
+            size: 24,
+          ),
+
+          SizedBox(width: 10),
+
+          Expanded(
+            child: Text(
+              'Professionals decide their price. You decide which offer gives you the best value.',
+              style: TextStyle(
+                color:
+                    Color(0xFF475569),
+                fontSize: 13,
+                height: 1.35,
+                fontWeight:
+                    FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // REQUEST INFORMATION
+  // ============================================================
+
+  Widget _requestInformation() {
+    return Container(
+      padding:
+          const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            BorderRadius.circular(18),
+        border: Border.all(
+          color: borderColor,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            height: 42,
+            width: 42,
+            decoration: BoxDecoration(
+              color: lightBlue,
+              borderRadius:
+                  BorderRadius.circular(
+                13,
+              ),
+            ),
+            child: const Icon(
+              Icons.receipt_long_outlined,
+              color: primaryBlue,
+              size: 22,
+            ),
+          ),
+
+          const SizedBox(width: 11),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Request',
+                  style: TextStyle(
+                    color:
+                        textSecondary,
+                    fontSize: 11,
+                  ),
+                ),
+
+                const SizedBox(height: 2),
+
+                Text(
+                  widget.request.issueDescription,
+                  maxLines: 2,
+                  overflow:
+                      TextOverflow.ellipsis,
+                  style:
+                      const TextStyle(
+                    color:
+                        textPrimary,
+                    fontSize: 13,
+                    fontWeight:
+                        FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          Text(
+            widget.request.requestId!,
+            style:
+                const TextStyle(
+              color: textSecondary,
+              fontSize: 10,
+              fontWeight:
+                  FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // WAITING FOR BIDS
+  // ============================================================
+
+  Widget _buildWaitingForBids() {
+    return Container(
+      padding:
+          const EdgeInsets.fromLTRB(
+        22,
+        32,
+        22,
+        32,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            BorderRadius.circular(22),
+        border: Border.all(
+          color: borderColor,
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            height: 68,
+            width: 68,
+            decoration: BoxDecoration(
+              color: lightBlue,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.hourglass_top_rounded,
+              color: primaryBlue,
+              size: 34,
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          const Text(
+            'Waiting for quotes',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: textPrimary,
+              fontSize: 20,
+              fontWeight:
+                  FontWeight.w700,
+            ),
+          ),
+
+          const SizedBox(height: 7),
+
+          const Text(
+            'Your request has been sent to matched professionals. Their offers will appear here as they submit them.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: textSecondary,
+              fontSize: 13,
+              height: 1.45,
+            ),
+          ),
+
+          const SizedBox(height: 15),
+
+          Row(
+            mainAxisAlignment:
+                MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 18,
+                width: 18,
+                child:
+                    CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: primaryBlue,
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              const Text(
+                'Checking for new offers...',
+                style: TextStyle(
+                  color: textSecondary,
+                  fontSize: 12,
+                  fontWeight:
+                      FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // PROFESSIONAL BID CARD
+  // ============================================================
+
+  Widget _professionalBidCard(
+    ProfessionalBidModel bid,
+  ) {
+    final professional =
+        _findProfessional(
+      bid.professionalId,
+    );
+
+    if (professional == null) {
+      return _unknownProfessionalCard(
+        bid,
+      );
+    }
+
+    final distance =
+        widget.request.latitude != null &&
+                widget.request.longitude !=
+                    null
+            ? _calculateDistanceKm(
+                widget.request.latitude!,
+                widget.request.longitude!,
+                professional.latitude,
+                professional.longitude,
+              )
+            : null;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            BorderRadius.circular(20),
+        border: Border.all(
+          color: borderColor,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color:
+                Colors.black.withValues(
+              alpha: .025,
+            ),
+            blurRadius: 10,
+            offset:
+                const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding:
+            const EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
+          children: [
+            // ----------------------------------------------------
+            // HEADER
+            // ----------------------------------------------------
+
+            Row(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 54,
+                  width: 54,
+                  decoration:
+                      BoxDecoration(
+                    color: lightBlue,
+                    borderRadius:
+                        BorderRadius.circular(
+                      16,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.person_outline_rounded,
+                    color:
+                        primaryBlue,
+                    size: 30,
+                  ),
+                ),
+
+                const SizedBox(width: 11),
+
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment
+                            .start,
+                    children: [
+                      Text(
+                        professional.name,
+                        maxLines: 2,
+                        overflow:
+                            TextOverflow
+                                .ellipsis,
+                        style:
+                            const TextStyle(
+                          fontSize: 17,
+                          height: 1.15,
+                          fontWeight:
+                              FontWeight.w700,
+                          color:
+                              textPrimary,
+                        ),
+                      ),
+
+                      const SizedBox(height: 6),
+
+                      if (professional
+                          .isVerified)
+                        _verifiedBadge(),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 13),
+
+            // ----------------------------------------------------
+            // PROFESSIONAL DETAILS
+            // ----------------------------------------------------
+
+            Container(
+              padding:
+                  const EdgeInsets
+                      .symmetric(
+                horizontal: 10,
+                vertical: 10,
+              ),
+              decoration:
+                  BoxDecoration(
+                color:
+                    const Color(
+                  0xFFF8FAFC,
+                ),
+                borderRadius:
+                    BorderRadius.circular(
+                  14,
+                ),
+              ),
+              child: Column(
+                children: [
+                  _detailRow(
+                    Icons.badge_outlined,
+                    'Professional ID',
+                    professional
+                        .professionalId,
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  _detailRow(
+                    Icons.location_on_outlined,
+                    'Distance',
+                    distance == null
+                        ? 'Location unavailable'
+                        : '${distance.toStringAsFixed(1)} km away',
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  _detailRow(
+                    Icons.circle,
+                    'Availability',
+                    professional
+                            .isAvailable
+                        ? 'Available'
+                        : 'Currently unavailable',
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // ----------------------------------------------------
+            // CAPABILITIES
+            // ----------------------------------------------------
+
+            if (professional
+                .capabilityIds
+                .isNotEmpty)
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children:
+                    professional.capabilityIds
+                        .map(
+                          (capability) =>
+                              Container(
+                            padding:
+                                const EdgeInsets
+                                    .symmetric(
+                              horizontal: 9,
+                              vertical: 5,
+                            ),
+                            decoration:
+                                BoxDecoration(
+                              color:
+                                  lightBlue,
+                              borderRadius:
+                                  BorderRadius
+                                      .circular(
+                                20,
+                              ),
+                            ),
+                            child: Text(
+                              capability,
+                              style:
+                                  const TextStyle(
+                                color:
+                                    primaryBlue,
+                                fontSize:
+                                    10.5,
+                                fontWeight:
+                                    FontWeight
+                                        .w600,
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+              ),
+
+            const SizedBox(height: 13),
+
+            // ----------------------------------------------------
+            // ACTUAL BID
+            // ----------------------------------------------------
+
+            Container(
+              padding:
+                  const EdgeInsets.fromLTRB(
+                13,
+                11,
+                13,
+                11,
+              ),
+              decoration:
+                  BoxDecoration(
+                color:
+                    lightBlue,
+                borderRadius:
+                    BorderRadius.circular(
+                  16,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment
+                              .start,
+                      children: [
+                        const Text(
+                          'Their offer',
+                          style:
+                              TextStyle(
+                            color:
+                                textSecondary,
+                            fontSize:
+                                11,
+                            fontWeight:
+                                FontWeight
+                                    .w500,
+                          ),
+                        ),
+
+                        const SizedBox(
+                            height: 2),
+
+                        Text(
+                          '₹${bid.quotedPrice.toStringAsFixed(0)}',
+                          style:
+                              const TextStyle(
+                            color:
+                                primaryBlue,
+                            fontSize:
+                                25,
+                            fontWeight:
+                                FontWeight
+                                    .w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment
+                            .end,
+                    children: [
+                      const Text(
+                        'Estimated time',
+                        style:
+                            TextStyle(
+                          color:
+                              textSecondary,
+                          fontSize:
+                              10,
+                        ),
+                      ),
+
+                      const SizedBox(
+                          height: 3),
+
+                      Text(
+                        bid.estimatedTime,
+                        style:
+                            const TextStyle(
+                          color:
+                              textPrimary,
+                          fontSize:
+                              13,
+                          fontWeight:
+                              FontWeight
+                                  .w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // ----------------------------------------------------
+            // MESSAGE
+            // ----------------------------------------------------
+
+            if (bid.message
+                .trim()
+                .isNotEmpty) ...[
+              const SizedBox(height: 10),
+
+              Text(
+                bid.message,
+                maxLines: 3,
+                overflow:
+                    TextOverflow.ellipsis,
+                style:
+                    const TextStyle(
+                  color:
+                      textSecondary,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 13),
+
+            // ----------------------------------------------------
+            // CHOOSE
+            // ----------------------------------------------------
+
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed:
+                    _acceptingBid
+                        ? null
+                        : () =>
+                            _acceptBid(
+                              bid,
+                            ),
+                style:
+                    ElevatedButton.styleFrom(
+                  backgroundColor:
+                      primaryBlue,
+                  foregroundColor:
+                      Colors.white,
+                  disabledBackgroundColor:
+                      Colors.grey.shade300,
+                  elevation: 0,
+                  shape:
+                      RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(
+                      15,
+                    ),
+                  ),
+                ),
+                child: _acceptingBid
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child:
+                            CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color:
+                              Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Choose This Professional',
+                        style:
+                            TextStyle(
+                          fontSize: 14,
+                          fontWeight:
+                              FontWeight.w700,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // VERIFIED BADGE
+  // ============================================================
+
+  Widget _verifiedBadge() {
+    return Container(
+      padding:
+          const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 4,
+      ),
+      decoration:
+          BoxDecoration(
+        color:
+            const Color(0xFFE8F7EE),
+        borderRadius:
+            BorderRadius.circular(
+          20,
+        ),
+      ),
+      child: const Row(
+        mainAxisSize:
+            MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.verified_rounded,
+            color:
+                Color(0xFF35A853),
+            size: 14,
+          ),
+          SizedBox(width: 4),
+          Text(
+            'Verified Professional',
+            style: TextStyle(
+              color:
+                  Color(0xFF35A853),
+              fontSize: 11,
+              fontWeight:
+                  FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // DETAIL ROW
+  // ============================================================
+
+  Widget _detailRow(
+    IconData icon,
+    String title,
+    String value,
+  ) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          color: textSecondary,
+          size: 16,
+        ),
+
+        const SizedBox(width: 8),
+
+        Text(
+          '$title:',
+          style:
+              const TextStyle(
+            color: textSecondary,
+            fontSize: 11.5,
+          ),
+        ),
+
+        const SizedBox(width: 5),
+
+        Expanded(
+          child: Text(
+            value,
+            textAlign:
+                TextAlign.right,
+            overflow:
+                TextOverflow.ellipsis,
+            style:
+                const TextStyle(
+              color: textPrimary,
+              fontSize: 11.5,
+              fontWeight:
+                  FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ============================================================
+  // UNKNOWN PROFESSIONAL
+  // ============================================================
+
+  Widget _unknownProfessionalCard(
+    ProfessionalBidModel bid,
+  ) {
+    return Container(
+      padding:
+          const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            BorderRadius.circular(18),
+        border: Border.all(
+          color: borderColor,
+        ),
+      ),
+      child: Text(
+        'Professional ${bid.professionalId} submitted a bid of ₹${bid.quotedPrice.toStringAsFixed(0)}.',
+        style:
+            const TextStyle(
+          color: textPrimary,
+          fontSize: 13,
+        ),
+      ),
     );
   }
 }

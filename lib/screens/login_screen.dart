@@ -33,6 +33,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _continue() async {
     final phone = _phoneController.text.trim();
 
+    // ------------------------------------------------------------
+    // VALIDATE PHONE NUMBER
+    // ------------------------------------------------------------
+
     if (phone.length != 10) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -48,68 +52,180 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: "+91$phone",
+    final fullPhoneNumber = "+91$phone";
 
-      verificationCompleted:
-          (PhoneAuthCredential credential) async {
-        await FirebaseAuth.instance
-            .signInWithCredential(credential);
+    print("==============================================");
+    print("FIREBASE PHONE AUTH STARTED");
+    print("PHONE: $fullPhoneNumber");
+    print("==============================================");
 
-        if (!mounted) return;
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: fullPhoneNumber,
 
-        setState(() {
-          _isLoading = false;
-        });
+        // --------------------------------------------------------
+        // AUTOMATIC VERIFICATION
+        // --------------------------------------------------------
 
-        Navigator.pushReplacementNamed(
-          context,
-          "/home",
-        );
-      },
+        verificationCompleted:
+            (PhoneAuthCredential credential) async {
+          print("==============================================");
+          print("FIREBASE VERIFICATION COMPLETED AUTOMATICALLY");
+          print("==============================================");
 
-      verificationFailed:
-          (FirebaseAuthException e) {
-        if (!mounted) return;
+          try {
+            await FirebaseAuth.instance
+                .signInWithCredential(credential);
 
-        setState(() {
-          _isLoading = false;
-        });
+            print("Firebase sign-in successful.");
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              e.message ??
-                  "Phone verification failed",
+            if (!mounted) return;
+
+            setState(() {
+              _isLoading = false;
+            });
+
+            Navigator.pushReplacementNamed(
+              context,
+              "/home",
+            );
+          } on FirebaseAuthException catch (e) {
+            print("==============================================");
+            print("SIGN-IN WITH CREDENTIAL FAILED");
+            print("CODE: ${e.code}");
+            print("MESSAGE: ${e.message}");
+            print("==============================================");
+
+            if (!mounted) return;
+
+            setState(() {
+              _isLoading = false;
+            });
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.message ??
+                      "Unable to complete sign-in.",
+                ),
+              ),
+            );
+          }
+        },
+
+        // --------------------------------------------------------
+        // VERIFICATION FAILED
+        // --------------------------------------------------------
+
+        verificationFailed:
+            (FirebaseAuthException e) {
+          print("==============================================");
+          print("FIREBASE PHONE AUTH FAILED");
+          print("CODE: ${e.code}");
+          print("MESSAGE: ${e.message}");
+          print("PLUGIN: ${e.plugin}");
+          print("==============================================");
+
+          if (!mounted) return;
+
+          setState(() {
+            _isLoading = false;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              duration: const Duration(seconds: 6),
+              content: Text(
+                "${e.code}\n${e.message ?? "Phone verification failed"}",
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
 
-      codeSent: (
-        String verificationId,
-        int? resendToken,
-      ) {
-        if (!mounted) return;
+        // --------------------------------------------------------
+        // SMS CODE SENT
+        // --------------------------------------------------------
 
-        setState(() {
-          _isLoading = false;
-        });
+        codeSent: (
+          String verificationId,
+          int? resendToken,
+        ) {
+          print("==============================================");
+          print("FIREBASE OTP CODE SENT");
+          print("VERIFICATION ID RECEIVED");
+          print("==============================================");
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => OtpScreen(
-              phoneNumber: phone,
-              verificationId: verificationId,
+          if (!mounted) return;
+
+          setState(() {
+            _isLoading = false;
+          });
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => OtpScreen(
+                phoneNumber: phone,
+                verificationId: verificationId,
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
 
-      codeAutoRetrievalTimeout:
-          (String verificationId) {},
-    );
+        // --------------------------------------------------------
+        // AUTO RETRIEVAL TIMEOUT
+        // --------------------------------------------------------
+
+        codeAutoRetrievalTimeout:
+            (String verificationId) {
+          print("==============================================");
+          print("FIREBASE AUTO RETRIEVAL TIMEOUT");
+          print("==============================================");
+        },
+      );
+    } on FirebaseAuthException catch (e) {
+      print("==============================================");
+      print("FIREBASE AUTH EXCEPTION");
+      print("CODE: ${e.code}");
+      print("MESSAGE: ${e.message}");
+      print("PLUGIN: ${e.plugin}");
+      print("==============================================");
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 6),
+          content: Text(
+            "${e.code}\n${e.message ?? "Firebase authentication error"}",
+          ),
+        ),
+      );
+    } catch (e) {
+      print("==============================================");
+      print("UNEXPECTED PHONE AUTH ERROR");
+      print(e);
+      print("==============================================");
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 6),
+          content: Text(
+            "Unexpected error: $e",
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -275,17 +391,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       Expanded(
                         child: TextField(
                           controller: _phoneController,
-
-                          // BLUE CURSOR
                           cursorColor: primaryBlue,
-
                           keyboardType: TextInputType.phone,
-
                           maxLength: 10,
 
                           inputFormatters: [
-                            FilteringTextInputFormatter
-                                .digitsOnly,
+                            FilteringTextInputFormatter.digitsOnly,
                           ],
 
                           style: const TextStyle(
@@ -298,14 +409,17 @@ class _LoginScreenState extends State<LoginScreen> {
                               const InputDecoration(
                             hintText:
                                 "Enter mobile number",
+
                             hintStyle: TextStyle(
                               color: Color(0xFF64748B),
                               fontSize: 16,
-                              fontWeight:
-                                  FontWeight.w400,
+                              fontWeight: FontWeight.w400,
                             ),
+
                             border: InputBorder.none,
+
                             counterText: "",
+
                             contentPadding:
                                 EdgeInsets.symmetric(
                               horizontal: 14,
@@ -334,11 +448,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     style:
                         ElevatedButton.styleFrom(
                       backgroundColor: primaryBlue,
+
                       disabledBackgroundColor:
                           primaryBlue.withValues(
                         alpha: 0.6,
                       ),
+
                       foregroundColor: Colors.white,
+
                       elevation: 0,
 
                       shape:
@@ -352,6 +469,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ? const SizedBox(
                             height: 24,
                             width: 24,
+
                             child:
                                 CircularProgressIndicator(
                               strokeWidth: 2.5,
@@ -377,6 +495,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 Row(
                   children: [
+
                     const Expanded(
                       child: Divider(
                         color: Color(0xFFE1E7EF),
@@ -457,7 +576,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       children: [
 
-                        // Google placeholder
                         const Text(
                           "G",
                           style: TextStyle(
@@ -497,6 +615,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const Text(
                         "We'll send you a one-time password",
                         textAlign: TextAlign.center,
+
                         style: TextStyle(
                           color: secondaryText,
                           fontSize: 14,
@@ -509,7 +628,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       const Text(
                         "By continuing, you agree to our\n"
                         "Terms & Privacy Policy",
+
                         textAlign: TextAlign.center,
+
                         style: TextStyle(
                           color: Color(0xFF64748B),
                           fontSize: 12,
