@@ -23,8 +23,11 @@ class FindingProfessionalsScreen extends StatefulWidget {
 class _FindingProfessionalsScreenState
     extends State<FindingProfessionalsScreen>
     with SingleTickerProviderStateMixin {
-  static const Color primaryBlue = Color(0xFF1557FF);
-  static const Color backgroundColor = Color(0xFFF7F8FC);
+  static const Color primaryBlue =
+      Color(0xFF1557FF);
+
+  static const Color backgroundColor =
+      Color(0xFFF7F8FC);
 
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -38,12 +41,15 @@ class _FindingProfessionalsScreenState
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
+    _controller =
+        AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration:
+          const Duration(seconds: 2),
     )..repeat(reverse: true);
 
-    _animation = Tween<double>(
+    _animation =
+        Tween<double>(
       begin: 0.95,
       end: 1.05,
     ).animate(
@@ -60,42 +66,47 @@ class _FindingProfessionalsScreenState
   // PROCESS REAL MARKETPLACE REQUEST
   // ============================================================
 
-  void _processMarketplaceRequest() {
+  Future<void>
+      _processMarketplaceRequest() async {
     try {
-      // ----------------------------------------------------------
+      // --------------------------------------------------------
       // 1. CHECK LOCATION
-      // ----------------------------------------------------------
+      // --------------------------------------------------------
 
-      if (widget.request.latitude == null ||
-          widget.request.longitude == null) {
+      if (widget.request.latitude ==
+              null ||
+          widget.request.longitude ==
+              null) {
         throw StateError(
           'Customer location is required before matching '
           'professionals.',
         );
       }
 
-      // ----------------------------------------------------------
-      // 2. PROCESS CUSTOMER REQUEST
-      // ----------------------------------------------------------
-      //
-      // Customer words
-      //       ↓
-      // RequestClassifier
-      //       ↓
-      // Request Type ID
-      //       ↓
-      // Capability ID
-      //       ↓
-      // ServiceRequestModel
-      //       ↓
-      // MatchingService
-      //
+      // --------------------------------------------------------
+      // 2. CHECK CUSTOMER ID
+      // --------------------------------------------------------
+
+      if (widget.request.customerId ==
+              null ||
+          widget.request.customerId!
+              .trim()
+              .isEmpty) {
+        throw StateError(
+          'Customer authentication is required before creating '
+          'a service request.',
+        );
+      }
+
+      // --------------------------------------------------------
+      // 3. PROCESS CUSTOMER REQUEST
+      // --------------------------------------------------------
 
       final MatchingResult? result =
-          RequestProcessingService.processRequest(
+          await RequestProcessingService
+              .processRequest(
         customerId:
-            widget.request.customerId ??
-            'CUST_000001',
+            widget.request.customerId!,
         customerText:
             widget.request.issueDescription,
         latitude:
@@ -106,9 +117,9 @@ class _FindingProfessionalsScreenState
             widget.request.urgency,
       );
 
-      // ----------------------------------------------------------
-      // 3. REQUEST COULD NOT BE CLASSIFIED
-      // ----------------------------------------------------------
+      // --------------------------------------------------------
+      // 4. REQUEST COULD NOT BE CLASSIFIED
+      // --------------------------------------------------------
 
       if (result == null) {
         throw StateError(
@@ -116,18 +127,9 @@ class _FindingProfessionalsScreenState
         );
       }
 
-      // ----------------------------------------------------------
-      // 4. COPY MARKETPLACE IDENTIFIERS BACK TO CUSTOMER REQUEST
-      // ----------------------------------------------------------
-      //
-      // The existing customer UI continues using ServiceRequest.
-      //
-      // The marketplace now gives it:
-      //
-      // requestId
-      // requestTypeId
-      // capabilityId
-      //
+      // --------------------------------------------------------
+      // 5. COPY MARKETPLACE IDENTIFIERS BACK
+      // --------------------------------------------------------
 
       widget.request.requestId =
           result.request.requestId;
@@ -141,19 +143,9 @@ class _FindingProfessionalsScreenState
       widget.request.customerId =
           result.request.customerId;
 
-      // ----------------------------------------------------------
-      // 5. CREATE PROFESSIONAL OPPORTUNITIES
-      // ----------------------------------------------------------
-      //
-      // Every eligible professional receives an opportunity.
-      //
-      // Example:
-      //
-      // REQ_000001
-      //    ├── OPP_000001 → PRO_000001
-      //    ├── OPP_000002 → PRO_000002
-      //    └── OPP_000003 → PRO_000003
-      //
+      // --------------------------------------------------------
+      // 6. CREATE PROFESSIONAL OPPORTUNITIES
+      // --------------------------------------------------------
 
       final marketplaceResult =
           MarketplaceRequestService
@@ -161,24 +153,32 @@ class _FindingProfessionalsScreenState
         result.request,
       );
 
-      // ----------------------------------------------------------
-      // 6. LOG MARKETPLACE RESULT
-      // ----------------------------------------------------------
+      // --------------------------------------------------------
+      // 7. LOG MARKETPLACE RESULT
+      // --------------------------------------------------------
 
       debugPrint(
         '========== PROJECT X REQUEST PROCESSED ==========',
       );
 
       debugPrint(
-        'Request ID: ${result.request.requestId}',
+        'Request ID: '
+        '${result.request.requestId}',
       );
 
       debugPrint(
-        'Request Type ID: ${result.request.requestTypeId}',
+        'Request Type ID: '
+        '${result.request.requestTypeId}',
       );
 
       debugPrint(
-        'Capability ID: ${result.request.capabilityId}',
+        'Capability ID: '
+        '${result.request.capabilityId}',
+      );
+
+      debugPrint(
+        'Customer ID: '
+        '${result.request.customerId}',
       );
 
       debugPrint(
@@ -187,7 +187,8 @@ class _FindingProfessionalsScreenState
       );
 
       for (final professionalId
-          in marketplaceResult.matchedProfessionalIds) {
+          in marketplaceResult
+              .matchedProfessionalIds) {
         debugPrint(
           'MATCHED → $professionalId',
         );
@@ -208,11 +209,18 @@ class _FindingProfessionalsScreenState
         );
       }
 
-      // ----------------------------------------------------------
-      // 7. MARK PROCESSING COMPLETE
-      // ----------------------------------------------------------
+      // --------------------------------------------------------
+      // 8. MARK PROCESSING COMPLETE
+      // --------------------------------------------------------
 
-      _requestProcessed = true;
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _requestProcessed = true;
+        _processingError = null;
+      });
 
       _navigationTimer = Timer(
         const Duration(seconds: 3),
@@ -223,7 +231,14 @@ class _FindingProfessionalsScreenState
         'PROJECT X MARKETPLACE REQUEST ERROR: $error',
       );
 
-      _processingError = error.toString();
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _processingError =
+            error.toString();
+      });
 
       _navigationTimer = Timer(
         const Duration(seconds: 3),
@@ -244,7 +259,8 @@ class _FindingProfessionalsScreenState
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) => ProfessionalsScreen(
+        builder: (_) =>
+            ProfessionalsScreen(
           request: widget.request,
         ),
       ),
@@ -262,15 +278,25 @@ class _FindingProfessionalsScreenState
     required String subtitle,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding:
+          const EdgeInsets.symmetric(
+        vertical: 8,
+      ),
       child: Row(
         children: [
           Container(
             height: 42,
             width: 42,
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(13),
+            decoration:
+                BoxDecoration(
+              color:
+                  iconColor.withValues(
+                alpha: 0.10,
+              ),
+              borderRadius:
+                  BorderRadius.circular(
+                13,
+              ),
             ),
             child: Icon(
               icon,
@@ -278,7 +304,9 @@ class _FindingProfessionalsScreenState
               size: 22,
             ),
           ),
+
           const SizedBox(width: 13),
+
           Expanded(
             child: Column(
               crossAxisAlignment:
@@ -286,25 +314,34 @@ class _FindingProfessionalsScreenState
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style:
+                      const TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                    fontWeight:
+                        FontWeight.w700,
+                    color:
+                        Colors.black87,
                   ),
                 ),
+
                 const SizedBox(height: 3),
+
                 Text(
                   subtitle,
-                  style: TextStyle(
+                  style:
+                      TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade600,
+                    color:
+                        Colors.grey.shade600,
                   ),
                 ),
               ],
             ),
           ),
+
           Icon(
-            Icons.check_circle_rounded,
+            Icons
+                .check_circle_rounded,
             color: _requestProcessed
                 ? Colors.green
                 : Colors.grey.shade400,
@@ -320,13 +357,21 @@ class _FindingProfessionalsScreenState
   // ============================================================
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor:
+          backgroundColor,
       body: SafeArea(
         child: Padding(
           padding:
-              const EdgeInsets.fromLTRB(22, 28, 22, 24),
+              const EdgeInsets.fromLTRB(
+            22,
+            28,
+            22,
+            24,
+          ),
           child: Column(
             children: [
               const Spacer(flex: 2),
@@ -340,12 +385,16 @@ class _FindingProfessionalsScreenState
                 child: Container(
                   height: 118,
                   width: 118,
-                  decoration: BoxDecoration(
-                    color: primaryBlue,
-                    shape: BoxShape.circle,
+                  decoration:
+                      BoxDecoration(
+                    color:
+                        primaryBlue,
+                    shape:
+                        BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: primaryBlue.withValues(
+                        color:
+                            primaryBlue.withValues(
                           alpha: 0.20,
                         ),
                         blurRadius: 28,
@@ -353,9 +402,12 @@ class _FindingProfessionalsScreenState
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.search_rounded,
-                    color: Colors.white,
+                  child:
+                      const Icon(
+                    Icons
+                        .search_rounded,
+                    color:
+                        Colors.white,
                     size: 54,
                   ),
                 ),
@@ -369,11 +421,15 @@ class _FindingProfessionalsScreenState
 
               const Text(
                 'Finding Professionals',
-                textAlign: TextAlign.center,
-                style: TextStyle(
+                textAlign:
+                    TextAlign.center,
+                style:
+                    TextStyle(
                   fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
+                  fontWeight:
+                      FontWeight.w700,
+                  color:
+                      Colors.black87,
                   letterSpacing: -0.3,
                 ),
               ),
@@ -383,9 +439,12 @@ class _FindingProfessionalsScreenState
               const Text(
                 'Searching nearby verified professionals\n'
                 'who can help with your request.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey,
+                textAlign:
+                    TextAlign.center,
+                style:
+                    TextStyle(
+                  color:
+                      Colors.grey,
                   fontSize: 16,
                   height: 1.5,
                 ),
@@ -398,18 +457,27 @@ class _FindingProfessionalsScreenState
               // ------------------------------------------------
 
               Container(
-                width: double.infinity,
+                width:
+                    double.infinity,
                 height: 7,
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
+                clipBehavior:
+                    Clip.antiAlias,
+                decoration:
+                    BoxDecoration(
+                  color:
+                      Colors.grey.shade200,
                   borderRadius:
-                      BorderRadius.circular(20),
+                      BorderRadius.circular(
+                    20,
+                  ),
                 ),
-                child: const LinearProgressIndicator(
-                  backgroundColor: Colors.transparent,
+                child:
+                    const LinearProgressIndicator(
+                  backgroundColor:
+                      Colors.transparent,
                   valueColor:
-                      AlwaysStoppedAnimation<Color>(
+                      AlwaysStoppedAnimation<
+                          Color>(
                     primaryBlue,
                   ),
                 ),
@@ -422,7 +490,8 @@ class _FindingProfessionalsScreenState
               // ------------------------------------------------
 
               Container(
-                width: double.infinity,
+                width:
+                    double.infinity,
                 padding:
                     const EdgeInsets.fromLTRB(
                   17,
@@ -430,19 +499,25 @@ class _FindingProfessionalsScreenState
                   17,
                   12,
                 ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
+                decoration:
+                    BoxDecoration(
+                  color:
+                      Colors.white,
                   borderRadius:
-                      BorderRadius.circular(20),
+                      BorderRadius.circular(
+                    20,
+                  ),
                   border: Border.all(
-                    color: Colors.grey.shade200,
+                    color:
+                        Colors.grey.shade200,
                   ),
                 ),
                 child: Column(
                   children: [
                     _statusItem(
                       icon:
-                          Icons.verified_rounded,
+                          Icons
+                              .verified_rounded,
                       iconColor:
                           Colors.green,
                       title:
@@ -459,7 +534,8 @@ class _FindingProfessionalsScreenState
 
                     _statusItem(
                       icon:
-                          Icons.location_on_rounded,
+                          Icons
+                              .location_on_rounded,
                       iconColor:
                           primaryBlue,
                       title:
@@ -476,7 +552,8 @@ class _FindingProfessionalsScreenState
 
                     _statusItem(
                       icon:
-                          Icons.request_quote_rounded,
+                          Icons
+                              .request_quote_rounded,
                       iconColor:
                           Colors.orange,
                       title:
@@ -497,9 +574,12 @@ class _FindingProfessionalsScreenState
               const Text(
                 'Professionals will decide their price.\n'
                 'You decide which offer is right for you.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey,
+                textAlign:
+                    TextAlign.center,
+                style:
+                    TextStyle(
+                  color:
+                      Colors.grey,
                   fontSize: 12,
                   height: 1.45,
                 ),

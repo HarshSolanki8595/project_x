@@ -359,8 +359,31 @@ class _AddressScreenState extends State<AddressScreen> {
         onPressed: !enabled
             ? null
             : () {
+                // ------------------------------------------------
+                // COPY ADDRESS + COORDINATES ONTO THE REQUEST
+                // ------------------------------------------------
+                //
+                // Previously only `address` (the display string)
+                // was copied here. `latitude`/`longitude` were
+                // never set, so downstream screens (and the
+                // Firestore write in RequestProcessingService)
+                // always saw them as null and threw:
+                //
+                //   StateError: Customer location is required
+                //   before matching professionals.
+                //
+                // Both fields must be copied from the selected
+                // Address for the request to reach Firestore.
+                //
+
                 widget.request.address =
                     _selectedAddress!.fullAddress;
+
+                widget.request.latitude =
+                    _selectedAddress!.latitude;
+
+                widget.request.longitude =
+                    _selectedAddress!.longitude;
 
                 Navigator.push(
                   context,

@@ -29,25 +29,27 @@ class RequestProcessingService {
   //      ↓
   // Capability ID
   //      ↓
-  // Create Request ID
+  // Create + SAVE Request
   //      ↓
   // Match professionals
   //      ↓
   // Return eligible professionals
   //
-  static MatchingResult? processRequest({
+  static Future<MatchingResult?> processRequest({
     required String customerId,
     required String customerText,
     required double latitude,
     required double longitude,
     String urgency = 'NORMAL',
-  }) {
+  }) async {
     // ----------------------------------------------------------
     // 1. CLASSIFY CUSTOMER'S WORDS
     // ----------------------------------------------------------
 
     final RequestClassification? classification =
-        RequestClassifier.classify(customerText);
+        RequestClassifier.classify(
+      customerText,
+    );
 
     // We could not understand the request.
     if (classification == null) {
@@ -55,26 +57,44 @@ class RequestProcessingService {
     }
 
     // ----------------------------------------------------------
-    // 2. CREATE CUSTOMER REQUEST
+    // 2. CREATE AND SAVE CUSTOMER REQUEST
     // ----------------------------------------------------------
+    //
+    // RequestService.createRequest() already:
+    //
+    // 1. Creates the ServiceRequestModel
+    // 2. Calls RequestRepository.addRequest()
+    // 3. Saves it to Firestore
+    //
+    // Therefore we MUST await it here.
+    //
 
     final ServiceRequestModel request =
-        RequestService.createRequest(
+        await RequestService.createRequest(
       customerId: customerId,
-      requestTypeId: classification.requestTypeId,
-      capabilityId: classification.capabilityId,
-      description: customerText,
-      latitude: latitude,
-      longitude: longitude,
-      urgency: urgency,
+      requestTypeId:
+          classification.requestTypeId,
+      capabilityId:
+          classification.capabilityId,
+      description:
+          customerText,
+      latitude:
+          latitude,
+      longitude:
+          longitude,
+      urgency:
+          urgency,
     );
 
     // ----------------------------------------------------------
     // 3. MATCH ELIGIBLE PROFESSIONALS
     // ----------------------------------------------------------
 
-    final List<ProfessionalModel> professionals =
-        MatchingService.matchRequest(request);
+    final List<ProfessionalModel>
+        professionals =
+        MatchingService.matchRequest(
+      request,
+    );
 
     // ----------------------------------------------------------
     // 4. RETURN COMPLETE RESULT
@@ -82,7 +102,8 @@ class RequestProcessingService {
 
     return MatchingResult(
       request: request,
-      eligibleProfessionals: professionals,
+      eligibleProfessionals:
+          professionals,
     );
   }
 }

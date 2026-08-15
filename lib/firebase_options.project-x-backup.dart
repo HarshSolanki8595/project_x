@@ -41,44 +41,48 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBsYwkzF6DE-BNldq2arquW5XDVSyjii94',
-    appId: '1:815705820684:web:292062bfe4e549c6b7a829',
-    messagingSenderId: '815705820684',
-    projectId: 'habio-professional',
-    authDomain: 'habio-professional.firebaseapp.com',
-    storageBucket: 'habio-professional.firebasestorage.app',
+    apiKey: 'AIzaSyA-Sv_OCTaL3GT-3c7TqBC81G2gwnJC70E',
+    appId: '1:508954448154:web:d0ba299645ce0492f69ca3',
+    messagingSenderId: '508954448154',
+    projectId: 'project-x-development',
+    authDomain: 'project-x-development.firebaseapp.com',
+    storageBucket: 'project-x-development.firebasestorage.app',
+    measurementId: 'G-5MR18HYZJV',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCuk6wfVhF0PUTPFos4nZOhsw2PBNGkWsk',
-    appId: '1:815705820684:android:a75242710150c9f1b7a829',
-    messagingSenderId: '815705820684',
-    projectId: 'habio-professional',
-    storageBucket: 'habio-professional.firebasestorage.app',
+    apiKey: 'AIzaSyAvtdx93sRw7hzk8SJLU-uR63QLDsv-ZvM',
+    appId: '1:508954448154:android:a7bd5da7be596448f69ca3',
+    messagingSenderId: '508954448154',
+    projectId: 'project-x-development',
+    storageBucket: 'project-x-development.firebasestorage.app',
   );
+
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAp3MIqAvb40m5wmdCd1LIzY8SftZ380hU',
-    appId: '1:815705820684:ios:b5c5c4edc4b56d86b7a829',
-    messagingSenderId: '815705820684',
-    projectId: 'habio-professional',
-    storageBucket: 'habio-professional.firebasestorage.app',
+    apiKey: 'AIzaSyBsiKgN94eMjZJLdqyynwErLd0glZSg3Zg',
+    appId: '1:508954448154:ios:a762181e32518c5ef69ca3',
+    messagingSenderId: '508954448154',
+    projectId: 'project-x-development',
+    storageBucket: 'project-x-development.firebasestorage.app',
     iosBundleId: 'com.example.flutterApplication1',
   );
+
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAp3MIqAvb40m5wmdCd1LIzY8SftZ380hU',
-    appId: '1:815705820684:ios:b5c5c4edc4b56d86b7a829',
-    messagingSenderId: '815705820684',
-    projectId: 'habio-professional',
-    storageBucket: 'habio-professional.firebasestorage.app',
+    apiKey: 'AIzaSyBsiKgN94eMjZJLdqyynwErLd0glZSg3Zg',
+    appId: '1:508954448154:ios:a762181e32518c5ef69ca3',
+    messagingSenderId: '508954448154',
+    projectId: 'project-x-development',
+    storageBucket: 'project-x-development.firebasestorage.app',
     iosBundleId: 'com.example.flutterApplication1',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBsYwkzF6DE-BNldq2arquW5XDVSyjii94',
-    appId: '1:815705820684:web:1e432ee23444093cb7a829',
-    messagingSenderId: '815705820684',
-    projectId: 'habio-professional',
-    authDomain: 'habio-professional.firebaseapp.com',
-    storageBucket: 'habio-professional.firebasestorage.app',
+    apiKey: 'AIzaSyA-Sv_OCTaL3GT-3c7TqBC81G2gwnJC70E',
+    appId: '1:508954448154:web:991ef0674124f046f69ca3',
+    messagingSenderId: '508954448154',
+    projectId: 'project-x-development',
+    authDomain: 'project-x-development.firebaseapp.com',
+    storageBucket: 'project-x-development.firebasestorage.app',
+    measurementId: 'G-EWXD1YXGP1',
   );
 }

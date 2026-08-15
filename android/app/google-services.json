@@ -1,13 +1,32 @@
 {
   "project_info": {
-    "project_number": "508954448154",
-    "project_id": "project-x-development",
-    "storage_bucket": "project-x-development.firebasestorage.app"
+    "project_number": "815705820684",
+    "project_id": "habio-professional",
+    "storage_bucket": "habio-professional.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:508954448154:android:a7bd5da7be596448f69ca3",
+        "mobilesdk_app_id": "1:815705820684:android:34f84713b88d9a1bb7a829",
+        "android_client_info": {
+          "package_name": "com.example.habio_professional"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCuk6wfVhF0PUTPFos4nZOhsw2PBNGkWsk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:815705820684:android:a75242710150c9f1b7a829",
         "android_client_info": {
           "package_name": "com.projectx.app"
         }
@@ -15,7 +34,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAvtdx93sRw7hzk8SJLU-uR63QLDsv-ZvM"
+          "current_key": "AIzaSyCuk6wfVhF0PUTPFos4nZOhsw2PBNGkWsk"
         }
       ],
       "services": {

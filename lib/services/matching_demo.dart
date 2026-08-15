@@ -6,7 +6,7 @@ import 'order_acceptance_service.dart';
 import 'request_processing_service.dart';
 
 class MatchingDemo {
-  static void run() {
+  static Future<void> run() async {
     print('');
     print('########################################');
     print('PROJECT X COMPETITIVE MARKETPLACE TEST');
@@ -23,7 +23,7 @@ class MatchingDemo {
     print('========================================');
 
     final MatchingResult? result =
-        RequestProcessingService.processRequest(
+        await RequestProcessingService.processRequest(
       customerId: 'CUST_000001',
       customerText: 'My AC is leaking water',
       latitude: 19.0760,
@@ -215,14 +215,6 @@ class MatchingDemo {
     // TEST 6
     // CUSTOMER SELECTS ONE PROFESSIONAL
     // ==========================================================
-    //
-    // Project X does NOT automatically select the cheapest bid.
-    //
-    // The customer explicitly chooses the professional.
-    //
-    // Professionals decide the price.
-    // Customers decide the value.
-    //
 
     print('');
     print('========================================');

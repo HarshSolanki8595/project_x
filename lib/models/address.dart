@@ -1,6 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Address {
   final String id;
-
   final String label;
 
   final String houseNo;
@@ -13,8 +14,14 @@ class Address {
   final String landmark;
 
   final bool isDefault;
-
   final DateTime createdAt;
+
+  // ------------------------------------------------------------
+  // SERVICE LOCATION
+  // ------------------------------------------------------------
+
+  final double? latitude;
+  final double? longitude;
 
   const Address({
     required this.id,
@@ -29,10 +36,16 @@ class Address {
     required this.landmark,
     required this.isDefault,
     required this.createdAt,
+    this.latitude,
+    this.longitude,
   });
 
+  // ------------------------------------------------------------
+  // FULL ADDRESS
+  // ------------------------------------------------------------
+
   String get fullAddress {
-    return [
+    final parts = <String>[
       houseNo,
       building,
       street,
@@ -40,77 +53,98 @@ class Address {
       city,
       state,
       pincode,
-    ]
-        .where((e) => e.trim().isNotEmpty)
-        .join(", ");
+    ].where((value) => value.trim().isNotEmpty).toList();
+
+    return parts.join(', ');
   }
+
+  // ------------------------------------------------------------
+  // FIRESTORE MAP
+  // ------------------------------------------------------------
 
   Map<String, dynamic> toMap() {
     return {
-      "id": id,
-      "label": label,
-      "houseNo": houseNo,
-      "building": building,
-      "street": street,
-      "area": area,
-      "city": city,
-      "state": state,
-      "pincode": pincode,
-      "landmark": landmark,
-      "isDefault": isDefault,
-      "createdAt": createdAt.millisecondsSinceEpoch,
+      'id': id,
+      'label': label,
+      'houseNo': houseNo,
+      'building': building,
+      'street': street,
+      'area': area,
+      'city': city,
+      'state': state,
+      'pincode': pincode,
+      'landmark': landmark,
+      'isDefault': isDefault,
+      'createdAt': Timestamp.fromDate(createdAt),
+
+      // Location used for professional matching.
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 
-  factory Address.fromMap(Map<String, dynamic> map) {
+  // ------------------------------------------------------------
+  // FIRESTORE → MODEL
+  // ------------------------------------------------------------
+
+  factory Address.fromMap(
+    Map<String, dynamic> map,
+  ) {
     return Address(
-      id: map["id"] ?? "",
-      label: map["label"] ?? "",
+      id: map['id'] as String? ?? '',
+      label: map['label'] as String? ?? 'Home',
 
-      houseNo: map["houseNo"] ?? "",
-      building: map["building"] ?? "",
-      street: map["street"] ?? "",
-      area: map["area"] ?? "",
-      city: map["city"] ?? "",
-      state: map["state"] ?? "",
-      pincode: map["pincode"] ?? "",
-      landmark: map["landmark"] ?? "",
+      houseNo:
+          map['houseNo'] as String? ?? '',
 
-      isDefault: map["isDefault"] ?? false,
+      building:
+          map['building'] as String? ?? '',
 
-      createdAt: DateTime.fromMillisecondsSinceEpoch(
-        map["createdAt"] ?? 0,
-      ),
+      street:
+          map['street'] as String? ?? '',
+
+      area:
+          map['area'] as String? ?? '',
+
+      city:
+          map['city'] as String? ?? '',
+
+      state:
+          map['state'] as String? ?? '',
+
+      pincode:
+          map['pincode'] as String? ?? '',
+
+      landmark:
+          map['landmark'] as String? ?? '',
+
+      isDefault:
+          map['isDefault'] as bool? ?? false,
+
+      createdAt:
+          _readDate(map['createdAt']),
+
+      latitude:
+          (map['latitude'] as num?)?.toDouble(),
+
+      longitude:
+          (map['longitude'] as num?)?.toDouble(),
     );
   }
 
-  Address copyWith({
-    String? id,
-    String? label,
-    String? houseNo,
-    String? building,
-    String? street,
-    String? area,
-    String? city,
-    String? state,
-    String? pincode,
-    String? landmark,
-    bool? isDefault,
-    DateTime? createdAt,
-  }) {
-    return Address(
-      id: id ?? this.id,
-      label: label ?? this.label,
-      houseNo: houseNo ?? this.houseNo,
-      building: building ?? this.building,
-      street: street ?? this.street,
-      area: area ?? this.area,
-      city: city ?? this.city,
-      state: state ?? this.state,
-      pincode: pincode ?? this.pincode,
-      landmark: landmark ?? this.landmark,
-      isDefault: isDefault ?? this.isDefault,
-      createdAt: createdAt ?? this.createdAt,
-    );
+  // ------------------------------------------------------------
+  // SAFE DATE READER
+  // ------------------------------------------------------------
+
+  static DateTime _readDate(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate();
+    }
+
+    if (value is DateTime) {
+      return value;
+    }
+
+    return DateTime.now();
   }
 }
