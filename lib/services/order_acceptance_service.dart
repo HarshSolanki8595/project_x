@@ -9,9 +9,9 @@ class OrderAcceptanceService {
   // CUSTOMER ACCEPTS A BID
   // ============================================================
 
-  static OrderModel acceptBid({
+  static Future<OrderModel> acceptBid({
     required String bidId,
-  }) {
+  }) async {
     // ----------------------------------------------------------
     // 1. FIND THE BID
     // ----------------------------------------------------------
@@ -101,7 +101,7 @@ class OrderAcceptanceService {
     // 7. CLOSE OTHER OPPORTUNITIES
     // ----------------------------------------------------------
 
-    OpportunityService.closeOtherOpportunities(
+    await OpportunityService.closeOtherOpportunities(
       requestId: selectedBid.requestId,
       selectedProfessionalId:
           selectedBid.professionalId,
@@ -111,7 +111,7 @@ class OrderAcceptanceService {
     // 8. MARK SELECTED OPPORTUNITY
     // ----------------------------------------------------------
 
-    OpportunityService.markAsSelected(
+    await OpportunityService.markAsSelected(
       requestId: selectedBid.requestId,
       professionalId:
           selectedBid.professionalId,

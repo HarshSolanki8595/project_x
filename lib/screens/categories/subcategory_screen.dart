@@ -57,6 +57,8 @@ final Category? category =
           builder: (_) => ServiceRequestScreen(
             categoryName: category.name,
             subCategoryName: subCategory.name,
+            subCategoryId: subCategory.id,
+            categoryId: category.id,
           ),
         ),
       );

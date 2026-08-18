@@ -19,19 +19,19 @@ class BidService {
   // from the same professional for the same request.
   //
 
-  static ProfessionalBidModel submitBid({
+  static Future<ProfessionalBidModel> submitBid({
     required String requestId,
     required String professionalId,
     required double quotedPrice,
     required String estimatedTime,
     required String message,
-  }) {
+  }) async {
     // ----------------------------------------------------------
     // 1. PROFESSIONAL MUST HAVE A MATCHED OPPORTUNITY
     // ----------------------------------------------------------
 
     final bool canBid =
-        OpportunityService.canProfessionalBid(
+        await OpportunityService.canProfessionalBid(
       requestId: requestId,
       professionalId: professionalId,
     );
@@ -116,7 +116,7 @@ class BidService {
     // BID_SUBMITTED
     //
 
-    OpportunityService.markAsBidSubmitted(
+    await OpportunityService.markAsBidSubmitted(
       requestId: requestId,
       professionalId: professionalId,
     );

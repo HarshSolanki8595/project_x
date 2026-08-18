@@ -50,6 +50,7 @@ class ServiceRequest {
   String? requestId;
   String? requestTypeId;
   String? capabilityId;
+  String? categoryId;
 
   // ============================================================
   // CUSTOMER
@@ -82,6 +83,7 @@ class ServiceRequest {
     String? requestId,
     this.requestTypeId,
     this.capabilityId,
+    this.categoryId,
     this.customerId,
     this.urgency = 'NORMAL',
   }) : requestId = requestId ?? _generateRequestId();
@@ -105,6 +107,7 @@ class ServiceRequest {
     String? requestId,
     String? requestTypeId,
     String? capabilityId,
+    String? categoryId,
     String? customerId,
     String? urgency,
   }) {
@@ -153,6 +156,9 @@ class ServiceRequest {
       capabilityId:
           capabilityId ?? this.capabilityId,
 
+      categoryId:
+          categoryId ?? this.categoryId,
+
       customerId:
           customerId ?? this.customerId,
 
@@ -190,6 +196,9 @@ class ServiceRequest {
 
       'capabilityId':
           capabilityId,
+
+      'categoryId':
+          categoryId,
 
       'customerId':
           customerId,
@@ -255,6 +264,9 @@ class ServiceRequest {
 
       capabilityId:
           map['capabilityId'],
+
+      categoryId:
+          map['categoryId'],
 
       customerId:
           map['customerId'],

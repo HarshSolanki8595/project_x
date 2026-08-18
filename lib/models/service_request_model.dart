@@ -8,6 +8,13 @@ class ServiceRequestModel {
   // Broad capability required to handle the request.
   final String capabilityId;
 
+  // Main category the capability belongs to (e.g. "appliances").
+  // Used as a fallback match when no professional's subcategoryIds
+  // exactly contains capabilityId, so a customer request isn't
+  // dropped just because the professional described their trade
+  // slightly differently.
+  final String categoryId;
+
   final String description;
 
   final double latitude;
@@ -23,6 +30,7 @@ class ServiceRequestModel {
     required this.customerId,
     required this.requestTypeId,
     required this.capabilityId,
+    this.categoryId = '',
     required this.description,
     required this.latitude,
     required this.longitude,

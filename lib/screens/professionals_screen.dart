@@ -213,7 +213,7 @@ class _ProfessionalsScreenState
 
     try {
       final order =
-          OrderAcceptanceService.acceptBid(
+          await OrderAcceptanceService.acceptBid(
         bidId: bid.bidId,
       );
 

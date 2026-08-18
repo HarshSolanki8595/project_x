@@ -26,6 +26,7 @@ class RequestRepository {
       'customerId': request.customerId,
       'requestTypeId': request.requestTypeId,
       'capabilityId': request.capabilityId,
+      'categoryId': request.categoryId,
       'description': request.description,
       'latitude': request.latitude,
       'longitude': request.longitude,
@@ -78,6 +79,9 @@ class RequestRepository {
 
       capabilityId:
           data['capabilityId'] as String? ?? '',
+
+      categoryId:
+          data['categoryId'] as String? ?? '',
 
       description:
           data['description'] as String? ?? '',

@@ -4,10 +4,12 @@ import '../models/service_model.dart';
 class RequestClassification {
   final String requestTypeId;
   final String capabilityId;
+  final String categoryId;
 
   const RequestClassification({
     required this.requestTypeId,
     required this.capabilityId,
+    this.categoryId = '',
   });
 }
 
@@ -18,9 +20,17 @@ class RequestClassifier {
   //
   // Converts the customer's words into:
   //
-  // Request Type ID
+  // Request Type ID (specific problem, for display only)
   // +
-  // Capability ID
+  // Capability ID (what matching actually queries on)
+  //
+  // IMPORTANT: capabilityId must use the SAME ids professionals
+  // register under in onboarding (ProfessionalServiceCategories /
+  // subcategoryIds — e.g. "air_conditioner"), not a separate
+  // classifier-only vocabulary. It used to return values like
+  // "AC_REPAIR"/"AC_INSTALLATION" that no professional's
+  // subcategoryIds could ever contain, so matching silently found
+  // zero professionals for every free-text request.
   //
   // Example:
   //
@@ -28,9 +38,9 @@ class RequestClassifier {
   //
   //        ↓
   //
-  // AC_REPAIR_NOT_COOLING
+  // AC_REPAIR_NOT_COOLING (requestTypeId, descriptive)
   //        +
-  // AC_REPAIR
+  // air_conditioner (capabilityId, matched against professionals)
   //
   static RequestClassification? classify(
     String customerText,
@@ -72,7 +82,8 @@ class RequestClassifier {
     ])) {
       return const RequestClassification(
         requestTypeId: 'AC_INSTALLATION',
-        capabilityId: 'AC_INSTALLATION',
+        capabilityId: 'air_conditioner',
+        categoryId: 'appliances',
       );
     }
 
@@ -90,7 +101,8 @@ class RequestClassifier {
     ])) {
       return const RequestClassification(
         requestTypeId: 'AC_SERVICE',
-        capabilityId: 'AC_SERVICE',
+        capabilityId: 'air_conditioner',
+        categoryId: 'appliances',
       );
     }
 
@@ -112,7 +124,8 @@ class RequestClassifier {
     ])) {
       return const RequestClassification(
         requestTypeId: 'AC_REPAIR_NOT_COOLING',
-        capabilityId: 'AC_REPAIR',
+        capabilityId: 'air_conditioner',
+        categoryId: 'appliances',
       );
     }
 
@@ -132,7 +145,8 @@ class RequestClassifier {
     ])) {
       return const RequestClassification(
         requestTypeId: 'AC_REPAIR_WATER_LEAKAGE',
-        capabilityId: 'AC_REPAIR',
+        capabilityId: 'air_conditioner',
+        categoryId: 'appliances',
       );
     }
 
@@ -153,7 +167,8 @@ class RequestClassifier {
     ])) {
       return const RequestClassification(
         requestTypeId: 'AC_REPAIR_STRANGE_NOISE',
-        capabilityId: 'AC_REPAIR',
+        capabilityId: 'air_conditioner',
+        categoryId: 'appliances',
       );
     }
 
@@ -175,7 +190,8 @@ class RequestClassifier {
     ])) {
       return const RequestClassification(
         requestTypeId: 'AC_REPAIR_NOT_STARTING',
-        capabilityId: 'AC_REPAIR',
+        capabilityId: 'air_conditioner',
+        categoryId: 'appliances',
       );
     }
 
@@ -194,7 +210,8 @@ class RequestClassifier {
 
     return const RequestClassification(
       requestTypeId: 'AC_REPAIR_OTHER',
-      capabilityId: 'AC_REPAIR',
+      capabilityId: 'air_conditioner',
+      categoryId: 'appliances',
     );
   }
 

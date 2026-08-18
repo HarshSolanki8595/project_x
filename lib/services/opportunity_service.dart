@@ -1,42 +1,130 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../models/matched_opportunity_model.dart';
 import '../models/marketplace_status.dart';
 
 class OpportunityService {
-  static int _opportunityCounter = 1;
+  static final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance;
 
-  static final List<MatchedOpportunityModel> _opportunities = [];
+  static const String _rootCollection =
+      'professional_opportunities';
+
+  static const String _requestsCollection =
+      'requests';
+
+  // ============================================================
+  // FIRESTORE PROFESSIONAL KEY
+  // ============================================================
+  //
+  // Application professional ID:
+  //
+  // PRO_<firebaseUid>
+  //
+  // Firestore security path:
+  //
+  // <firebaseUid>
+  //
+  // Keeping the raw Firebase UID in the Firestore path allows
+  // Security Rules to directly compare the path with
+  // request.auth.uid.
+  //
+
+  static String _firestoreProfessionalKey(
+    String professionalId,
+  ) {
+    if (professionalId.startsWith('PRO_')) {
+      return professionalId.substring(4);
+    }
+
+    return professionalId;
+  }
+
+  // ============================================================
+  // OPPORTUNITY DOCUMENT REFERENCE
+  // ============================================================
+
+  static DocumentReference<Map<String, dynamic>>
+      _opportunityReference({
+    required String professionalId,
+    required String requestId,
+  }) {
+    final firestoreProfessionalKey =
+        _firestoreProfessionalKey(
+      professionalId,
+    );
+
+    return _firestore
+        .collection(_rootCollection)
+        .doc(firestoreProfessionalKey)
+        .collection(_requestsCollection)
+        .doc(requestId);
+  }
 
   // ============================================================
   // CREATE OPPORTUNITY
   // ============================================================
 
-  static MatchedOpportunityModel createOpportunity({
+  static Future<MatchedOpportunityModel>
+      createOpportunity({
     required String requestId,
     required String professionalId,
-  }) {
-    final existingOpportunity = _findOpportunity(
-      requestId: requestId,
+  }) async {
+    final reference =
+        _opportunityReference(
       professionalId: professionalId,
+      requestId: requestId,
     );
 
-    if (existingOpportunity != null) {
-      return existingOpportunity;
+    final existing =
+        await reference.get();
+
+    if (existing.exists &&
+        existing.data() != null) {
+      return _fromFirestore(
+        existing.data()!,
+      );
     }
 
-    final String opportunityId =
-        'OPP_${_opportunityCounter.toString().padLeft(6, '0')}';
+    final now =
+        DateTime.now();
 
-    _opportunityCounter++;
+    final opportunity =
+        MatchedOpportunityModel(
+      opportunityId:
+          '${professionalId}_$requestId',
 
-    final opportunity = MatchedOpportunityModel(
-      opportunityId: opportunityId,
-      requestId: requestId,
-      professionalId: professionalId,
-      status: MarketplaceStatus.sent,
-      createdAt: DateTime.now(),
+      requestId:
+          requestId,
+
+      professionalId:
+          professionalId,
+
+      status:
+          MarketplaceStatus.sent,
+
+      createdAt:
+          now,
     );
 
-    _opportunities.add(opportunity);
+    await reference.set({
+      'opportunityId':
+          opportunity.opportunityId,
+
+      'requestId':
+          opportunity.requestId,
+
+      'professionalId':
+          opportunity.professionalId,
+
+      'status':
+          opportunity.status,
+
+      'createdAt':
+          Timestamp.fromDate(
+        opportunity.createdAt,
+      ),
+    });
 
     return opportunity;
   }
@@ -45,20 +133,25 @@ class OpportunityService {
   // CREATE OPPORTUNITIES FOR MATCHED PROFESSIONALS
   // ============================================================
 
-  static List<MatchedOpportunityModel>
+  static Future<List<MatchedOpportunityModel>>
       createForMatchedProfessionals({
     required String requestId,
     required List<String> professionalIds,
-  }) {
-    final List<MatchedOpportunityModel> opportunities = [];
+  }) async {
+    final List<MatchedOpportunityModel>
+        opportunities = [];
 
-    for (final professionalId in professionalIds) {
-      final opportunity = createOpportunity(
+    for (final professionalId
+        in professionalIds) {
+      final opportunity =
+          await createOpportunity(
         requestId: requestId,
         professionalId: professionalId,
       );
 
-      opportunities.add(opportunity);
+      opportunities.add(
+        opportunity,
+      );
     }
 
     return opportunities;
@@ -68,11 +161,13 @@ class OpportunityService {
   // CHECK WHETHER PROFESSIONAL CAN BID
   // ============================================================
 
-  static bool canProfessionalBid({
+  static Future<bool>
+      canProfessionalBid({
     required String requestId,
     required String professionalId,
-  }) {
-    final opportunity = _findOpportunity(
+  }) async {
+    final opportunity =
+        await _findOpportunity(
       requestId: requestId,
       professionalId: professionalId,
     );
@@ -81,40 +176,40 @@ class OpportunityService {
       return false;
     }
 
-    return opportunity.status == MarketplaceStatus.sent ||
-        opportunity.status == MarketplaceStatus.viewed;
+    return opportunity.status ==
+            MarketplaceStatus.sent ||
+        opportunity.status ==
+            MarketplaceStatus.viewed;
   }
 
   // ============================================================
   // MARK OPPORTUNITY AS VIEWED
   // ============================================================
 
-  static bool markAsViewed({
+  static Future<bool>
+      markAsViewed({
     required String requestId,
     required String professionalId,
-  }) {
-    final int index = _findOpportunityIndex(
+  }) async {
+    final opportunity =
+        await _findOpportunity(
       requestId: requestId,
       professionalId: professionalId,
     );
 
-    if (index == -1) {
+    if (opportunity == null ||
+        opportunity.status !=
+            MarketplaceStatus.sent) {
       return false;
     }
 
-    final existing = _opportunities[index];
-
-    if (existing.status != MarketplaceStatus.sent) {
-      return false;
-    }
-
-    _opportunities[index] = MatchedOpportunityModel(
-      opportunityId: existing.opportunityId,
-      requestId: existing.requestId,
-      professionalId: existing.professionalId,
-      status: MarketplaceStatus.viewed,
-      createdAt: existing.createdAt,
-    );
+    await _opportunityReference(
+      professionalId: professionalId,
+      requestId: requestId,
+    ).update({
+      'status':
+          MarketplaceStatus.viewed,
+    });
 
     return true;
   }
@@ -122,72 +217,68 @@ class OpportunityService {
   // ============================================================
   // MARK OPPORTUNITY AS BID SUBMITTED
   // ============================================================
-  //
-  // Called after a professional successfully submits a bid.
-  //
 
-  static bool markAsBidSubmitted({
+  static Future<bool>
+      markAsBidSubmitted({
     required String requestId,
     required String professionalId,
-  }) {
-    final int index = _findOpportunityIndex(
+  }) async {
+    final opportunity =
+        await _findOpportunity(
       requestId: requestId,
       professionalId: professionalId,
     );
 
-    if (index == -1) {
+    if (opportunity == null) {
       return false;
     }
 
-    final existing = _opportunities[index];
-
-    if (existing.status != MarketplaceStatus.sent &&
-        existing.status != MarketplaceStatus.viewed) {
+    if (opportunity.status !=
+            MarketplaceStatus.sent &&
+        opportunity.status !=
+            MarketplaceStatus.viewed) {
       return false;
     }
 
-    _opportunities[index] = MatchedOpportunityModel(
-      opportunityId: existing.opportunityId,
-      requestId: existing.requestId,
-      professionalId: existing.professionalId,
-      status: MarketplaceStatus.bidSubmitted,
-      createdAt: existing.createdAt,
-    );
+    await _opportunityReference(
+      professionalId: professionalId,
+      requestId: requestId,
+    ).update({
+      'status':
+          MarketplaceStatus.bidSubmitted,
+    });
 
     return true;
   }
 
   // ============================================================
-  // MARK SELECTED OPPORTUNITY
+  // MARK OPPORTUNITY AS SELECTED
   // ============================================================
 
-  static bool markAsSelected({
+  static Future<bool>
+      markAsSelected({
     required String requestId,
     required String professionalId,
-  }) {
-    final int index = _findOpportunityIndex(
+  }) async {
+    final opportunity =
+        await _findOpportunity(
       requestId: requestId,
       professionalId: professionalId,
     );
 
-    if (index == -1) {
+    if (opportunity == null ||
+        opportunity.status !=
+            MarketplaceStatus.bidSubmitted) {
       return false;
     }
 
-    final existing = _opportunities[index];
-
-    if (existing.status !=
-        MarketplaceStatus.bidSubmitted) {
-      return false;
-    }
-
-    _opportunities[index] = MatchedOpportunityModel(
-      opportunityId: existing.opportunityId,
-      requestId: existing.requestId,
-      professionalId: existing.professionalId,
-      status: MarketplaceStatus.selected,
-      createdAt: existing.createdAt,
-    );
+    await _opportunityReference(
+      professionalId: professionalId,
+      requestId: requestId,
+    ).update({
+      'status':
+          MarketplaceStatus.selected,
+    });
 
     return true;
   }
@@ -195,73 +286,172 @@ class OpportunityService {
   // ============================================================
   // CLOSE OTHER OPPORTUNITIES
   // ============================================================
-  //
-  // When the customer selects one professional, all other
-  // opportunities for that request are closed.
-  //
 
-  static void closeOtherOpportunities({
+  static Future<void>
+      closeOtherOpportunities({
     required String requestId,
     required String selectedProfessionalId,
-  }) {
-    for (int i = 0; i < _opportunities.length; i++) {
-      final opportunity = _opportunities[i];
+  }) async {
+    final snapshot =
+        await _firestore
+            .collectionGroup(
+              _requestsCollection,
+            )
+            .where(
+              'requestId',
+              isEqualTo: requestId,
+            )
+            .get();
 
-      if (opportunity.requestId != requestId) {
-        continue;
-      }
+    final batch =
+        _firestore.batch();
 
-      if (opportunity.professionalId ==
+    for (final document
+        in snapshot.docs) {
+      final data =
+          document.data();
+
+      final professionalId =
+          data['professionalId']
+                  as String? ??
+              '';
+
+      if (professionalId ==
           selectedProfessionalId) {
         continue;
       }
 
-      if (opportunity.status ==
+      final status =
+          data['status']
+                  as String? ??
+              '';
+
+      if (status ==
               MarketplaceStatus.sent ||
-          opportunity.status ==
+          status ==
               MarketplaceStatus.viewed ||
-          opportunity.status ==
+          status ==
               MarketplaceStatus.bidSubmitted) {
-        _opportunities[i] =
-            MatchedOpportunityModel(
-          opportunityId: opportunity.opportunityId,
-          requestId: opportunity.requestId,
-          professionalId: opportunity.professionalId,
-          status: MarketplaceStatus.closed,
-          createdAt: opportunity.createdAt,
+        batch.update(
+          document.reference,
+          {
+            'status':
+                MarketplaceStatus.closed,
+          },
         );
       }
     }
+
+    await batch.commit();
   }
 
   // ============================================================
   // GET OPPORTUNITIES FOR PROFESSIONAL
   // ============================================================
 
-  static List<MatchedOpportunityModel>
+  static Future<List<MatchedOpportunityModel>>
       getOpportunitiesForProfessional(
     String professionalId,
-  ) {
-    return _opportunities
-        .where(
-          (opportunity) =>
-              opportunity.professionalId == professionalId,
+  ) async {
+    final firestoreProfessionalKey =
+        _firestoreProfessionalKey(
+      professionalId,
+    );
+
+    final snapshot =
+        await _firestore
+            .collection(
+              _rootCollection,
+            )
+            .doc(
+              firestoreProfessionalKey,
+            )
+            .collection(
+              _requestsCollection,
+            )
+            .orderBy(
+              'createdAt',
+              descending: true,
+            )
+            .get();
+
+    return snapshot.docs
+        .map(
+          (document) =>
+              _fromFirestore(
+            document.data(),
+          ),
         )
         .toList();
+  }
+
+  // ============================================================
+  // REALTIME OPPORTUNITIES
+  // ============================================================
+
+  static Stream<List<MatchedOpportunityModel>>
+      watchOpportunitiesForProfessional(
+    String professionalId,
+  ) {
+    final firestoreProfessionalKey =
+        _firestoreProfessionalKey(
+      professionalId,
+    );
+
+    return _firestore
+        .collection(
+          _rootCollection,
+        )
+        .doc(
+          firestoreProfessionalKey,
+        )
+        .collection(
+          _requestsCollection,
+        )
+        .orderBy(
+          'createdAt',
+          descending: true,
+        )
+        .snapshots()
+        .map(
+          (snapshot) {
+            return snapshot.docs
+                .map(
+                  (document) =>
+                      _fromFirestore(
+                    document.data(),
+                  ),
+                )
+                .toList();
+          },
+        );
   }
 
   // ============================================================
   // GET OPPORTUNITIES FOR REQUEST
   // ============================================================
 
-  static List<MatchedOpportunityModel>
+  static Future<List<MatchedOpportunityModel>>
       getOpportunitiesForRequest(
     String requestId,
-  ) {
-    return _opportunities
-        .where(
-          (opportunity) =>
-              opportunity.requestId == requestId,
+  ) async {
+    final snapshot =
+        await _firestore
+            .collectionGroup(
+              _requestsCollection,
+            )
+            .where(
+              'requestId',
+              isEqualTo: requestId,
+            )
+            .get();
+
+    return snapshot.docs
+        .map(
+          (document) =>
+              _fromFirestore(
+            document.data(),
+          ),
         )
         .toList();
   }
@@ -270,48 +460,119 @@ class OpportunityService {
   // GET OPPORTUNITY BY ID
   // ============================================================
 
-  static MatchedOpportunityModel? getOpportunityById(
-    String opportunityId,
-  ) {
-    for (final opportunity in _opportunities) {
-      if (opportunity.opportunityId == opportunityId) {
-        return opportunity;
-      }
+  static Future<MatchedOpportunityModel?>
+      getOpportunityById({
+    required String opportunityId,
+    required String professionalId,
+  }) async {
+    final firestoreProfessionalKey =
+        _firestoreProfessionalKey(
+      professionalId,
+    );
+
+    final snapshot =
+        await _firestore
+            .collection(
+              _rootCollection,
+            )
+            .doc(
+              firestoreProfessionalKey,
+            )
+            .collection(
+              _requestsCollection,
+            )
+            .where(
+              'opportunityId',
+              isEqualTo: opportunityId,
+            )
+            .limit(1)
+            .get();
+
+    if (snapshot.docs.isEmpty) {
+      return null;
     }
 
-    return null;
+    return _fromFirestore(
+      snapshot.docs.first.data(),
+    );
   }
 
   // ============================================================
   // INTERNAL LOOKUP
   // ============================================================
 
-  static MatchedOpportunityModel? _findOpportunity({
+  static Future<MatchedOpportunityModel?>
+      _findOpportunity({
     required String requestId,
     required String professionalId,
-  }) {
-    for (final opportunity in _opportunities) {
-      if (opportunity.requestId == requestId &&
-          opportunity.professionalId == professionalId) {
-        return opportunity;
-      }
+  }) async {
+    final snapshot =
+        await _opportunityReference(
+      professionalId: professionalId,
+      requestId: requestId,
+    ).get();
+
+    if (!snapshot.exists ||
+        snapshot.data() == null) {
+      return null;
     }
 
-    return null;
+    return _fromFirestore(
+      snapshot.data()!,
+    );
   }
 
   // ============================================================
-  // INTERNAL INDEX LOOKUP
+  // FIRESTORE → MODEL
   // ============================================================
 
-  static int _findOpportunityIndex({
-    required String requestId,
-    required String professionalId,
-  }) {
-    return _opportunities.indexWhere(
-      (opportunity) =>
-          opportunity.requestId == requestId &&
-          opportunity.professionalId == professionalId,
+  static MatchedOpportunityModel
+      _fromFirestore(
+    Map<String, dynamic> data,
+  ) {
+    return MatchedOpportunityModel(
+      opportunityId:
+          data['opportunityId']
+                  as String? ??
+              '',
+
+      requestId:
+          data['requestId']
+                  as String? ??
+              '',
+
+      professionalId:
+          data['professionalId']
+                  as String? ??
+              '',
+
+      status:
+          data['status']
+                  as String? ??
+              MarketplaceStatus.sent,
+
+      createdAt:
+          _readDate(
+        data['createdAt'],
+      ),
     );
+  }
+
+  // ============================================================
+  // SAFE DATE READER
+  // ============================================================
+
+  static DateTime _readDate(
+    dynamic value,
+  ) {
+    if (value is Timestamp) {
+      return value.toDate();
+    }
+
+    if (value is DateTime) {
+      return value;
+    }
+
+    return DateTime.now();
   }
 }

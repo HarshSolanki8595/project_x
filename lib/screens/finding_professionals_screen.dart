@@ -3,8 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../models/service_request.dart';
-import '../services/marketplace_request_service.dart';
-import '../services/request_processing_service.dart';
+import '../models/service_request_model.dart';
+import '../services/request_classifier.dart';
+import '../services/request_service.dart';
 import 'professionals_screen.dart';
 
 class FindingProfessionalsScreen extends StatefulWidget {
@@ -70,6 +71,48 @@ class _FindingProfessionalsScreenState
       _processMarketplaceRequest() async {
     try {
       // --------------------------------------------------------
+      // DEBUG — INSPECT REQUEST BEFORE PROCESSING
+      // --------------------------------------------------------
+
+      debugPrint(
+        '========== PROJECT X REQUEST DEBUG ==========',
+      );
+
+      debugPrint(
+        'Issue Description: '
+        '${widget.request.issueDescription}',
+      );
+
+      debugPrint(
+        'Address: '
+        '${widget.request.address}',
+      );
+
+      debugPrint(
+        'Latitude: '
+        '${widget.request.latitude}',
+      );
+
+      debugPrint(
+        'Longitude: '
+        '${widget.request.longitude}',
+      );
+
+      debugPrint(
+        'Customer ID: '
+        '${widget.request.customerId}',
+      );
+
+      debugPrint(
+        'Urgency: '
+        '${widget.request.urgency}',
+      );
+
+      debugPrint(
+        '==============================================',
+      );
+
+      // --------------------------------------------------------
       // 1. CHECK LOCATION
       // --------------------------------------------------------
 
@@ -99,115 +142,90 @@ class _FindingProfessionalsScreenState
       }
 
       // --------------------------------------------------------
-      // 3. PROCESS CUSTOMER REQUEST
+      // 3. DETERMINE CAPABILITY ID
       // --------------------------------------------------------
+      //
+      // If the customer picked a category/subcategory, the request
+      // already carries the real capabilityId (same id professionals
+      // register under). Only fall back to free-text classification
+      // for the "Ask Habio" flow, which has no fixed subcategory.
+      //
 
-      final MatchingResult? result =
-          await RequestProcessingService
-              .processRequest(
-        customerId:
-            widget.request.customerId!,
-        customerText:
-            widget.request.issueDescription,
-        latitude:
-            widget.request.latitude!,
-        longitude:
-            widget.request.longitude!,
-        urgency:
-            widget.request.urgency,
-      );
+      String? requestTypeId = widget.request.requestTypeId;
+      String? capabilityId = widget.request.capabilityId;
+      String? categoryId = widget.request.categoryId;
 
-      // --------------------------------------------------------
-      // 4. REQUEST COULD NOT BE CLASSIFIED
-      // --------------------------------------------------------
-
-      if (result == null) {
-        throw StateError(
-          'Project X could not understand the service request.',
+      if (capabilityId == null || capabilityId.trim().isEmpty) {
+        final classification = RequestClassifier.classify(
+          widget.request.issueDescription,
         );
+
+        if (classification == null) {
+          throw StateError(
+            'Habio could not understand the service request.',
+          );
+        }
+
+        requestTypeId = classification.requestTypeId;
+        capabilityId = classification.capabilityId;
+        categoryId = classification.categoryId;
       }
+
+      // --------------------------------------------------------
+      // 4. SAVE REQUEST TO FIRESTORE
+      // --------------------------------------------------------
+
+      final ServiceRequestModel savedRequest =
+          await RequestService.createRequest(
+        customerId: widget.request.customerId!,
+        requestTypeId: requestTypeId!,
+        capabilityId: capabilityId,
+        categoryId: categoryId ?? '',
+        description: widget.request.issueDescription,
+        latitude: widget.request.latitude!,
+        longitude: widget.request.longitude!,
+        urgency: widget.request.urgency,
+      );
 
       // --------------------------------------------------------
       // 5. COPY MARKETPLACE IDENTIFIERS BACK
       // --------------------------------------------------------
 
-      widget.request.requestId =
-          result.request.requestId;
-
-      widget.request.requestTypeId =
-          result.request.requestTypeId;
-
-      widget.request.capabilityId =
-          result.request.capabilityId;
-
-      widget.request.customerId =
-          result.request.customerId;
+      widget.request.requestId = savedRequest.requestId;
+      widget.request.requestTypeId = savedRequest.requestTypeId;
+      widget.request.capabilityId = savedRequest.capabilityId;
+      widget.request.categoryId = savedRequest.categoryId;
+      widget.request.customerId = savedRequest.customerId;
 
       // --------------------------------------------------------
-      // 6. CREATE PROFESSIONAL OPPORTUNITIES
+      // 6. MATCHING HAPPENS SERVER-SIDE
+      // --------------------------------------------------------
+      //
+      // A Cloud Function (matchServiceRequest, triggered on
+      // service_requests create) does the professional lookup and
+      // writes opportunity docs under
+      // professional_opportunities/{uid}/requests/{requestId}.
+      //
+      // It has to run server-side because Firestore rules correctly
+      // forbid a customer client from listing the `professionals`
+      // collection or writing into another user's opportunity tree.
+      // There's nothing more for this screen to do here — the
+      // professional app will pick the opportunity up in realtime
+      // once the function finishes (usually well under a second).
+      //
+
+      // --------------------------------------------------------
+      // 7. LOG
       // --------------------------------------------------------
 
-      final marketplaceResult =
-          MarketplaceRequestService
-              .matchAndCreateOpportunities(
-        result.request,
-      );
-
-      // --------------------------------------------------------
-      // 7. LOG MARKETPLACE RESULT
-      // --------------------------------------------------------
-
       debugPrint(
-        '========== PROJECT X REQUEST PROCESSED ==========',
+        '========== HABIO REQUEST PROCESSED ==========',
       );
 
-      debugPrint(
-        'Request ID: '
-        '${result.request.requestId}',
-      );
-
-      debugPrint(
-        'Request Type ID: '
-        '${result.request.requestTypeId}',
-      );
-
-      debugPrint(
-        'Capability ID: '
-        '${result.request.capabilityId}',
-      );
-
-      debugPrint(
-        'Customer ID: '
-        '${result.request.customerId}',
-      );
-
-      debugPrint(
-        'Matched Professionals: '
-        '${marketplaceResult.matchedProfessionalIds.length}',
-      );
-
-      for (final professionalId
-          in marketplaceResult
-              .matchedProfessionalIds) {
-        debugPrint(
-          'MATCHED → $professionalId',
-        );
-      }
-
-      debugPrint(
-        'Opportunities Created: '
-        '${marketplaceResult.opportunities.length}',
-      );
-
-      for (final opportunity
-          in marketplaceResult.opportunities) {
-        debugPrint(
-          'OPPORTUNITY → '
-          '${opportunity.opportunityId} | '
-          'Request: ${opportunity.requestId} | '
-          'Professional: ${opportunity.professionalId}',
-        );
-      }
+      debugPrint('Request ID: ${savedRequest.requestId}');
+      debugPrint('Request Type ID: ${savedRequest.requestTypeId}');
+      debugPrint('Capability ID: ${savedRequest.capabilityId}');
+      debugPrint('Customer ID: ${savedRequest.customerId}');
 
       // --------------------------------------------------------
       // 8. MARK PROCESSING COMPLETE

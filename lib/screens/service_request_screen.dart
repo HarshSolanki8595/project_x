@@ -11,10 +11,30 @@ class ServiceRequestScreen extends StatefulWidget {
   final String categoryName;
   final String subCategoryName;
 
+  // ============================================================
+  // SUBCATEGORY ID
+  // ============================================================
+  //
+  // This is the SAME id professionals select on their side during
+  // onboarding (see ProfessionalCategory / subcategoryIds on the
+  // professional app). It is used directly as the request's
+  // capabilityId so matching compares real category ids instead
+  // of guessing from free-text description.
+  //
+
+  final String subCategoryId;
+
+  // Main category id (e.g. "appliances") the subcategory belongs
+  // to — used as a fallback match if no professional's exact
+  // subcategoryIds contains subCategoryId.
+  final String categoryId;
+
   const ServiceRequestScreen({
     super.key,
     required this.categoryName,
     required this.subCategoryName,
+    required this.subCategoryId,
+    this.categoryId = '',
   });
 
   @override
@@ -124,6 +144,32 @@ class _ServiceRequestScreenState
                 selectedPhotos,
             video:
                 selectedVideo,
+
+            // ==================================================
+            // CAPABILITY / REQUEST TYPE
+            // ==================================================
+            //
+            // Use the real subcategory id the customer picked
+            // (e.g. "air_conditioner") as the capability to match
+            // against, instead of re-guessing it from free text
+            // later. This is the same id professionals register
+            // under during onboarding.
+            //
+
+            capabilityId:
+                widget.subCategoryId.isEmpty
+                    ? null
+                    : widget.subCategoryId,
+
+            requestTypeId:
+                widget.subCategoryId.isEmpty
+                    ? null
+                    : widget.subCategoryId,
+
+            categoryId:
+                widget.categoryId.isEmpty
+                    ? null
+                    : widget.categoryId,
 
             // ==================================================
             // IMPORTANT:

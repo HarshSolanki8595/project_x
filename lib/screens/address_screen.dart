@@ -77,6 +77,29 @@ class _AddressScreenState extends State<AddressScreen> {
               } catch (_) {
                 _selectedAddress = addresses.first;
               }
+            } else if (_selectedAddress != null) {
+              // Keep the selection pointed at the current stream's
+              // object instance (same id) so it reflects any edits
+              // made elsewhere, instead of holding a stale copy.
+              try {
+                _selectedAddress = addresses.firstWhere(
+                  (e) => e.id == _selectedAddress!.id,
+                );
+              } catch (_) {
+                // The previously selected address was deleted —
+                // fall back to the default/first, same as above.
+                if (addresses.isNotEmpty) {
+                  try {
+                    _selectedAddress = addresses.firstWhere(
+                      (e) => e.isDefault,
+                    );
+                  } catch (_) {
+                    _selectedAddress = addresses.first;
+                  }
+                } else {
+                  _selectedAddress = null;
+                }
+              }
             }
 
             return Padding(
@@ -135,7 +158,12 @@ class _AddressScreenState extends State<AddressScreen> {
   }
 
   Widget _buildAddressCard(Address address) {
-    final bool selected = _selectedAddress == address;
+    // Compare by stable id, not object identity — `Address` has no
+    // `==` override, and the Firestore stream hands back brand-new
+    // object instances on every emission (even for identical data),
+    // so reference equality would silently stop matching the
+    // tapped selection and the highlight would never show.
+    final bool selected = _selectedAddress?.id == address.id;
 
     return InkWell(
       borderRadius: BorderRadius.circular(20),
@@ -235,22 +263,76 @@ class _AddressScreenState extends State<AddressScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Icon(
-                selected
-                    ? Icons.radio_button_checked_rounded
-                    : Icons.radio_button_unchecked_rounded,
-                color: selected
-                    ? primaryBlue
-                    : const Color(0xFF64748B),
-                size: 24,
-              ),
+            Column(
+              children: [
+                Icon(
+                  selected
+                      ? Icons.radio_button_checked_rounded
+                      : Icons.radio_button_unchecked_rounded,
+                  color: selected
+                      ? primaryBlue
+                      : const Color(0xFF64748B),
+                  size: 24,
+                ),
+                const SizedBox(height: 10),
+                InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () => _confirmDelete(address),
+                  child: const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: Icon(
+                      Icons.delete_outline,
+                      color: Color(0xFFD92D20),
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  // ============================================================
+  // DELETE ADDRESS
+  // ============================================================
+
+  Future<void> _confirmDelete(Address address) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete address?"),
+        content: Text(
+          "Remove \"${address.label}\" (${address.fullAddress})? "
+          "This can't be undone.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              "Delete",
+              style: TextStyle(color: Color(0xFFD92D20)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    await AddressRepository.deleteAddress(address.id);
+
+    if (_selectedAddress?.id == address.id) {
+      setState(() {
+        _selectedAddress = null;
+      });
+    }
   }
 
   IconData _addressIcon(String label) {

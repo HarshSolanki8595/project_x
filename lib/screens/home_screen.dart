@@ -63,6 +63,11 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (_) => const ServiceRequestScreen(
           categoryName: "Ask Habio",
           subCategoryName: "AI Diagnosis",
+          // No fixed subcategory here — the customer is describing
+          // the problem in free text, so capabilityId is left empty
+          // and finding_professionals_screen falls back to
+          // RequestClassifier to work it out from the description.
+          subCategoryId: "",
         ),
       ),
     );

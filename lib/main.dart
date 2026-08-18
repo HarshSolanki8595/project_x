@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'firebase_options.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
-import 'services/matching_demo.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,12 +12,12 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  print('========== MAIN DART STARTED ==========');
-
-  // Temporary development test for the matching engine.
-  MatchingDemo.run();
-
-  print('========== MATCHING DEMO CALLED ==========');
+  // NOTE: the old MatchingDemo dev harness that used to run here has
+  // been removed — it wrote fake test requests through the mock
+  // (non-Firestore) matching/opportunity services on every app
+  // launch. Now that request submission goes through the real
+  // Firestore-backed MatchingService/OpportunityService, running it
+  // on every launch would create real junk data in Firestore.
 
   runApp(const MyApp());
 }

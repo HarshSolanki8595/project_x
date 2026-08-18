@@ -418,36 +418,65 @@ class _SavedAddressesScreenState
                   // EDIT
                   // =================================================
 
-                  GestureDetector(
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AddAddressScreen(
-                            address: address,
-                          ),
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AddAddressScreen(
+                                address: address,
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.edit_outlined,
+                              color: primaryBlue,
+                              size: 16,
+                            ),
+                            SizedBox(width: 5),
+                            Text(
+                              "Edit",
+                              style: TextStyle(
+                                color: primaryBlue,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
-                      );
-                    },
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.edit_outlined,
-                          color: primaryBlue,
-                          size: 16,
+                      ),
+
+                      const SizedBox(width: 18),
+
+                      GestureDetector(
+                        onTap: () => _confirmDelete(address),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.delete_outline,
+                              color: Color(0xFFD92D20),
+                              size: 16,
+                            ),
+                            SizedBox(width: 5),
+                            Text(
+                              "Delete",
+                              style: TextStyle(
+                                color: Color(0xFFD92D20),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(width: 5),
-                        Text(
-                          "Edit",
-                          style: TextStyle(
-                            color: primaryBlue,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -549,6 +578,46 @@ class _SavedAddressesScreenState
         ),
       ),
     );
+  }
+
+  // ============================================================
+  // DELETE ADDRESS
+  // ============================================================
+
+  Future<void> _confirmDelete(Address address) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete address?"),
+        content: Text(
+          "Remove \"${address.label}\" (${address.fullAddress})? "
+          "This can't be undone.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              "Delete",
+              style: TextStyle(color: Color(0xFFD92D20)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    await AddressRepository.deleteAddress(address.id);
+
+    if (_selectedAddress?.id == address.id) {
+      setState(() {
+        _selectedAddress = null;
+      });
+    }
   }
 
   // ============================================================
