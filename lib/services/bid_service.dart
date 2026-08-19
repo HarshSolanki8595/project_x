@@ -1,37 +1,79 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../models/marketplace_status.dart';
 import '../models/professional_bid_model.dart';
 import 'opportunity_service.dart';
 
 class BidService {
-  static int _bidCounter = 1;
+  // ============================================================
+  // FIRESTORE-BACKED VERSION
+  // ============================================================
+  //
+  // Bids are stored as fields directly on the existing opportunity
+  // document at:
+  //
+  //   professional_opportunities/{firebaseUid}/requests/{requestId}
+  //
+  // This reuses your existing Firestore rules for that collection
+  // -- no separate `bids` collection or rules needed.
+  //
+  // IMPORTANT: acceptBid/rejectBid/withdrawBid below only flip the
+  // opportunity's own status field -- they do NOT create an order
+  // or touch activeOrderCount. The real "customer accepts this
+  // bid" action goes through the acceptBid Cloud Function (see
+  // order_acceptance_service.dart), which is the only place that
+  // atomically creates the order and enforces the 2-active-orders
+  // cap. Don't call BidService.acceptBid() expecting an order to
+  // come out of it.
+  //
 
-  static final List<ProfessionalBidModel> _bids = [];
+  static final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance;
+
+  static const String _rootCollection =
+      'professional_opportunities';
+
+  static const String _requestsCollection =
+      'requests';
+
+  static String _firestoreProfessionalKey(String professionalId) {
+    if (professionalId.startsWith('PRO_')) {
+      return professionalId.substring(4);
+    }
+    return professionalId;
+  }
+
+  static DocumentReference<Map<String, dynamic>>
+      _opportunityReference({
+    required String professionalId,
+    required String requestId,
+  }) {
+    final firestoreProfessionalKey =
+        _firestoreProfessionalKey(professionalId);
+
+    return _firestore
+        .collection(_rootCollection)
+        .doc(firestoreProfessionalKey)
+        .collection(_requestsCollection)
+        .doc(requestId);
+  }
 
   // ============================================================
   // SUBMIT BID
   // ============================================================
-  //
-  // RULE:
-  // One professional can submit only ONE bid for one
-  // customer request.
-  //
-  // A withdrawn/rejected bid does NOT allow another bid
-  // from the same professional for the same request.
-  //
 
   static Future<ProfessionalBidModel> submitBid({
     required String requestId,
     required String professionalId,
-    required double quotedPrice,
-    required String estimatedTime,
+    required double servicePrice,
+    required double materialsCost,
+    required double visitInspectionCost,
+    required double urgencyCost,
+    required String warranty,
+    required String additionalWork,
     required String message,
   }) async {
-    // ----------------------------------------------------------
-    // 1. PROFESSIONAL MUST HAVE A MATCHED OPPORTUNITY
-    // ----------------------------------------------------------
-
-    final bool canBid =
-        await OpportunityService.canProfessionalBid(
+    final bool canBid = await OpportunityService.canProfessionalBid(
       requestId: requestId,
       professionalId: professionalId,
     );
@@ -42,297 +84,288 @@ class BidService {
       );
     }
 
-    // ----------------------------------------------------------
-    // 2. PROFESSIONAL CAN ONLY BID ONCE FOR THIS REQUEST
-    // ----------------------------------------------------------
-
-    final existingBid = _findBidForProfessionalAndRequest(
-      requestId: requestId,
+    final reference = _opportunityReference(
       professionalId: professionalId,
+      requestId: requestId,
     );
 
-    if (existingBid != null) {
+    final existing = await reference.get();
+    final existingData = existing.data();
+
+    if (existingData != null && existingData['bidId'] != null) {
       throw StateError(
-        'Professional has already submitted a bid '
-        'for this request.',
+        'Professional has already submitted a bid for this '
+        'request.',
       );
     }
 
-    // ----------------------------------------------------------
-    // 3. VALIDATE PRICE
-    // ----------------------------------------------------------
+    final double totalPrice =
+        servicePrice + materialsCost + visitInspectionCost + urgencyCost;
 
-    if (quotedPrice <= 0) {
+    if (totalPrice <= 0) {
       throw ArgumentError(
-        'Quoted price must be greater than zero.',
+        'Your total quote must be greater than zero.',
       );
     }
 
-    // ----------------------------------------------------------
-    // 4. VALIDATE ESTIMATED TIME
-    // ----------------------------------------------------------
+    final String bidId = '${professionalId}_$requestId';
+    final DateTime now = DateTime.now();
 
-    if (estimatedTime.trim().isEmpty) {
-      throw ArgumentError(
-        'Estimated time cannot be empty.',
-      );
-    }
+    await reference.set({
+      'bidId': bidId,
+      'servicePrice': servicePrice,
+      'materialsCost': materialsCost,
+      'visitInspectionCost': visitInspectionCost,
+      'urgencyCost': urgencyCost,
+      'warranty': warranty,
+      'additionalWork': additionalWork,
+      'message': message,
+      'bidSubmittedAt': Timestamp.fromDate(now),
+      'status': MarketplaceStatus.bidSubmitted,
+    }, SetOptions(merge: true));
 
-    // ----------------------------------------------------------
-    // 5. GENERATE BID ID
-    // ----------------------------------------------------------
-
-    final String bidId =
-        'BID_${_bidCounter.toString().padLeft(6, '0')}';
-
-    _bidCounter++;
-
-    // ----------------------------------------------------------
-    // 6. CREATE BID
-    // ----------------------------------------------------------
-
-    final ProfessionalBidModel bid =
-        ProfessionalBidModel(
+    return ProfessionalBidModel(
       bidId: bidId,
       requestId: requestId,
       professionalId: professionalId,
-      quotedPrice: quotedPrice,
-      estimatedTime: estimatedTime,
+      servicePrice: servicePrice,
+      materialsCost: materialsCost,
+      visitInspectionCost: visitInspectionCost,
+      urgencyCost: urgencyCost,
+      warranty: warranty,
+      additionalWork: additionalWork,
       message: message,
       status: MarketplaceStatus.submitted,
-      createdAt: DateTime.now(),
+      createdAt: now,
     );
-
-    _bids.add(bid);
-
-    // ----------------------------------------------------------
-    // 7. UPDATE OPPORTUNITY
-    // ----------------------------------------------------------
-    //
-    // The opportunity has now progressed from:
-    //
-    // SENT / VIEWED
-    //       ↓
-    // BID_SUBMITTED
-    //
-
-    await OpportunityService.markAsBidSubmitted(
-      requestId: requestId,
-      professionalId: professionalId,
-    );
-
-    return bid;
   }
 
   // ============================================================
-  // ACCEPT BID
+  // GET A SINGLE BID
   // ============================================================
 
-  static ProfessionalBidModel acceptBid(
-    String bidId,
-  ) {
-    final int index = _bids.indexWhere(
-      (bid) => bid.bidId == bidId,
+  static Future<ProfessionalBidModel?> getBid({
+    required String requestId,
+    required String professionalId,
+  }) async {
+    final reference = _opportunityReference(
+      professionalId: professionalId,
+      requestId: requestId,
     );
 
-    if (index == -1) {
-      throw StateError(
-        'Bid not found.',
-      );
+    final snapshot = await reference.get();
+    final data = snapshot.data();
+
+    if (data == null || data['bidId'] == null) {
+      return null;
     }
 
-    final ProfessionalBidModel existingBid =
-        _bids[index];
+    return _bidFromOpportunityData(
+      data,
+      status: _bidStatusFromOpportunityStatus(
+        data['status'] as String?,
+      ),
+    );
+  }
 
-    if (existingBid.status !=
-        MarketplaceStatus.submitted) {
-      throw StateError(
-        'Only a submitted bid can be accepted.',
-      );
+  // ============================================================
+  // ACCEPT BID (LOCAL STATUS ONLY -- SEE COMMENT ABOVE)
+  // ============================================================
+
+  static Future<ProfessionalBidModel> acceptBid({
+    required String requestId,
+    required String professionalId,
+  }) async {
+    final reference = _opportunityReference(
+      professionalId: professionalId,
+      requestId: requestId,
+    );
+
+    final snapshot = await reference.get();
+    final data = snapshot.data();
+
+    if (data == null || data['bidId'] == null) {
+      throw StateError('Bid not found.');
     }
 
-    final ProfessionalBidModel acceptedBid =
-        ProfessionalBidModel(
-      bidId: existingBid.bidId,
-      requestId: existingBid.requestId,
-      professionalId: existingBid.professionalId,
-      quotedPrice: existingBid.quotedPrice,
-      estimatedTime: existingBid.estimatedTime,
-      message: existingBid.message,
+    if (data['status'] != MarketplaceStatus.bidSubmitted) {
+      throw StateError('Only a submitted bid can be accepted.');
+    }
+
+    await reference.update({
+      'status': MarketplaceStatus.selected,
+    });
+
+    return _bidFromOpportunityData(
+      data,
       status: MarketplaceStatus.accepted,
-      createdAt: existingBid.createdAt,
     );
-
-    _bids[index] = acceptedBid;
-
-    return acceptedBid;
   }
 
   // ============================================================
   // REJECT BID
   // ============================================================
 
-  static ProfessionalBidModel rejectBid(
-    String bidId,
-  ) {
-    final int index = _bids.indexWhere(
-      (bid) => bid.bidId == bidId,
+  static Future<ProfessionalBidModel> rejectBid({
+    required String requestId,
+    required String professionalId,
+  }) async {
+    final reference = _opportunityReference(
+      professionalId: professionalId,
+      requestId: requestId,
     );
 
-    if (index == -1) {
-      throw StateError(
-        'Bid not found.',
-      );
+    final snapshot = await reference.get();
+    final data = snapshot.data();
+
+    if (data == null || data['bidId'] == null) {
+      throw StateError('Bid not found.');
     }
 
-    final ProfessionalBidModel existingBid =
-        _bids[index];
-
-    if (existingBid.status !=
-        MarketplaceStatus.submitted) {
-      throw StateError(
-        'Only a submitted bid can be rejected.',
-      );
+    if (data['status'] != MarketplaceStatus.bidSubmitted) {
+      throw StateError('Only a submitted bid can be rejected.');
     }
 
-    final ProfessionalBidModel rejectedBid =
-        ProfessionalBidModel(
-      bidId: existingBid.bidId,
-      requestId: existingBid.requestId,
-      professionalId: existingBid.professionalId,
-      quotedPrice: existingBid.quotedPrice,
-      estimatedTime: existingBid.estimatedTime,
-      message: existingBid.message,
+    await reference.update({
+      'status': MarketplaceStatus.closed,
+    });
+
+    return _bidFromOpportunityData(
+      data,
       status: MarketplaceStatus.rejected,
-      createdAt: existingBid.createdAt,
     );
-
-    _bids[index] = rejectedBid;
-
-    return rejectedBid;
   }
 
   // ============================================================
   // WITHDRAW BID
   // ============================================================
-  //
-  // Withdrawal is allowed while the bid is still submitted.
-  //
-  // IMPORTANT:
-  // Withdrawal does NOT allow the professional to submit
-  // another bid for the same request.
-  //
 
-  static ProfessionalBidModel withdrawBid(
-    String bidId,
-  ) {
-    final int index = _bids.indexWhere(
-      (bid) => bid.bidId == bidId,
-    );
-
-    if (index == -1) {
-      throw StateError(
-        'Bid not found.',
-      );
-    }
-
-    final ProfessionalBidModel existingBid =
-        _bids[index];
-
-    if (existingBid.status !=
-        MarketplaceStatus.submitted) {
-      throw StateError(
-        'Only a submitted bid can be withdrawn.',
-      );
-    }
-
-    final ProfessionalBidModel withdrawnBid =
-        ProfessionalBidModel(
-      bidId: existingBid.bidId,
-      requestId: existingBid.requestId,
-      professionalId: existingBid.professionalId,
-      quotedPrice: existingBid.quotedPrice,
-      estimatedTime: existingBid.estimatedTime,
-      message: existingBid.message,
-      status: MarketplaceStatus.withdrawn,
-      createdAt: existingBid.createdAt,
-    );
-
-    _bids[index] = withdrawnBid;
-
-    return withdrawnBid;
-  }
-
-  // ============================================================
-  // GET BIDS FOR REQUEST
-  // ============================================================
-
-  static List<ProfessionalBidModel> getBidsForRequest(
-    String requestId,
-  ) {
-    return _bids
-        .where(
-          (bid) => bid.requestId == requestId,
-        )
-        .toList();
-  }
-
-  // ============================================================
-  // GET ALL BIDS
-  // ============================================================
-
-  static List<ProfessionalBidModel> getAllBids() {
-    return List.unmodifiable(_bids);
-  }
-
-  // ============================================================
-  // GET BID BY ID
-  // ============================================================
-
-  static ProfessionalBidModel? getBidById(
-    String bidId,
-  ) {
-    for (final bid in _bids) {
-      if (bid.bidId == bidId) {
-        return bid;
-      }
-    }
-
-    return null;
-  }
-
-  // ============================================================
-  // INTERNAL LOOKUP
-  // ============================================================
-  //
-  // IMPORTANT:
-  // We deliberately search ALL bids, not only submitted bids.
-  //
-  // This enforces:
-  //
-  // PRO_000001
-  //      ↓
-  // REQ_000001
-  //      ↓
-  // BID_000001
-  //      ↓
-  // WITHDRAWN
-  //      ↓
-  // Cannot create BID_000002 for REQ_000001
-  //
-
-  static ProfessionalBidModel?
-      _findBidForProfessionalAndRequest({
+  static Future<ProfessionalBidModel> withdrawBid({
     required String requestId,
     required String professionalId,
-  }) {
-    for (final bid in _bids) {
-      if (bid.requestId == requestId &&
-          bid.professionalId == professionalId) {
-        return bid;
-      }
+  }) async {
+    final reference = _opportunityReference(
+      professionalId: professionalId,
+      requestId: requestId,
+    );
+
+    final snapshot = await reference.get();
+    final data = snapshot.data();
+
+    if (data == null || data['bidId'] == null) {
+      throw StateError('Bid not found.');
     }
 
-    return null;
+    if (data['status'] != MarketplaceStatus.bidSubmitted) {
+      throw StateError('Only a submitted bid can be withdrawn.');
+    }
+
+    await reference.update({
+      'status': MarketplaceStatus.closed,
+    });
+
+    return _bidFromOpportunityData(
+      data,
+      status: MarketplaceStatus.withdrawn,
+    );
+  }
+
+  // ============================================================
+  // GET BIDS FOR REQUEST (CUSTOMER SIDE)
+  // ============================================================
+
+  static Future<List<ProfessionalBidModel>> getBidsForRequest(
+    String requestId,
+  ) async {
+    final snapshot = await _firestore
+        .collectionGroup(_requestsCollection)
+        .where('requestId', isEqualTo: requestId)
+        .get();
+
+    final List<ProfessionalBidModel> bids = [];
+
+    for (final document in snapshot.docs) {
+      final data = document.data();
+      if (data['bidId'] == null) continue;
+
+      bids.add(_bidFromOpportunityData(
+        data,
+        status: _bidStatusFromOpportunityStatus(
+          data['status'] as String?,
+        ),
+      ));
+    }
+
+    return bids;
+  }
+
+  // ============================================================
+  // REALTIME BIDS FOR REQUEST (CUSTOMER SIDE)
+  // ============================================================
+
+  static Stream<List<ProfessionalBidModel>> watchBidsForRequest(
+    String requestId,
+  ) {
+    return _firestore
+        .collectionGroup(_requestsCollection)
+        .where('requestId', isEqualTo: requestId)
+        .snapshots()
+        .map((snapshot) {
+      final List<ProfessionalBidModel> bids = [];
+
+      for (final document in snapshot.docs) {
+        final data = document.data();
+        if (data['bidId'] == null) continue;
+
+        bids.add(_bidFromOpportunityData(
+          data,
+          status: _bidStatusFromOpportunityStatus(
+            data['status'] as String?,
+          ),
+        ));
+      }
+
+      return bids;
+    });
+  }
+
+  // ============================================================
+  // HELPERS
+  // ============================================================
+
+  static String _bidStatusFromOpportunityStatus(
+    String? opportunityStatus,
+  ) {
+    switch (opportunityStatus) {
+      case MarketplaceStatus.selected:
+        return MarketplaceStatus.accepted;
+      case MarketplaceStatus.bidSubmitted:
+        return MarketplaceStatus.submitted;
+      default:
+        return MarketplaceStatus.rejected;
+    }
+  }
+
+  static ProfessionalBidModel _bidFromOpportunityData(
+    Map<String, dynamic> data, {
+    required String status,
+  }) {
+    return ProfessionalBidModel(
+      bidId: data['bidId'] as String,
+      requestId: data['requestId'] as String,
+      professionalId: data['professionalId'] as String,
+      servicePrice: (data['servicePrice'] as num?)?.toDouble() ?? 0,
+      materialsCost: (data['materialsCost'] as num?)?.toDouble() ?? 0,
+      visitInspectionCost:
+          (data['visitInspectionCost'] as num?)?.toDouble() ?? 0,
+      urgencyCost: (data['urgencyCost'] as num?)?.toDouble() ?? 0,
+      warranty: data['warranty'] as String? ?? '',
+      additionalWork: data['additionalWork'] as String? ?? '',
+      message: data['message'] as String? ?? '',
+      status: status,
+      createdAt: data['bidSubmittedAt'] is Timestamp
+          ? (data['bidSubmittedAt'] as Timestamp).toDate()
+          : DateTime.now(),
+    );
   }
 }

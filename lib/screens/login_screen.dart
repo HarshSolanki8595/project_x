@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'create_profile_screen.dart';
+import 'main_navigation_screen.dart';
 import 'otp_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -28,6 +31,50 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _phoneController.dispose();
     super.dispose();
+  }
+
+  // ------------------------------------------------------------
+  // ROUTE AFTER A SUCCESSFUL VERIFICATION
+  // ------------------------------------------------------------
+  //
+  // Mirrors the check otp_screen.dart already does for the manual
+  // OTP entry path: existing users -> MainNavigationScreen, new
+  // users -> CreateProfileScreen. This auto-verify path previously
+  // used Navigator.pushReplacementNamed(context, "/home"), but
+  // main.dart defines no such named route, so it would have
+  // crashed if Android auto-verify was ever actually triggered.
+  // ------------------------------------------------------------
+
+  Future<void> _routeAfterVerification(
+    String uid,
+    String phoneNumber,
+  ) async {
+    final userDoc = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(uid)
+        .get();
+
+    if (!mounted) return;
+
+    if (userDoc.exists) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const MainNavigationScreen(),
+        ),
+        (route) => false,
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CreateProfileScreen(
+            uid: uid,
+            phoneNumber: phoneNumber,
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _continue() async {
@@ -74,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
           print("==============================================");
 
           try {
-            await FirebaseAuth.instance
+            final userCredential = await FirebaseAuth.instance
                 .signInWithCredential(credential);
 
             print("Firebase sign-in successful.");
@@ -85,9 +132,9 @@ class _LoginScreenState extends State<LoginScreen> {
               _isLoading = false;
             });
 
-            Navigator.pushReplacementNamed(
-              context,
-              "/home",
+            await _routeAfterVerification(
+              userCredential.user!.uid,
+              phone,
             );
           } on FirebaseAuthException catch (e) {
             print("==============================================");

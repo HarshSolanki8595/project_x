@@ -1,16 +1,13 @@
-import 'dart:async';
+import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
-
-import '../data/professional_data.dart';
 import '../models/marketplace_status.dart';
 import '../models/professional_bid_model.dart';
 import '../models/professional_model.dart';
 import '../models/service_request.dart';
 import '../services/bid_service.dart';
 import '../services/order_acceptance_service.dart';
-import '../services/opportunity_service.dart';
+import '../services/professional_firestore_service.dart';
 
 class ProfessionalsScreen extends StatefulWidget {
   final ServiceRequest request;
@@ -43,92 +40,7 @@ class _ProfessionalsScreenState
   // STATE
   // ============================================================
 
-  List<ProfessionalBidModel> _bids = [];
-
-  Timer? _refreshTimer;
-
   bool _acceptingBid = false;
-
-  // ============================================================
-  // LIFECYCLE
-  // ============================================================
-
-  @override
-  void initState() {
-    super.initState();
-
-    _loadBids();
-
-    // ----------------------------------------------------------
-    // REFRESH PERIODICALLY
-    // ----------------------------------------------------------
-    //
-    // This allows the customer screen to automatically update
-    // when professionals submit bids.
-    //
-    _refreshTimer = Timer.periodic(
-      const Duration(seconds: 2),
-      (_) {
-        _loadBids();
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    _refreshTimer?.cancel();
-    super.dispose();
-  }
-
-  // ============================================================
-  // LOAD BIDS
-  // ============================================================
-
-  void _loadBids() {
-    final requestId = widget.request.requestId;
-
-    if (requestId == null ||
-        requestId.trim().isEmpty) {
-      return;
-    }
-
-    final bids =
-        BidService.getBidsForRequest(requestId);
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      _bids = bids
-          .where(
-            (bid) =>
-                bid.status ==
-                    MarketplaceStatus.submitted ||
-                bid.status ==
-                    MarketplaceStatus.accepted,
-          )
-          .toList();
-    });
-  }
-
-  // ============================================================
-  // FIND PROFESSIONAL
-  // ============================================================
-
-  ProfessionalModel? _findProfessional(
-    String professionalId,
-  ) {
-    for (final professional
-        in ProfessionalData.professionals) {
-      if (professional.professionalId ==
-          professionalId) {
-        return professional;
-      }
-    }
-
-    return null;
-  }
 
   // ============================================================
   // DISTANCE
@@ -180,20 +92,9 @@ class _ProfessionalsScreenState
 
   Future<void> _acceptBid(
     ProfessionalBidModel bid,
+    ProfessionalModel professional,
   ) async {
     if (_acceptingBid) {
-      return;
-    }
-
-    final professional =
-        _findProfessional(
-      bid.professionalId,
-    );
-
-    if (professional == null) {
-      _showMessage(
-        'Professional information could not be found.',
-      );
       return;
     }
 
@@ -214,10 +115,9 @@ class _ProfessionalsScreenState
     try {
       final order =
           await OrderAcceptanceService.acceptBid(
-        bidId: bid.bidId,
+        requestId: bid.requestId,
+        professionalId: bid.professionalId,
       );
-
-      _loadBids();
 
       if (!mounted) {
         return;
@@ -227,9 +127,7 @@ class _ProfessionalsScreenState
         orderId: order.orderId,
         professionalName:
             professional.name,
-        price: bid.quotedPrice,
-        estimatedTime:
-            bid.estimatedTime,
+        price: order.agreedPrice,
       );
     } catch (e) {
       if (!mounted) {
@@ -332,7 +230,7 @@ class _ProfessionalsScreenState
                 const SizedBox(height: 6),
 
                 Text(
-                  '₹${bid.quotedPrice.toStringAsFixed(0)}',
+                  '₹${bid.totalPrice.toStringAsFixed(0)}',
                   style: const TextStyle(
                     color: primaryBlue,
                     fontSize: 28,
@@ -341,15 +239,17 @@ class _ProfessionalsScreenState
                   ),
                 ),
 
-                const SizedBox(height: 3),
+                if (bid.warranty.trim().isNotEmpty) ...[
+                  const SizedBox(height: 3),
 
-                Text(
-                  'Estimated time: ${bid.estimatedTime}',
-                  style: const TextStyle(
-                    color: textSecondary,
-                    fontSize: 13,
+                  Text(
+                    'Warranty: ${bid.warranty}',
+                    style: const TextStyle(
+                      color: textSecondary,
+                      fontSize: 13,
+                    ),
                   ),
-                ),
+                ],
 
                 if (bid.message.trim().isNotEmpty) ...[
                   const SizedBox(height: 14),
@@ -469,7 +369,6 @@ class _ProfessionalsScreenState
     required String orderId,
     required String professionalName,
     required double price,
-    required String estimatedTime,
   }) async {
     await showDialog<void>(
       context: context,
@@ -528,17 +427,6 @@ class _ProfessionalsScreenState
                   fontSize: 24,
                   fontWeight:
                       FontWeight.w800,
-                ),
-              ),
-
-              const SizedBox(height: 4),
-
-              Text(
-                estimatedTime,
-                style:
-                    const TextStyle(
-                  color: textSecondary,
-                  fontSize: 13,
                 ),
               ),
 
@@ -645,7 +533,7 @@ class _ProfessionalsScreenState
       body: requestId == null ||
               requestId.trim().isEmpty
           ? _buildMissingRequest()
-          : _buildMarketplace(),
+          : _buildMarketplace(requestId),
     );
   }
 
@@ -702,88 +590,98 @@ class _ProfessionalsScreenState
   // MARKETPLACE
   // ============================================================
 
-  Widget _buildMarketplace() {
-    return RefreshIndicator(
-      color: primaryBlue,
-      onRefresh: () async {
-        _loadBids();
-      },
-      child: ListView(
-        physics:
-            const AlwaysScrollableScrollPhysics(
-          parent:
-              BouncingScrollPhysics(),
-        ),
-        padding:
-            const EdgeInsets.fromLTRB(
-          16,
-          14,
-          16,
-          30,
-        ),
-        children: [
-          // ------------------------------------------------------
-          // HEADER
-          // ------------------------------------------------------
+  Widget _buildMarketplace(String requestId) {
+    return StreamBuilder<List<ProfessionalBidModel>>(
+      stream: BidService.watchBidsForRequest(requestId),
+      builder: (context, snapshot) {
+        final List<ProfessionalBidModel> bids =
+            (snapshot.data ?? [])
+                .where(
+                  (bid) =>
+                      bid.status ==
+                          MarketplaceStatus.submitted ||
+                      bid.status ==
+                          MarketplaceStatus.accepted,
+                )
+                .toList();
 
-          const Text(
-            'Choose the right professional',
-            style: TextStyle(
-              fontSize: 27,
-              height: 1.15,
-              fontWeight:
-                  FontWeight.w700,
-              color: textPrimary,
-              letterSpacing: -0.5,
-            ),
+        return ListView(
+          physics:
+              const AlwaysScrollableScrollPhysics(
+            parent:
+                BouncingScrollPhysics(),
           ),
-
-          const SizedBox(height: 5),
-
-          const Text(
-            'Compare verified professionals, their offers and their experience before deciding.',
-            style: TextStyle(
-              color: textSecondary,
-              fontSize: 14,
-              height: 1.4,
-            ),
+          padding:
+              const EdgeInsets.fromLTRB(
+            16,
+            14,
+            16,
+            30,
           ),
+          children: [
+            // ------------------------------------------------------
+            // HEADER
+            // ------------------------------------------------------
 
-          const SizedBox(height: 15),
-
-          _marketplaceMessage(),
-
-          const SizedBox(height: 14),
-
-          // ------------------------------------------------------
-          // REQUEST INFORMATION
-          // ------------------------------------------------------
-
-          _requestInformation(),
-
-          const SizedBox(height: 14),
-
-          // ------------------------------------------------------
-          // BIDS
-          // ------------------------------------------------------
-
-          if (_bids.isEmpty)
-            _buildWaitingForBids()
-          else
-            ..._bids.map(
-              (bid) => Padding(
-                padding:
-                    const EdgeInsets.only(
-                  bottom: 12,
-                ),
-                child:
-                    _professionalBidCard(
-                  bid,
-                ),
+            const Text(
+              'Choose the right professional',
+              style: TextStyle(
+                fontSize: 27,
+                height: 1.15,
+                fontWeight:
+                    FontWeight.w700,
+                color: textPrimary,
+                letterSpacing: -0.5,
               ),
             ),
-        ],
-      ),
+
+            const SizedBox(height: 5),
+
+            const Text(
+              'Compare verified professionals, their offers and their experience before deciding.',
+              style: TextStyle(
+                color: textSecondary,
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            _marketplaceMessage(),
+
+            const SizedBox(height: 14),
+
+            // ------------------------------------------------------
+            // REQUEST INFORMATION
+            // ------------------------------------------------------
+
+            _requestInformation(),
+
+            const SizedBox(height: 14),
+
+            // ------------------------------------------------------
+            // BIDS
+            // ------------------------------------------------------
+
+            if (bids.isEmpty)
+              _buildWaitingForBids()
+            else
+              ...bids.map(
+                (bid) => Padding(
+                  padding:
+                      const EdgeInsets.only(
+                    bottom: 12,
+                  ),
+                  child:
+                      _professionalBidCard(
+                    bid,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -1026,17 +924,54 @@ class _ProfessionalsScreenState
   Widget _professionalBidCard(
     ProfessionalBidModel bid,
   ) {
-    final professional =
-        _findProfessional(
-      bid.professionalId,
+    return FutureBuilder<ProfessionalModel?>(
+      future: ProfessionalFirestoreService.getProfessional(
+        bid.professionalId,
+      ),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState ==
+                ConnectionState.waiting &&
+            !snapshot.hasData) {
+          return Container(
+            height: 90,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius:
+                  BorderRadius.circular(20),
+              border: Border.all(
+                color: borderColor,
+              ),
+            ),
+            child: const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: primaryBlue,
+              ),
+            ),
+          );
+        }
+
+        final professional = snapshot.data;
+
+        if (professional == null) {
+          return _unknownProfessionalCard(bid);
+        }
+
+        return _professionalBidCardContent(
+          bid,
+          professional,
+        );
+      },
     );
+  }
 
-    if (professional == null) {
-      return _unknownProfessionalCard(
-        bid,
-      );
-    }
-
+  Widget _professionalBidCardContent(
+    ProfessionalBidModel bid,
+    ProfessionalModel professional,
+  ) {
     final distance =
         widget.request.latitude != null &&
                 widget.request.longitude !=
@@ -1296,7 +1231,7 @@ class _ProfessionalsScreenState
                             height: 2),
 
                         Text(
-                          '₹${bid.quotedPrice.toStringAsFixed(0)}',
+                          '₹${bid.totalPrice.toStringAsFixed(0)}',
                           style:
                               const TextStyle(
                             color:
@@ -1312,40 +1247,43 @@ class _ProfessionalsScreenState
                     ),
                   ),
 
-                  Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment
-                            .end,
-                    children: [
-                      const Text(
-                        'Estimated time',
-                        style:
-                            TextStyle(
-                          color:
-                              textSecondary,
-                          fontSize:
-                              10,
+                  if (bid.warranty
+                      .trim()
+                      .isNotEmpty)
+                    Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment
+                              .end,
+                      children: [
+                        const Text(
+                          'Warranty',
+                          style:
+                              TextStyle(
+                            color:
+                                textSecondary,
+                            fontSize:
+                                10,
+                          ),
                         ),
-                      ),
 
-                      const SizedBox(
-                          height: 3),
+                        const SizedBox(
+                            height: 3),
 
-                      Text(
-                        bid.estimatedTime,
-                        style:
-                            const TextStyle(
-                          color:
-                              textPrimary,
-                          fontSize:
-                              13,
-                          fontWeight:
-                              FontWeight
-                                  .w700,
+                        Text(
+                          bid.warranty,
+                          style:
+                              const TextStyle(
+                            color:
+                                textPrimary,
+                            fontSize:
+                                13,
+                            fontWeight:
+                                FontWeight
+                                    .w700,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -1390,6 +1328,7 @@ class _ProfessionalsScreenState
                         : () =>
                             _acceptBid(
                               bid,
+                              professional,
                             ),
                 style:
                     ElevatedButton.styleFrom(
@@ -1551,7 +1490,7 @@ class _ProfessionalsScreenState
         ),
       ),
       child: Text(
-        'Professional ${bid.professionalId} submitted a bid of ₹${bid.quotedPrice.toStringAsFixed(0)}.',
+        'Professional ${bid.professionalId} submitted a bid of ₹${bid.totalPrice.toStringAsFixed(0)}.',
         style:
             const TextStyle(
           color: textPrimary,

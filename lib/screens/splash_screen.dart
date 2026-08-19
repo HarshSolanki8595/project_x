@@ -1,6 +1,11 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import 'create_profile_screen.dart';
+import 'main_navigation_screen.dart';
 import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -58,29 +63,75 @@ class _SplashScreenState extends State<SplashScreen>
       () {
         if (!mounted) return;
 
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            transitionDuration:
-                const Duration(milliseconds: 900),
-
-            pageBuilder: (_, __, ___) =>
-                const OnboardingScreen(),
-
-            transitionsBuilder: (
-              context,
-              animation,
-              secondaryAnimation,
-              child,
-            ) {
-              return FadeTransition(
-                opacity: animation,
-                child: child,
-              );
-            },
-          ),
-        );
+        _routeAfterSplash();
       },
     );
+  }
+
+  // ============================================================
+  // ROUTE BASED ON EXISTING FIREBASE AUTH SESSION
+  // ============================================================
+  //
+  // Firebase Auth sessions persist across app restarts on their
+  // own -- there was never any "inactivity logout" happening. The
+  // real bug was that this splash screen always sent every launch
+  // straight into the OnboardingScreen marketing carousel, ignoring
+  // any already signed-in customer. This now checks the current
+  // session and, if one exists, checks whether that customer's
+  // profile document already exists (same check otp_screen.dart
+  // already does after a fresh login) so they land on the main app
+  // instead of being sent back through onboarding.
+  //
+
+  Future<void> _routeAfterSplash() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 900),
+          pageBuilder: (_, __, ___) => const OnboardingScreen(),
+          transitionsBuilder: (
+            context,
+            animation,
+            secondaryAnimation,
+            child,
+          ) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+        ),
+      );
+      return;
+    }
+
+    final userDoc = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(user.uid)
+        .get();
+
+    if (!mounted) return;
+
+    if (userDoc.exists) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => const MainNavigationScreen(),
+        ),
+      );
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => CreateProfileScreen(
+            uid: user.uid,
+            phoneNumber: user.phoneNumber ?? '',
+          ),
+        ),
+      );
+    }
   }
 
   @override
