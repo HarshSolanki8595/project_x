@@ -77,6 +77,23 @@ class ProfessionalModel {
   final double serviceRadiusKm;
 
   // ============================================================
+  // RATING AGGREGATE (2026-08-21)
+  // ============================================================
+  //
+  // Maintained by the onReviewCreated Cloud Function whenever a
+  // customer leaves a review -- never written by any client.
+  // Shown on the "Choose the right professional" bid card so
+  // customers can compare professionals by track record, not just
+  // price. Defaults to 0 / 0 for a professional with no reviews
+  // yet -- display logic should show "New professional" or similar
+  // rather than "0 stars" in that case.
+  //
+
+  final double averageRating;
+
+  final int completedJobsCount;
+
+  // ============================================================
   // CONSTRUCTOR
   // ============================================================
 
@@ -91,6 +108,8 @@ class ProfessionalModel {
     required this.latitude,
     required this.longitude,
     required this.serviceRadiusKm,
+    this.averageRating = 0,
+    this.completedJobsCount = 0,
   });
 
   // ============================================================
@@ -116,6 +135,9 @@ class ProfessionalModel {
       latitude: (data['latitude'] as num?)?.toDouble() ?? 0.0,
       longitude: (data['longitude'] as num?)?.toDouble() ?? 0.0,
       serviceRadiusKm: (data['serviceRadiusKm'] as num?)?.toDouble() ?? 0.0,
+      averageRating: (data['averageRating'] as num?)?.toDouble() ?? 0.0,
+      completedJobsCount:
+          (data['completedJobsCount'] as num?)?.toInt() ?? 0,
     );
   }
 }

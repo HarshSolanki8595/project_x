@@ -36,6 +36,8 @@ class _ProfessionalsScreenState
   static const Color textSecondary = Color(0xFF64748B);
   static const Color borderColor = Color(0xFFE1E7EF);
 
+  static const Color starGold = Color(0xFFF5A524);
+
   // ============================================================
   // STATE
   // ============================================================
@@ -84,6 +86,44 @@ class _ProfessionalsScreenState
 
   double _degreesToRadians(double degrees) {
     return degrees * math.pi / 180;
+  }
+
+  // ============================================================
+  // ESTIMATED ARRIVAL (NEW — 2026-08-21)
+  // ============================================================
+  //
+  // Distance-based estimate, NOT live GPS tracking. Uses an
+  // 18 km/h average speed assumption (realistic for Mumbai city
+  // traffic, not open-road speed) plus a fixed 10-minute buffer
+  // for the professional to gather tools/park/walk the last mile.
+  // Shown as a rounded 10-minute-wide range rather than a single
+  // number, so it reads honestly as an estimate rather than a
+  // precise promise.
+  //
+
+  String _estimatedArrivalText(double? distanceKm) {
+    if (distanceKm == null) {
+      return 'Arrival time unavailable';
+    }
+
+    const double averageSpeedKmh = 18.0;
+    const int prepBufferMinutes = 10;
+
+    final double rawMinutes =
+        (distanceKm / averageSpeedKmh) * 60 + prepBufferMinutes;
+
+    final int lowerBound =
+        ((rawMinutes / 10).floor() * 10).clamp(10, 999);
+
+    final int upperBound = lowerBound + 15;
+
+    if (rawMinutes >= 90) {
+      final double lowerHours = lowerBound / 60;
+      final double upperHours = upperBound / 60;
+      return '~${lowerHours.toStringAsFixed(1)}–${upperHours.toStringAsFixed(1)} hrs away';
+    }
+
+    return '~$lowerBound–$upperBound min away';
   }
 
   // ============================================================
@@ -1065,9 +1105,30 @@ class _ProfessionalsScreenState
 
                       const SizedBox(height: 6),
 
-                      if (professional
-                          .isVerified)
-                        _verifiedBadge(),
+                      // ------------------------------------------
+                      // ENHANCEMENT (2026-08-21): rating row
+                      // ------------------------------------------
+                      //
+                      // Shows star rating + completed job count
+                      // next to the verified badge, so a customer
+                      // can compare professionals by track record
+                      // alongside price. Falls back to a neutral
+                      // "New professional" label when there are no
+                      // reviews yet, rather than showing 0 stars.
+                      //
+
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        crossAxisAlignment:
+                            WrapCrossAlignment.center,
+                        children: [
+                          if (professional.isVerified)
+                            _verifiedBadge(),
+
+                          _ratingBadge(professional),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -1115,6 +1176,24 @@ class _ProfessionalsScreenState
                     distance == null
                         ? 'Location unavailable'
                         : '${distance.toStringAsFixed(1)} km away',
+                  ),
+
+                  // ------------------------------------------------
+                  // ENHANCEMENT (2026-08-21): estimated arrival
+                  // ------------------------------------------------
+                  //
+                  // Distance-based estimate (see
+                  // _estimatedArrivalText above) -- not live GPS
+                  // tracking. Uses the same distance fallback
+                  // behaviour as the row above it.
+                  //
+
+                  const SizedBox(height: 8),
+
+                  _detailRow(
+                    Icons.directions_run_rounded,
+                    'Estimated Arrival',
+                    _estimatedArrivalText(distance),
                   ),
 
                   const SizedBox(height: 8),
@@ -1414,6 +1493,71 @@ class _ProfessionalsScreenState
               fontSize: 11,
               fontWeight:
                   FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // RATING BADGE (NEW — 2026-08-21)
+  // ============================================================
+  //
+  // professional.averageRating / completedJobsCount are populated
+  // by the onReviewCreated Cloud Function -- see
+  // professional_model.dart. A professional with zero completed
+  // jobs shows a neutral "New professional" label instead of a
+  // 0-star rating, since 0 stars would misleadingly read as a bad
+  // rating rather than "no data yet".
+  //
+
+  Widget _ratingBadge(ProfessionalModel professional) {
+    if (professional.completedJobsCount <= 0) {
+      return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8,
+          vertical: 4,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Text(
+          'New professional',
+          style: TextStyle(
+            color: textSecondary,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7E6),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.star_rounded,
+            color: starGold,
+            size: 14,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '${professional.averageRating.toStringAsFixed(1)} · ${professional.completedJobsCount} job${professional.completedJobsCount == 1 ? '' : 's'}',
+            style: const TextStyle(
+              color: Color(0xFF92620A),
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],

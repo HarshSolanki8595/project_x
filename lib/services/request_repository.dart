@@ -61,6 +61,63 @@ class RequestRepository {
   }
 
   // ============================================================
+  // WATCH ALL REQUESTS FOR CUSTOMER (NEW — 2026-08-21)
+  // ============================================================
+  //
+  // Powers the "Upcoming" stage of the rebuilt My Bookings tab --
+  // requests still OPEN with no order created yet (still searching
+  // for professionals, or waiting for/reviewing quotes), plus
+  // anything the customer has directly cancelled pre-order (status
+  // 'CANCELLED', surfaced on the Cancelled tab). Requires the new
+  // customer-scoped `allow list` rule on service_requests (see
+  // firestore.rules) -- this collection previously disallowed
+  // list entirely since nothing needed it before now.
+  //
+
+  static Stream<List<ServiceRequestModel>> watchRequestsForCustomer(
+    String customerId,
+  ) {
+    return _firestore
+        .collection(_collection)
+        .where('customerId', isEqualTo: customerId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => _fromFirestore(doc.data()))
+          .toList();
+    });
+  }
+
+  // ============================================================
+  // CANCEL REQUEST (NEW — 2026-08-21)
+  // ============================================================
+  //
+  // Used by the "Cancel" action on the Upcoming tab -- cancelling
+  // BEFORE any bid has been accepted, i.e. before an orders/{id}
+  // document exists. A plain client-side update, already covered
+  // by the existing customer-update rule on service_requests
+  // (that rule only guards customerId/requestId staying unchanged,
+  // it doesn't restrict which status values are allowed).
+  //
+  // Cancelling an ALREADY-ACCEPTED order (one that has a real
+  // orders/{id} document) is a different, server-side operation --
+  // see OrderService.cancelOrder in order_service.dart, which calls
+  // the cancelOrder Cloud Function instead.
+  //
+
+  static Future<void> cancelRequest(
+    String requestId,
+  ) async {
+    await _firestore
+        .collection(_collection)
+        .doc(requestId)
+        .update({
+      'status': 'CANCELLED',
+    });
+  }
+
+  // ============================================================
   // FIRESTORE → MODEL
   // ============================================================
 
