@@ -88,4 +88,41 @@ class ReviewService {
       return ReviewModel.fromFirestore(data);
     });
   }
+
+  // ============================================================
+  // WATCH REVIEWS FOR PROFESSIONAL (NEW — 2026-08-23)
+  // ============================================================
+  //
+  // Powers the new public ProfessionalProfileScreen's review list.
+  // Relies on the public reviews read rule added alongside this
+  // feature (see firestore.rules) -- previously reviews could only
+  // be read by the review's own customer or the reviewed
+  // professional, which blocked a browsing customer from ever
+  // seeing another professional's reviews.
+  //
+  // NOTE: this is a composite query (where + orderBy on different
+  // fields). The first time it runs, Firestore will throw with a
+  // link to auto-create the required index -- open that link once
+  // and it starts working from then on, same as every other
+  // composite query in this app.
+  //
+
+  static Stream<List<ReviewModel>> watchReviewsForProfessional(
+    String professionalId, {
+    int? limit,
+  }) {
+    Query<Map<String, dynamic>> query = _reviews()
+        .where('professionalId', isEqualTo: professionalId)
+        .orderBy('createdAt', descending: true);
+
+    if (limit != null) {
+      query = query.limit(limit);
+    }
+
+    return query.snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => ReviewModel.fromFirestore(doc.data()))
+          .toList();
+    });
+  }
 }

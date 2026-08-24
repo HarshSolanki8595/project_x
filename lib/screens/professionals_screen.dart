@@ -8,6 +8,8 @@ import '../models/service_request.dart';
 import '../services/bid_service.dart';
 import '../services/order_acceptance_service.dart';
 import '../services/professional_firestore_service.dart';
+import 'main_screen.dart';
+import 'professional_profile_screen.dart';
 
 class ProfessionalsScreen extends StatefulWidget {
   final ServiceRequest request;
@@ -502,11 +504,28 @@ class _ProfessionalsScreenState
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(
-                    context,
-                  );
-                  Navigator.pop(
-                    context,
+                  // --------------------------------------------------
+                  // ENHANCEMENT (2026-08-24): guaranteed navigation
+                  // --------------------------------------------------
+                  //
+                  // Previously just popped twice, which only worked
+                  // reliably if this screen was reached via one
+                  // specific path. Since it can also be opened by
+                  // tapping a card on the Bookings tab, a plain
+                  // double-pop sometimes left the customer on a
+                  // stale intermediate screen instead of landing on
+                  // Bookings. This clears the entire navigation
+                  // stack and lands cleanly on the Bookings tab
+                  // every time, regardless of how the customer
+                  // arrived here.
+                  //
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (_) => const MainScreen(
+                        initialIndex: 1,
+                      ),
+                    ),
+                    (route) => false,
                   );
                 },
                 style:
@@ -630,6 +649,73 @@ class _ProfessionalsScreenState
   // MARKETPLACE
   // ============================================================
 
+  // ============================================================
+  // SORT (NEW — 2026-08-23)
+  // ============================================================
+  //
+  // Lets the customer reorder bids on the "Choose the right
+  // professional" screen. Sorting by rating/distance needs each
+  // bid's professional profile loaded up front (rather than the
+  // old per-card lazy FutureBuilder), so _buildMarketplace below
+  // now fetches all professionals for the current bid list in
+  // parallel before rendering, once, and sorts that combined list.
+  //
+
+  _SortOption _sortOption = _SortOption.bestMatch;
+
+  List<_BidWithProfessional> _sortBids(
+    List<_BidWithProfessional> items,
+    double? requestLat,
+    double? requestLng,
+  ) {
+    final sorted = List<_BidWithProfessional>.from(items);
+
+    switch (_sortOption) {
+      case _SortOption.bestMatch:
+        break; // Keep natural arrival order.
+
+      case _SortOption.lowestPrice:
+        sorted.sort(
+          (a, b) => a.bid.totalPrice.compareTo(b.bid.totalPrice),
+        );
+        break;
+
+      case _SortOption.highestRating:
+        sorted.sort(
+          (a, b) => (b.professional?.averageRating ?? 0)
+              .compareTo(a.professional?.averageRating ?? 0),
+        );
+        break;
+
+      case _SortOption.nearest:
+        sorted.sort((a, b) {
+          final distanceA = _distanceFor(a.professional, requestLat, requestLng);
+          final distanceB = _distanceFor(b.professional, requestLat, requestLng);
+          return distanceA.compareTo(distanceB);
+        });
+        break;
+    }
+
+    return sorted;
+  }
+
+  double _distanceFor(
+    ProfessionalModel? professional,
+    double? requestLat,
+    double? requestLng,
+  ) {
+    if (professional == null || requestLat == null || requestLng == null) {
+      return double.infinity;
+    }
+
+    return _calculateDistanceKm(
+      requestLat,
+      requestLng,
+      professional.latitude,
+      professional.longitude,
+    );
+  }
+
   Widget _buildMarketplace(String requestId) {
     return StreamBuilder<List<ProfessionalBidModel>>(
       stream: BidService.watchBidsForRequest(requestId),
@@ -645,85 +731,182 @@ class _ProfessionalsScreenState
                 )
                 .toList();
 
-        return ListView(
-          physics:
-              const AlwaysScrollableScrollPhysics(
-            parent:
-                BouncingScrollPhysics(),
-          ),
-          padding:
-              const EdgeInsets.fromLTRB(
-            16,
-            14,
-            16,
-            30,
-          ),
-          children: [
-            // ------------------------------------------------------
-            // HEADER
-            // ------------------------------------------------------
+        return FutureBuilder<List<_BidWithProfessional>>(
+          future: _loadBidsWithProfessionals(bids),
+          builder: (context, pairedSnapshot) {
+            final paired = pairedSnapshot.data ??
+                bids
+                    .map((bid) => _BidWithProfessional(bid: bid))
+                    .toList();
 
-            const Text(
-              'Choose the right professional',
-              style: TextStyle(
-                fontSize: 27,
-                height: 1.15,
-                fontWeight:
-                    FontWeight.w700,
-                color: textPrimary,
-                letterSpacing: -0.5,
+            final sorted = _sortBids(
+              paired,
+              widget.request.latitude,
+              widget.request.longitude,
+            );
+
+            return ListView(
+              physics:
+                  const AlwaysScrollableScrollPhysics(
+                parent:
+                    BouncingScrollPhysics(),
               ),
-            ),
-
-            const SizedBox(height: 5),
-
-            const Text(
-              'Compare verified professionals, their offers and their experience before deciding.',
-              style: TextStyle(
-                color: textSecondary,
-                fontSize: 14,
-                height: 1.4,
+              padding:
+                  const EdgeInsets.fromLTRB(
+                16,
+                14,
+                16,
+                30,
               ),
-            ),
+              children: [
+                // ------------------------------------------------------
+                // HEADER
+                // ------------------------------------------------------
 
-            const SizedBox(height: 15),
-
-            _marketplaceMessage(),
-
-            const SizedBox(height: 14),
-
-            // ------------------------------------------------------
-            // REQUEST INFORMATION
-            // ------------------------------------------------------
-
-            _requestInformation(),
-
-            const SizedBox(height: 14),
-
-            // ------------------------------------------------------
-            // BIDS
-            // ------------------------------------------------------
-
-            if (bids.isEmpty)
-              _buildWaitingForBids()
-            else
-              ...bids.map(
-                (bid) => Padding(
-                  padding:
-                      const EdgeInsets.only(
-                    bottom: 12,
-                  ),
-                  child:
-                      _professionalBidCard(
-                    bid,
+                const Text(
+                  'Choose the right professional',
+                  style: TextStyle(
+                    fontSize: 27,
+                    height: 1.15,
+                    fontWeight:
+                        FontWeight.w700,
+                    color: textPrimary,
+                    letterSpacing: -0.5,
                   ),
                 ),
-              ),
-          ],
+
+                const SizedBox(height: 5),
+
+                const Text(
+                  'Compare verified professionals, their offers and their experience before deciding.',
+                  style: TextStyle(
+                    color: textSecondary,
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
+                ),
+
+                const SizedBox(height: 15),
+
+                _marketplaceMessage(),
+
+                const SizedBox(height: 14),
+
+                // ------------------------------------------------------
+                // REQUEST INFORMATION
+                // ------------------------------------------------------
+
+                _requestInformation(),
+
+                const SizedBox(height: 14),
+
+                // ------------------------------------------------------
+                // SORT CONTROL (NEW — 2026-08-23)
+                // ------------------------------------------------------
+
+                if (bids.isNotEmpty) ...[
+                  _buildSortControl(),
+                  const SizedBox(height: 14),
+                ],
+
+                // ------------------------------------------------------
+                // BIDS
+                // ------------------------------------------------------
+
+                if (bids.isEmpty)
+                  _buildWaitingForBids()
+                else
+                  ...sorted.map(
+                    (item) => Padding(
+                      padding:
+                          const EdgeInsets.only(
+                        bottom: 12,
+                      ),
+                      child: item.professional == null
+                          ? _unknownProfessionalCard(item.bid)
+                          : _professionalBidCardContent(
+                              item.bid,
+                              item.professional!,
+                            ),
+                    ),
+                  ),
+              ],
+            );
+          },
         );
       },
     );
   }
+
+  // ============================================================
+  // LOAD BIDS WITH PROFESSIONALS (NEW — 2026-08-23)
+  // ============================================================
+  //
+  // Fetches every bid's professional profile in parallel, once,
+  // rather than the old per-card lazy FutureBuilder -- needed so
+  // the whole list can be sorted by rating/distance, which requires
+  // every professional's data to already be available up front.
+  //
+
+  Future<List<_BidWithProfessional>> _loadBidsWithProfessionals(
+    List<ProfessionalBidModel> bids,
+  ) async {
+    final results = await Future.wait(
+      bids.map(
+        (bid) async {
+          final professional =
+              await ProfessionalFirestoreService.getProfessional(
+            bid.professionalId,
+          );
+          return _BidWithProfessional(bid: bid, professional: professional);
+        },
+      ),
+    );
+
+    return results;
+  }
+
+  // ============================================================
+  // SORT CONTROL WIDGET (NEW — 2026-08-23)
+  // ============================================================
+
+  Widget _buildSortControl() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: _SortOption.values.map((option) {
+          final selected = _sortOption == option;
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(option.label),
+              selected: selected,
+              onSelected: (_) {
+                setState(() {
+                  _sortOption = option;
+                });
+              },
+              selectedColor: primaryBlue,
+              backgroundColor: Colors.white,
+              labelStyle: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: selected ? Colors.white : textSecondary,
+              ),
+              side: BorderSide(
+                color: selected ? primaryBlue : borderColor,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
 
   // ============================================================
   // MARKETPLACE MESSAGE
@@ -961,53 +1144,6 @@ class _ProfessionalsScreenState
   // PROFESSIONAL BID CARD
   // ============================================================
 
-  Widget _professionalBidCard(
-    ProfessionalBidModel bid,
-  ) {
-    return FutureBuilder<ProfessionalModel?>(
-      future: ProfessionalFirestoreService.getProfessional(
-        bid.professionalId,
-      ),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState ==
-                ConnectionState.waiting &&
-            !snapshot.hasData) {
-          return Container(
-            height: 90,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius:
-                  BorderRadius.circular(20),
-              border: Border.all(
-                color: borderColor,
-              ),
-            ),
-            child: const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: primaryBlue,
-              ),
-            ),
-          );
-        }
-
-        final professional = snapshot.data;
-
-        if (professional == null) {
-          return _unknownProfessionalCard(bid);
-        }
-
-        return _professionalBidCardContent(
-          bid,
-          professional,
-        );
-      },
-    );
-  }
-
   Widget _professionalBidCardContent(
     ProfessionalBidModel bid,
     ProfessionalModel professional,
@@ -1059,7 +1195,27 @@ class _ProfessionalsScreenState
               crossAxisAlignment:
                   CrossAxisAlignment.start,
               children: [
-                Container(
+                // ----------------------------------------------------
+                // ENHANCEMENT (2026-08-23): avatar + name now tappable
+                // ----------------------------------------------------
+                //
+                // Opens the new ProfessionalProfileScreen (work
+                // history, ratings, past-work photos, full reviews).
+                // Previously this section was purely informational
+                // with no tap action at all.
+                //
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ProfessionalProfileScreen(
+                          professionalId: professional.professionalId,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
                   height: 54,
                   width: 54,
                   decoration:
@@ -1076,6 +1232,7 @@ class _ProfessionalsScreenState
                         primaryBlue,
                     size: 30,
                   ),
+                  ),
                 ),
 
                 const SizedBox(width: 11),
@@ -1086,7 +1243,18 @@ class _ProfessionalsScreenState
                         CrossAxisAlignment
                             .start,
                     children: [
-                      Text(
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ProfessionalProfileScreen(
+                                professionalId: professional.professionalId,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Text(
                         professional.name,
                         maxLines: 2,
                         overflow:
@@ -1100,6 +1268,7 @@ class _ProfessionalsScreenState
                               FontWeight.w700,
                           color:
                               textPrimary,
+                        ),
                         ),
                       ),
 
@@ -1643,4 +1812,47 @@ class _ProfessionalsScreenState
       ),
     );
   }
+}
+
+// ================================================================
+// SORT OPTION (NEW — 2026-08-23)
+// ================================================================
+
+enum _SortOption {
+  bestMatch,
+  lowestPrice,
+  highestRating,
+  nearest;
+
+  String get label {
+    switch (this) {
+      case _SortOption.bestMatch:
+        return 'Best Match';
+      case _SortOption.lowestPrice:
+        return 'Lowest Price';
+      case _SortOption.highestRating:
+        return 'Highest Rated';
+      case _SortOption.nearest:
+        return 'Nearest';
+    }
+  }
+}
+
+// ================================================================
+// BID + PROFESSIONAL PAIR (NEW — 2026-08-23)
+// ================================================================
+//
+// Pairs a bid with its already-fetched professional profile, so
+// the bid list can be sorted by professional-level fields (rating,
+// distance) without each card doing its own lazy fetch.
+//
+
+class _BidWithProfessional {
+  final ProfessionalBidModel bid;
+  final ProfessionalModel? professional;
+
+  const _BidWithProfessional({
+    required this.bid,
+    this.professional,
+  });
 }

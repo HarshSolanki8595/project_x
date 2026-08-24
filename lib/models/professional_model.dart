@@ -94,10 +94,21 @@ class ProfessionalModel {
   final int completedJobsCount;
 
   // ============================================================
+  // MEMBER SINCE (NEW — 2026-08-23)
+  // ============================================================
+  //
+  // Used by the new ProfessionalProfileScreen's "Member since"
+  // line. Falls back to now() if missing rather than null, since
+  // every real professional document already has this field.
+  //
+
+  final DateTime createdAt;
+
+  // ============================================================
   // CONSTRUCTOR
   // ============================================================
 
-  const ProfessionalModel({
+  ProfessionalModel({
     required this.professionalId,
     required this.name,
     this.phoneNumber = '',
@@ -110,7 +121,8 @@ class ProfessionalModel {
     required this.serviceRadiusKm,
     this.averageRating = 0,
     this.completedJobsCount = 0,
-  });
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
 
   // ============================================================
   // FROM FIRESTORE
@@ -138,6 +150,9 @@ class ProfessionalModel {
       averageRating: (data['averageRating'] as num?)?.toDouble() ?? 0.0,
       completedJobsCount:
           (data['completedJobsCount'] as num?)?.toInt() ?? 0,
+      createdAt: data['createdAt'] is Timestamp
+          ? (data['createdAt'] as Timestamp).toDate()
+          : null,
     );
   }
 }

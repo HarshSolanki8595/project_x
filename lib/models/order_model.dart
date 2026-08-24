@@ -14,6 +14,29 @@ class OrderModel {
 
   final String status;
 
+  // ============================================================
+  // PAYMENT (NEW — 2026-08-21)
+  // ============================================================
+  //
+  // paymentStatus: '' (not yet paid) or 'PAID'. paymentChannel:
+  // '' or 'IN_APP' (mocked -- no real Razorpay yet) or 'CASH' (set
+  // by completeJob if the professional closed the job before the
+  // customer paid in-app). All written exclusively by the
+  // recordPayment / completeJob Cloud Functions -- read-only here.
+  //
+  // The three charge fields mirror the exact calculation used
+  // server-side (9.5% Platform Charges + 18% GST on that) --
+  // customerTotal is what the customer actually owes/paid, always
+  // slightly more than agreedPrice.
+  //
+
+  final String paymentStatus;
+  final String paymentChannel;
+  final DateTime? paidAt;
+  final double customerPlatformCharge;
+  final double customerGst;
+  final double customerTotal;
+
   final DateTime createdAt;
   final DateTime? startedAt;
   final DateTime? completedAt;
@@ -29,19 +52,26 @@ class OrderModel {
     required this.agreedPrice,
     this.warranty = '',
     required this.status,
+    this.paymentStatus = '',
+    this.paymentChannel = '',
+    this.paidAt,
+    this.customerPlatformCharge = 0,
+    this.customerGst = 0,
+    this.customerTotal = 0,
     required this.createdAt,
     this.startedAt,
     this.completedAt,
   });
 
   // ============================================================
+  // IS PAID (convenience getter)
+  // ============================================================
+
+  bool get isPaid => paymentStatus == 'PAID';
+
+  // ============================================================
   // FROM FIRESTORE
   // ============================================================
-  //
-  // Used by watchOrderForRequest -- the order document as it
-  // actually sits in Firestore (createdAt/startedAt/completedAt as
-  // Timestamps).
-  //
 
   factory OrderModel.fromFirestore(Map<String, dynamic> data) {
     return OrderModel(
@@ -55,6 +85,13 @@ class OrderModel {
       agreedPrice: (data['agreedPrice'] as num?)?.toDouble() ?? 0,
       warranty: data['warranty'] as String? ?? '',
       status: data['status'] as String? ?? '',
+      paymentStatus: data['paymentStatus'] as String? ?? '',
+      paymentChannel: data['paymentChannel'] as String? ?? '',
+      paidAt: data['paidAt'] == null ? null : _readDate(data['paidAt']),
+      customerPlatformCharge:
+          (data['customerPlatformCharge'] as num?)?.toDouble() ?? 0,
+      customerGst: (data['customerGst'] as num?)?.toDouble() ?? 0,
+      customerTotal: (data['customerTotal'] as num?)?.toDouble() ?? 0,
       createdAt: _readDate(data['createdAt']),
       startedAt:
           data['startedAt'] == null ? null : _readDate(data['startedAt']),
@@ -69,9 +106,9 @@ class OrderModel {
   // ============================================================
   //
   // The acceptBid Cloud Function returns the freshly created order
-  // as a plain map in its response -- createdAt there is an ISO
-  // date STRING, not a Timestamp, since serverTimestamp() is a
-  // write-only sentinel and can't be serialized back to the caller.
+  // as a plain map -- createdAt there is an ISO date STRING, not a
+  // Timestamp. Payment fields don't exist yet at this point (a
+  // brand-new order is never pre-paid), so they're left at defaults.
   //
 
   factory OrderModel.fromCallableResponse(Map<String, dynamic> data) {

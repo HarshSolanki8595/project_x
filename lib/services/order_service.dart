@@ -63,14 +63,12 @@ class OrderService {
   }
 
   // ============================================================
-  // WATCH ALL ORDERS FOR CUSTOMER (NEW — 2026-08-21)
+  // WATCH ALL ORDERS FOR CUSTOMER
   // ============================================================
   //
   // Powers the Ongoing / Completed / Cancelled stages of the
   // rebuilt My Bookings tab. Already safely allowed by the existing
-  // orders `allow list` rule (customerId == auth.uid) -- no rules
-  // change needed for this one, unlike the new service_requests
-  // list method in request_repository.dart.
+  // orders `allow list` rule (customerId == auth.uid).
   //
 
   static Stream<List<OrderModel>> watchOrdersForCustomer(
@@ -89,15 +87,12 @@ class OrderService {
   }
 
   // ============================================================
-  // CANCEL ORDER (NEW — 2026-08-21)
+  // CANCEL ORDER
   // ============================================================
   //
-  // Used by the "Cancel" action on the Ongoing tab -- cancelling an
-  // order that already exists (CONFIRMED or ACTIVE). Orders are
-  // server-write-only (firestore.rules: allow update: if false;),
-  // so this calls the cancelOrder Cloud Function rather than
-  // writing directly, the same pattern OrderAcceptanceService
-  // already uses for acceptBid. See functions/index.js.
+  // Used by the "Cancel" action on the Bookings tab's Ongoing
+  // stage. Orders are server-write-only, so this calls the
+  // cancelOrder Cloud Function rather than writing directly.
   //
 
   static Future<void> cancelOrder(String orderId) async {
@@ -111,6 +106,33 @@ class OrderService {
     } on FirebaseFunctionsException catch (e) {
       throw StateError(
         e.message ?? 'Unable to cancel this booking right now.',
+      );
+    }
+  }
+
+  // ============================================================
+  // PAY FOR ORDER (NEW — 2026-08-21)
+  // ============================================================
+  //
+  // Stage 3 of the payment/wallet build -- MOCKED/SIMULATED
+  // payment, no real Razorpay integration yet. Calls the
+  // recordPayment Cloud Function, which marks the order paid
+  // in-app and computes the customer's Platform Charges + GST.
+  // Orders are server-write-only, so this can't be a direct
+  // Firestore write.
+  //
+
+  static Future<void> payForOrder(String orderId) async {
+    try {
+      final callable =
+          FirebaseFunctions.instance.httpsCallable('recordPayment');
+
+      await callable.call(<String, dynamic>{
+        'orderId': orderId,
+      });
+    } on FirebaseFunctionsException catch (e) {
+      throw StateError(
+        e.message ?? 'Unable to process payment right now.',
       );
     }
   }

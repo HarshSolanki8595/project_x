@@ -21,6 +21,14 @@ import 'rate_review_screen.dart';
 // job through ACTIVE / ORDER_COMPLETED. Once completed, shows the
 // Rate & Review card at the bottom.
 //
+// PAYMENT (NEW — 2026-08-21): shows a "Pay Now" prompt whenever the
+// order isn't cancelled and hasn't been paid yet, and a "Paid"
+// confirmation once it has. This is Stage 3 of the payment/wallet
+// build -- a MOCKED/SIMULATED payment (no real Razorpay yet). Tapping
+// "Pay Now" opens a bottom sheet with the price breakdown (agreed
+// price + Platform Charges + GST) and a single confirm action that
+// calls the recordPayment Cloud Function.
+//
 
 class OrderStatusScreen extends StatefulWidget {
   final ServiceRequest request;
@@ -190,6 +198,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
   // ============================================================
 
   Widget _buildOrder(OrderModel order) {
+    final bool showPaymentSection =
+        order.status != MarketplaceStatus.orderCancelled;
+
     return ListView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 30),
@@ -201,6 +212,10 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
         _buildProfessionalCard(order),
         const SizedBox(height: 14),
         _buildPriceCard(order),
+        if (showPaymentSection) ...[
+          const SizedBox(height: 14),
+          _buildPaymentCard(order),
+        ],
         const SizedBox(height: 14),
         _buildRequestDetailsCard(),
         if (order.status == MarketplaceStatus.orderCompleted) ...[
@@ -208,6 +223,197 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           _buildReviewCard(order),
         ],
       ],
+    );
+  }
+
+  // ============================================================
+  // PAYMENT CARD (NEW — 2026-08-21)
+  // ============================================================
+  //
+  // Two states: not yet paid (prompt + "Pay Now" button opening the
+  // bottom sheet below) or already paid (green confirmation summary,
+  // read-only). MOCKED payment -- no real Razorpay integration.
+  //
+
+  Widget _buildPaymentCard(OrderModel order) {
+    if (order.isPaid) {
+      return _buildPaidCard(order);
+    }
+
+    return _buildPayNowCard(order);
+  }
+
+  Widget _buildPayNowCard(OrderModel order) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                height: 44,
+                width: 44,
+                decoration: BoxDecoration(
+                  color: lightBlue,
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: const Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: primaryBlue,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Payment pending',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Pay securely in the app whenever you\'re ready — no need to wait for the job to finish.',
+            style: TextStyle(
+              fontSize: 12.5,
+              height: 1.4,
+              color: textSecondary,
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: () => _openPaymentSheet(order),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryBlue,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13),
+                ),
+              ),
+              child: const Text(
+                'Pay Now',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaidCard(OrderModel order) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8F8EE),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.check_circle_rounded,
+                color: green,
+                size: 22,
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'Paid',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: green,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '₹${order.customerTotal.toStringAsFixed(0)}',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: green,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _paymentBreakdownRow(
+            'Service amount',
+            order.agreedPrice,
+            textSecondary,
+          ),
+          const SizedBox(height: 5),
+          _paymentBreakdownRow(
+            'Platform charges',
+            order.customerPlatformCharge,
+            textSecondary,
+          ),
+          const SizedBox(height: 5),
+          _paymentBreakdownRow(
+            'GST on platform charges',
+            order.customerGst,
+            textSecondary,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _paymentBreakdownRow(String label, double amount, Color color) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(fontSize: 12.5, color: color),
+          ),
+        ),
+        Text(
+          '₹${amount.toStringAsFixed(2)}',
+          style: TextStyle(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ============================================================
+  // PAYMENT SHEET (NEW — 2026-08-21)
+  // ============================================================
+
+  Future<void> _openPaymentSheet(OrderModel order) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return _PaymentSheet(order: order);
+      },
     );
   }
 
@@ -262,14 +468,17 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             ),
           ),
           const SizedBox(width: 13),
-          const Expanded(
-            child: Text(
-              'How was your experience with this job?',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: textPrimary,
-                height: 1.35,
+          Expanded(
+            child: SizedBox(
+              width: double.infinity,
+              child: const Text(
+                'How was your experience with this job?',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: textPrimary,
+                  height: 1.35,
+                ),
               ),
             ),
           ),
@@ -845,4 +1054,280 @@ class _StatusConfig {
     required this.color,
     required this.icon,
   });
+}
+
+// ================================================================
+// PAYMENT SHEET (NEW — 2026-08-21)
+// ================================================================
+//
+// Bottom sheet showing the price breakdown and a mocked payment
+// method selector (UPI / Card -- purely visual, no real gateway).
+// A single "Pay ₹X" button calls OrderService.payForOrder, which
+// invokes the recordPayment Cloud Function.
+// ================================================================
+
+class _PaymentSheet extends StatefulWidget {
+  final OrderModel order;
+
+  const _PaymentSheet({required this.order});
+
+  @override
+  State<_PaymentSheet> createState() => _PaymentSheetState();
+}
+
+class _PaymentSheetState extends State<_PaymentSheet> {
+  static const Color primaryBlue = Color(0xFF1557FF);
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF64748B);
+
+  String _method = 'UPI';
+  bool _isPaying = false;
+
+  // Same 9.5% Platform Charges + 18% GST math used server-side --
+  // shown here purely for display before the customer confirms.
+  // The Cloud Function recomputes and writes the authoritative
+  // values; this is not itself a source of truth.
+  double get _platformCharge => widget.order.agreedPrice * 0.095;
+  double get _gst => _platformCharge * 0.18;
+  double get _total => widget.order.agreedPrice + _platformCharge + _gst;
+
+  Future<void> _confirmPayment() async {
+    if (_isPaying) return;
+
+    setState(() => _isPaying = true);
+
+    try {
+      await OrderService.payForOrder(widget.order.orderId);
+
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } on StateError catch (e) {
+      if (mounted) {
+        setState(() => _isPaying = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isPaying = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to process payment right now.'),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 18),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+
+              const Text(
+                'Review & Pay',
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                  color: textPrimary,
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              _row('Service amount', widget.order.agreedPrice),
+              const SizedBox(height: 8),
+              _row('Platform charges (9.5%)', _platformCharge),
+              const SizedBox(height: 8),
+              _row('GST on platform charges (18%)', _gst),
+
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Divider(height: 1, color: Color(0xFFE4E7EC)),
+              ),
+
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Total to pay',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: textPrimary,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '₹${_total.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: primaryBlue,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 18),
+
+              const Text(
+                'Payment method',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: textPrimary,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _methodOption(
+                      label: 'UPI',
+                      icon: Icons.qr_code_rounded,
+                      value: 'UPI',
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _methodOption(
+                      label: 'Card',
+                      icon: Icons.credit_card_rounded,
+                      value: 'Card',
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 18),
+
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: _isPaying ? null : _confirmPayment,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryBlue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                  child: _isPaying
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          'Pay ₹${_total.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _row(String label, double amount) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 13, color: textSecondary),
+          ),
+        ),
+        Text(
+          '₹${amount.toStringAsFixed(2)}',
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _methodOption({
+    required String label,
+    required IconData icon,
+    required String value,
+  }) {
+    final bool selected = _method == value;
+
+    return GestureDetector(
+      onTap: () => setState(() => _method = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 13),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFFEEF3FF) : Colors.white,
+          borderRadius: BorderRadius.circular(13),
+          border: Border.all(
+            color: selected ? primaryBlue : const Color(0xFFE1E7EF),
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: selected ? primaryBlue : textSecondary,
+              size: 22,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: selected ? primaryBlue : textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

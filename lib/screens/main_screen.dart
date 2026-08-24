@@ -1,9 +1,23 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../core/widgets/bottom_nav_bar.dart';
+import '../services/notification_service.dart';
 import 'home_screen.dart';
 import 'bookings_screen.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
+
+// ================================================================
+// MAIN SCREEN — REAL NOTIFICATION BADGE (2026-08-23)
+// ================================================================
+//
+// ENHANCEMENT: previously used Flutter's built-in NavigationBar
+// with no badge support at all. Now uses the existing BottomNavBar
+// widget (core/widgets/bottom_nav_bar.dart) -- it already had full
+// badge support built in but was never actually wired into any
+// screen. The Notifications tab now shows a live unread count.
+//
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
@@ -35,41 +49,36 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
         children: _pages,
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: "Home",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month),
-            label: "Bookings",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            selectedIcon: Icon(Icons.notifications),
-            label: "Notifications",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: "Profile",
-          ),
-        ],
-      ),
+      bottomNavigationBar: user == null
+          ? BottomNavBar(
+              currentIndex: _selectedIndex,
+              onTap: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+            )
+          : StreamBuilder<int>(
+              stream: NotificationService.watchUnreadCount(user.uid),
+              builder: (context, snapshot) {
+                return BottomNavBar(
+                  currentIndex: _selectedIndex,
+                  onTap: (index) {
+                    setState(() {
+                      _selectedIndex = index;
+                    });
+                  },
+                  notificationCount: snapshot.data ?? 0,
+                );
+              },
+            ),
     );
   }
 }
