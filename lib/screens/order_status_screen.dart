@@ -54,6 +54,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
   ProfessionalModel? _professional;
   bool _loadingProfessional = true;
+  bool _withdrawing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -218,12 +219,321 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
         ],
         const SizedBox(height: 14),
         _buildRequestDetailsCard(),
+        if (order.status == MarketplaceStatus.confirmed ||
+            order.status == MarketplaceStatus.active) ...[
+          const SizedBox(height: 14),
+          _buildWithdrawCard(order),
+        ],
+        if (order.status == MarketplaceStatus.orderCancelled &&
+            order.cancellationFee > 0) ...[
+          const SizedBox(height: 14),
+          _buildCancellationFeeCard(order),
+        ],
         if (order.status == MarketplaceStatus.orderCompleted) ...[
           const SizedBox(height: 14),
           _buildReviewCard(order),
         ],
       ],
     );
+  }
+
+  // ============================================================
+  // WITHDRAW FROM BOOKING (NEW — 2026-08-29)
+  // ============================================================
+  //
+  // Lets a customer back out of an already-confirmed/active order
+  // from the detail screen, not just from the Bookings list. Reuses
+  // the existing cancelOrder Cloud Function (OrderService.cancelOrder)
+  // -- no new backend action, just a second, more visible entry
+  // point to it, with the flat ₹150 fee clearly disclosed before the
+  // customer confirms.
+  //
+
+  Widget _buildWithdrawCard(OrderModel order) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                height: 44,
+                width: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFDECEC),
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: const Icon(
+                  Icons.cancel_outlined,
+                  color: Colors.red,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Need to withdraw?',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'You can withdraw from this booking. A flat ₹150 cancellation fee applies once a professional has been confirmed.',
+            style: TextStyle(
+              fontSize: 12.5,
+              height: 1.4,
+              color: textSecondary,
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton(
+              onPressed: _withdrawing ? null : () => _confirmWithdraw(order),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: const BorderSide(color: Color(0xFFE5B7B7)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13),
+                ),
+              ),
+              child: _withdrawing
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.red,
+                      ),
+                    )
+                  : const Text(
+                      'Withdraw from Booking',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // CANCELLATION FEE CARD (2026-08-30)
+  // ============================================================
+  //
+  // Originally just a passive "a fee was applied" banner -- Harsh
+  // pointed out withdrawing looked "not fully cancelled" because
+  // there was no actual screen to pay the ₹150 to the company.
+  // Rebuilt to match the same Pay Now / Paid pattern already used
+  // for the main job payment above (_buildPayNowCard/_buildPaidCard),
+  // just for the flat cancellation fee instead of the job price.
+  //
+
+  Widget _buildCancellationFeeCard(OrderModel order) {
+    if (order.isCancellationFeePaid) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE8F8EE),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: green, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Cancellation fee of ₹${order.cancellationFee.toStringAsFixed(0)} paid.',
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  color: green,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                height: 44,
+                width: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFDECEC),
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: const Icon(
+                  Icons.info_outline_rounded,
+                  color: Colors.red,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Cancellation fee pending',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'A flat ₹${order.cancellationFee.toStringAsFixed(0)} cancellation fee applies to this withdrawn booking. Please pay it to complete the cancellation.',
+            style: const TextStyle(
+              fontSize: 12.5,
+              height: 1.4,
+              color: textSecondary,
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: () => _openCancellationFeeSheet(order),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryBlue,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13),
+                ),
+              ),
+              child: Text(
+                'Pay ₹${order.cancellationFee.toStringAsFixed(0)}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openCancellationFeeSheet(OrderModel order) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return _CancellationFeeSheet(order: order);
+      },
+    );
+  }
+
+  Future<void> _confirmWithdraw(OrderModel order) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          title: const Text(
+            'Withdraw from booking?',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: textPrimary,
+            ),
+          ),
+          content: const Text(
+            'A flat ₹150 cancellation fee applies. The professional will be notified and this slot will be released. This cannot be undone.',
+            style: TextStyle(
+              fontSize: 13.5,
+              height: 1.4,
+              color: textSecondary,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text(
+                'Keep Booking',
+                style: TextStyle(
+                  color: textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text(
+                'Withdraw',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    setState(() => _withdrawing = true);
+
+    try {
+      await OrderService.cancelOrder(order.orderId);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              e.toString().replaceFirst('Bad state: ', ''),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _withdrawing = false);
+      }
+    }
   }
 
   // ============================================================
@@ -490,6 +800,16 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               foregroundColor: Colors.white,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              // Overrides the app-wide ElevatedButtonTheme default of
+              // minimumSize: Size(double.infinity, 62) (see app_theme.dart).
+              // That default is fine for full-width buttons wrapped in their
+              // own SizedBox, but this button sits loose inside a Row, which
+              // gives non-flex children unbounded width during layout --
+              // combined with an infinite minimumSize that threw
+              // "BoxConstraints forces an infinite width" and corrupted this
+              // Row's whole layout (including the text next to it).
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -812,6 +1132,17 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                         ),
                       ),
                     ],
+                  ),
+                ],
+                if ((professional?.phoneNumber ?? '').trim().isNotEmpty) ...[
+                  const SizedBox(height: 5),
+                  Text(
+                    professional!.phoneNumber,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w500,
+                      color: textSecondary,
+                    ),
                   ),
                 ],
               ],
@@ -1287,6 +1618,268 @@ class _PaymentSheetState extends State<_PaymentSheet> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _methodOption({
+    required String label,
+    required IconData icon,
+    required String value,
+  }) {
+    final bool selected = _method == value;
+
+    return GestureDetector(
+      onTap: () => setState(() => _method = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 13),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFFEEF3FF) : Colors.white,
+          borderRadius: BorderRadius.circular(13),
+          border: Border.all(
+            color: selected ? primaryBlue : const Color(0xFFE1E7EF),
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: selected ? primaryBlue : textSecondary,
+              size: 22,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: selected ? primaryBlue : textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ================================================================
+// CANCELLATION FEE SHEET (NEW — 2026-08-30)
+// ================================================================
+//
+// Same mocked payment-method-selector pattern as _PaymentSheet
+// above, but for the flat ₹150 cancellation fee instead of the job
+// price breakdown. Calls OrderService.payCancellationFee, which
+// invokes the payCancellationFee Cloud Function.
+// ================================================================
+
+class _CancellationFeeSheet extends StatefulWidget {
+  final OrderModel order;
+
+  const _CancellationFeeSheet({required this.order});
+
+  @override
+  State<_CancellationFeeSheet> createState() => _CancellationFeeSheetState();
+}
+
+class _CancellationFeeSheetState extends State<_CancellationFeeSheet> {
+  static const Color primaryBlue = Color(0xFF1557FF);
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF64748B);
+
+  String _method = 'UPI';
+  bool _isPaying = false;
+
+  Future<void> _confirmPayment() async {
+    if (_isPaying) return;
+
+    setState(() => _isPaying = true);
+
+    try {
+      await OrderService.payCancellationFee(widget.order.orderId);
+
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } on StateError catch (e) {
+      if (mounted) {
+        setState(() => _isPaying = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isPaying = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to process payment right now.'),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fee = widget.order.cancellationFee;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 18),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+
+              const Text(
+                'Pay Cancellation Fee',
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                  color: textPrimary,
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Cancellation fee',
+                      style: TextStyle(fontSize: 13, color: textSecondary),
+                    ),
+                  ),
+                  Text(
+                    '₹${fee.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Divider(height: 1, color: Color(0xFFE4E7EC)),
+              ),
+
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Total to pay',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: textPrimary,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '₹${fee.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: primaryBlue,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 18),
+
+              const Text(
+                'Payment method',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: textPrimary,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _methodOption(
+                      label: 'UPI',
+                      icon: Icons.qr_code_rounded,
+                      value: 'UPI',
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _methodOption(
+                      label: 'Card',
+                      icon: Icons.credit_card_rounded,
+                      value: 'Card',
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 18),
+
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: _isPaying ? null : _confirmPayment,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryBlue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                  child: _isPaying
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          'Pay ₹${fee.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

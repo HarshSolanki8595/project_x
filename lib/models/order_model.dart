@@ -37,6 +37,28 @@ class OrderModel {
   final double customerGst;
   final double customerTotal;
 
+  // ============================================================
+  // CANCELLATION (NEW — 2026-08-29)
+  // ============================================================
+  //
+  // cancellationFee: flat ₹150 charge written by the cancelOrder
+  // Cloud Function whenever a customer withdraws from an
+  // already-CONFIRMED/ACTIVE order (a still-searching request that
+  // never had a bid accepted is cancelled for free, client-side --
+  // this fee only applies once a professional is actually engaged).
+  // Like the rest of the payment fields, this is MOCKED/recorded
+  // only -- no real gateway collects it yet.
+  //
+
+  final double cancellationFee;
+
+  // cancellationFeeStatus: '' (no fee/not yet charged), 'UNPAID', or
+  // 'PAID' -- written by cancelOrder (sets UNPAID) and
+  // payCancellationFee (sets PAID). Same mocked pattern as
+  // paymentStatus above.
+  final String cancellationFeeStatus;
+  final DateTime? cancellationFeePaidAt;
+
   final DateTime createdAt;
   final DateTime? startedAt;
   final DateTime? completedAt;
@@ -58,6 +80,9 @@ class OrderModel {
     this.customerPlatformCharge = 0,
     this.customerGst = 0,
     this.customerTotal = 0,
+    this.cancellationFee = 0,
+    this.cancellationFeeStatus = '',
+    this.cancellationFeePaidAt,
     required this.createdAt,
     this.startedAt,
     this.completedAt,
@@ -68,6 +93,8 @@ class OrderModel {
   // ============================================================
 
   bool get isPaid => paymentStatus == 'PAID';
+
+  bool get isCancellationFeePaid => cancellationFeeStatus == 'PAID';
 
   // ============================================================
   // FROM FIRESTORE
@@ -92,6 +119,11 @@ class OrderModel {
           (data['customerPlatformCharge'] as num?)?.toDouble() ?? 0,
       customerGst: (data['customerGst'] as num?)?.toDouble() ?? 0,
       customerTotal: (data['customerTotal'] as num?)?.toDouble() ?? 0,
+      cancellationFee: (data['cancellationFee'] as num?)?.toDouble() ?? 0,
+      cancellationFeeStatus: data['cancellationFeeStatus'] as String? ?? '',
+      cancellationFeePaidAt: data['cancellationFeePaidAt'] == null
+          ? null
+          : _readDate(data['cancellationFeePaidAt']),
       createdAt: _readDate(data['createdAt']),
       startedAt:
           data['startedAt'] == null ? null : _readDate(data['startedAt']),

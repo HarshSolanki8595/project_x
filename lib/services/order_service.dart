@@ -136,4 +136,27 @@ class OrderService {
       );
     }
   }
+
+  // ============================================================
+  // PAY CANCELLATION FEE (NEW — 2026-08-30)
+  // ============================================================
+  //
+  // Collects the flat ₹150 fee cancelOrder records on withdrawal --
+  // MOCKED/SIMULATED, same as payForOrder above, no real gateway.
+  //
+
+  static Future<void> payCancellationFee(String orderId) async {
+    try {
+      final callable =
+          FirebaseFunctions.instance.httpsCallable('payCancellationFee');
+
+      await callable.call(<String, dynamic>{
+        'orderId': orderId,
+      });
+    } on FirebaseFunctionsException catch (e) {
+      throw StateError(
+        e.message ?? 'Unable to process payment right now.',
+      );
+    }
+  }
 }
