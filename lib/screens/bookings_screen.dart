@@ -163,11 +163,27 @@ class _BookingsScreenState extends State<BookingsScreen>
   // CANCEL ORDER (ONGOING TAB)
   // ============================================================
 
+  // ============================================================
+  // CANCEL ORDER (ONGOING TAB) — REVISED 2026-09-01
+  // ============================================================
+  //
+  // A booking is NOT actually cancelled until the ₹150 fee is paid
+  // (see cancelOrder/payCancellationFee in index.js) -- this call
+  // now only records that a cancellation fee is owed. The order
+  // stays CONFIRMED/ACTIVE (so it correctly stays right here on the
+  // Ongoing tab, still visible), which is why the old
+  // `_tabController.animateTo(3)` jump to the Cancelled tab was
+  // removed -- jumping there now would show nothing, since the
+  // booking genuinely hasn't been cancelled yet. The card itself
+  // (_orderCard below) switches its own button from "Cancel" to
+  // "Pay ₹150" once this succeeds, live off the order stream.
+  //
+
   Future<void> _cancelOrder(OrderModel order) async {
     final confirmed = await _showCancelConfirmation(
       title: 'Cancel this booking?',
       message:
-          'The professional will be notified and this slot will be released.',
+          'A flat ₹150 cancellation fee applies. Your booking stays active — the professional isn\'t notified and nothing changes — until you pay it.',
     );
 
     if (!confirmed || _cancelling) {
@@ -180,12 +196,6 @@ class _BookingsScreenState extends State<BookingsScreen>
 
     try {
       await OrderService.cancelOrder(order.orderId);
-
-      if (!mounted) {
-        return;
-      }
-
-      _tabController.animateTo(3);
     } catch (e) {
       if (!mounted) {
         return;
@@ -915,7 +925,47 @@ class _BookingsScreenState extends State<BookingsScreen>
                     mainAxisAlignment:
                         MainAxisAlignment.spaceBetween,
                     children: [
-                      if (showCancel)
+                      if (showCancel &&
+                          order.cancellationFee > 0 &&
+                          !order.isCancellationFeePaid)
+                        // A cancellation is already pending payment for
+                        // this booking -- it stays active until the
+                        // ₹150 fee is paid, so tapping "Cancel" again
+                        // would just hit the already-exists guard on
+                        // the server. Point the customer at the actual
+                        // payment screen instead. (Added 2026-09-01.)
+                        TextButton(
+                          onPressed: request == null
+                              ? null
+                              : () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => OrderStatusScreen(
+                                        request:
+                                            _toLegacyRequest(request),
+                                      ),
+                                    ),
+                                  );
+                                },
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            'Pay ₹${order.cancellationFee.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              color: primaryBlue,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        )
+                      else if (showCancel)
                         TextButton(
                           onPressed: _cancelling
                               ? null

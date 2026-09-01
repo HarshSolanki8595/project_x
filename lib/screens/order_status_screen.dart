@@ -9,6 +9,7 @@ import '../models/service_request.dart';
 import '../services/order_service.dart';
 import '../services/professional_firestore_service.dart';
 import '../services/review_service.dart';
+import 'professionals_screen.dart';
 import 'rate_review_screen.dart';
 
 // ================================================================
@@ -219,10 +220,33 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
         ],
         const SizedBox(height: 14),
         _buildRequestDetailsCard(),
+        // ------------------------------------------------------
+        // WITHDRAW vs. PAY-TO-CANCEL (REVISED 2026-09-01)
+        // ------------------------------------------------------
+        //
+        // A booking is NOT actually cancelled until the ₹150 fee is
+        // paid (see cancelOrder/payCancellationFee in index.js) --
+        // so as long as the order is still CONFIRMED/ACTIVE, one of
+        // these two cards shows, never both: the "Need to withdraw?"
+        // entry point if no cancellation has been requested yet, or
+        // the pending-fee card (from _buildCancellationFeeCard,
+        // unpaid state) if one has and is just waiting on payment.
+        // cancellationFee/cancellationFeeStatus now show up on a
+        // still-CONFIRMED/ACTIVE order, not only a cancelled one --
+        // that's the whole point of the fix.
+        //
         if (order.status == MarketplaceStatus.confirmed ||
             order.status == MarketplaceStatus.active) ...[
           const SizedBox(height: 14),
-          _buildWithdrawCard(order),
+          if (order.cancellationFee > 0 && !order.isCancellationFeePaid)
+            _buildCancellationFeeCard(order)
+          else
+            _buildWithdrawCard(order),
+        ],
+        if (order.status == MarketplaceStatus.orderCancelled &&
+            order.isWithdrawnByProfessional) ...[
+          const SizedBox(height: 14),
+          _buildProfessionalWithdrewCard(),
         ],
         if (order.status == MarketplaceStatus.orderCancelled &&
             order.cancellationFee > 0) ...[
@@ -335,6 +359,96 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
   }
 
   // ============================================================
+  // PROFESSIONAL WITHDREW CARD (NEW — 2026-08-30)
+  // ============================================================
+  //
+  // Shown instead of the cancellation-fee card whenever the
+  // PROFESSIONAL is the one who backed out of an already-confirmed
+  // job (professionalWithdrawOrder in index.js sets
+  // cancelledBy: 'PROFESSIONAL') -- the ₹150 fee in that case is
+  // auto-deducted from the professional's own wallet, so this
+  // customer is never asked to pay anything. Instead, "Find New
+  // Professional" reopens the same request in ProfessionalsScreen,
+  // reusing widget.request rather than re-fetching it, since the
+  // matching Cloud Function already created fresh opportunities for
+  // other eligible professionals server-side.
+  //
+
+  Widget _buildProfessionalWithdrewCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                height: 44,
+                width: 44,
+                decoration: BoxDecoration(
+                  color: lightBlue,
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: const Icon(
+                  Icons.search_rounded,
+                  color: primaryBlue,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Your professional withdrew',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            "Don't worry — we're finding you a new professional for "
+            "this job at no extra cost to you.",
+            style: TextStyle(
+              fontSize: 12.5,
+              height: 1.4,
+              color: textSecondary,
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        ProfessionalsScreen(request: widget.request),
+                  ),
+                );
+              },
+              child: const Text(
+                'Find New Professional',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
   // CANCELLATION FEE CARD (2026-08-30)
   // ============================================================
   //
@@ -415,7 +529,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'A flat ₹${order.cancellationFee.toStringAsFixed(0)} cancellation fee applies to this withdrawn booking. Please pay it to complete the cancellation.',
+            'A flat ₹${order.cancellationFee.toStringAsFixed(0)} cancellation fee applies. Your booking stays active until it\'s paid — pay it to complete the cancellation.',
             style: const TextStyle(
               fontSize: 12.5,
               height: 1.4,
@@ -478,7 +592,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             ),
           ),
           content: const Text(
-            'A flat ₹150 cancellation fee applies. The professional will be notified and this slot will be released. This cannot be undone.',
+            'A flat ₹150 cancellation fee applies. Your booking stays active — the professional isn\'t notified and nothing changes — until you pay it on the next screen.',
             style: TextStyle(
               fontSize: 13.5,
               height: 1.4,

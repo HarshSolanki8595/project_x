@@ -59,6 +59,23 @@ class OrderModel {
   final String cancellationFeeStatus;
   final DateTime? cancellationFeePaidAt;
 
+  // ============================================================
+  // PROFESSIONAL WITHDRAWAL (NEW — 2026-08-30)
+  // ============================================================
+  //
+  // cancelledBy: '' or 'PROFESSIONAL' -- set only when the
+  // PROFESSIONAL withdraws from an already-confirmed job
+  // (professionalWithdrawOrder in index.js), never for a
+  // customer-initiated cancellation. Deliberately a separate field
+  // from cancellationFee/cancellationFeeStatus above: that ₹150 fee
+  // is always the CUSTOMER's to pay, and this app must never show a
+  // "Pay ₹150" prompt for a fee that's actually the professional's
+  // to cover -- see order_status_screen.dart's cancelledBy check,
+  // which shows a "find a new professional" card instead.
+  //
+
+  final String cancelledBy;
+
   final DateTime createdAt;
   final DateTime? startedAt;
   final DateTime? completedAt;
@@ -83,6 +100,7 @@ class OrderModel {
     this.cancellationFee = 0,
     this.cancellationFeeStatus = '',
     this.cancellationFeePaidAt,
+    this.cancelledBy = '',
     required this.createdAt,
     this.startedAt,
     this.completedAt,
@@ -95,6 +113,8 @@ class OrderModel {
   bool get isPaid => paymentStatus == 'PAID';
 
   bool get isCancellationFeePaid => cancellationFeeStatus == 'PAID';
+
+  bool get isWithdrawnByProfessional => cancelledBy == 'PROFESSIONAL';
 
   // ============================================================
   // FROM FIRESTORE
@@ -124,6 +144,7 @@ class OrderModel {
       cancellationFeePaidAt: data['cancellationFeePaidAt'] == null
           ? null
           : _readDate(data['cancellationFeePaidAt']),
+      cancelledBy: data['cancelledBy'] as String? ?? '',
       createdAt: _readDate(data['createdAt']),
       startedAt:
           data['startedAt'] == null ? null : _readDate(data['startedAt']),
