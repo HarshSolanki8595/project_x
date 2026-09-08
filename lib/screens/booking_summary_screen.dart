@@ -234,7 +234,7 @@ class BookingSummaryScreen extends StatelessWidget {
                                                 const TextStyle(
                                               color:
                                                   textSecondary,
-                                              fontSize: 12.5,
+                                              fontSize: 13,
                                             ),
                                           ),
                                         ),
@@ -276,7 +276,7 @@ class BookingSummaryScreen extends StatelessWidget {
                                         style: TextStyle(
                                           color:
                                               textSecondary,
-                                          fontSize: 11,
+                                          fontSize: 12,
                                         ),
                                       ),
 
@@ -285,7 +285,7 @@ class BookingSummaryScreen extends StatelessWidget {
                                       Text(
                                         "Professional's quote",
                                         style: TextStyle(
-                                          fontSize: 12.5,
+                                          fontSize: 13,
                                           color:
                                               textPrimary,
                                           fontWeight:
@@ -327,7 +327,7 @@ class BookingSummaryScreen extends StatelessWidget {
                                 style: const TextStyle(
                                   color:
                                       textSecondary,
-                                  fontSize: 12.5,
+                                  fontSize: 13,
                                   height: 1.35,
                                 ),
                               ),
@@ -628,7 +628,7 @@ class BookingSummaryScreen extends StatelessWidget {
                 label,
                 style: const TextStyle(
                   color: textSecondary,
-                  fontSize: 11.5,
+                  fontSize: 12,
                 ),
               ),
 

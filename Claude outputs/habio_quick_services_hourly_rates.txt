@@ -1,0 +1,52 @@
+HABIO QUICK SERVICES - HOURLY RATE SHEET
+Fill in the blank next to each service with the new hourly rate (Rs./hour)
+==========================================================================
+
+CLEANING SERVICES
+------------------
+1.  Home Cleaning ................................... Rs. _______ /hour
+2.  Kitchen Cleaning ................................. Rs. _______ /hour
+3.  Bathroom Cleaning ................................ Rs. _______ /hour
+4.  Sofa Cleaning ..................................... Rs. _______ /hour
+5.  Carpet Cleaning ................................... Rs. _______ /hour
+6.  Window Cleaning ................................... Rs. _______ /hour
+7.  Water Tank Cleaning ............................... Rs. _______ /hour
+8.  Chimney Cleaning .................................. Rs. _______ /hour
+9.  Car Cleaning ...................................... Rs. _______ /hour
+10. Office Cleaning ................................... Rs. _______ /hour
+11. Move-In / Move-Out Cleaning ....................... Rs. _______ /hour
+12. Mattress Cleaning ................................. Rs. _______ /hour
+13. Curtain Cleaning .................................. Rs. _______ /hour
+14. Garden Cleaning ................................... Rs. _______ /hour
+15. Post-Construction Cleaning ........................ Rs. _______ /hour
+16. Disinfection / Sanitization ....................... Rs. _______ /hour
+17. General Cleaning .................................. Rs. _______ /hour
+18. Deep House Cleaning (NEW) ......................... Rs. _______ /hour
+
+
+HELPER SERVICES
+----------------
+1.  Full-Time Maid .................................... Rs. _______ /hour
+2.  Part-Time Maid .................................... Rs. _______ /hour
+3.  Cook .............................................. Rs. _______ /hour
+4.  Babysitter ........................................ Rs. _______ /hour
+5.  Elderly Care ...................................... Rs. _______ /hour
+6.  Driver ............................................ Rs. _______ /hour
+7.  Dog Walking ....................................... Rs. _______ /hour
+8.  Gardener .......................................... Rs. _______ /hour
+9.  Errand Assistant .................................. Rs. _______ /hour
+10. Laundry & Ironing ................................. Rs. _______ /hour
+11. Night Caregiver ................................... Rs. _______ /hour
+12. Party Cooking ..................................... Rs. _______ /hour
+13. Pet Grooming ...................................... Rs. _______ /hour
+14. Plant Care ........................................ Rs. _______ /hour
+15. General Helper .................................... Rs. _______ /hour
+
+==========================================================================
+Notes:
+- 33 services total (17 existing Cleaning + Deep House Cleaning (new) + 15
+  Helper Services).
+- Deep House Cleaning has no existing price in the app - fill in fresh.
+- These are currently priced as fixed/tiered packages in the app (see the
+  earlier rate sheet for current tier prices); this list is for the flat
+  hourly rate you want to move each service to.

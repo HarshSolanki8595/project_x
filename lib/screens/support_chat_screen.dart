@@ -212,7 +212,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               'Have a question or an issue with a booking? Send us a message below.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 12.5,
+                fontSize: 13,
                 color: AppTheme.textSecondary,
               ),
             ),
@@ -254,7 +254,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
         message.text,
         style: TextStyle(
           color: isCustomer ? Colors.white : AppTheme.textPrimary,
-          fontSize: 13.5,
+          fontSize: 14,
           height: 1.4,
         ),
       ),
@@ -282,7 +282,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               child: Text(
                 'Habio Support',
                 style: TextStyle(
-                  fontSize: 10.5,
+                  fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.textSecondary,
                 ),

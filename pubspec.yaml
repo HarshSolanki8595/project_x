@@ -31,6 +31,7 @@ dependencies:
   cloud_firestore: ^6.0.0
   firebase_storage: ^13.0.0
   firebase_messaging: ^16.0.0
+  firebase_app_check: ^0.4.7
 
   # Utilities
   intl: ^0.20.2
@@ -42,6 +43,7 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -50,3 +52,27 @@ flutter:
     - assets/logo/
     - assets/images/
     - assets/images/onboarding/
+
+# ================================================================
+# APP LAUNCHER ICON (added 2026-09-06)
+# ================================================================
+#
+# Generates the real Android launcher icon (all mipmap densities
+# plus a proper Android 8+ adaptive icon) from the Habio logo,
+# replacing the default Flutter icon. Run:
+#   flutter pub get
+#   dart run flutter_launcher_icons
+# after editing anything below, then rebuild the app.
+#
+# image_path is the flattened legacy icon (white logo already
+# composited onto the brand-blue background) used for older
+# Android launchers. adaptive_icon_foreground/background build the
+# proper Android 8+ adaptive icon separately, with the foreground
+# padded so the mark isn't clipped by round/squircle launcher masks.
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/logo/icon_customer_legacy_icon.png"
+  adaptive_icon_background: "#1557FF"
+  adaptive_icon_foreground: "assets/logo/icon_customer_adaptive_foreground.png"

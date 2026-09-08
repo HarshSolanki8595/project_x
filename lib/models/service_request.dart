@@ -65,6 +65,57 @@ class ServiceRequest {
   String urgency;
 
   // ============================================================
+  // FIXED-PRICE PRICING MODEL (Helper Services + Cleaning only)
+  // Added 2026-09-02 -- see fixed_price_service_config.dart.
+  // ============================================================
+  //
+  // pricingType is 'BID' for every other category (default, so
+  // nothing about the existing professional-quoted flow changes)
+  // or 'FIXED_PRICE' for Helper Services/Cleaning requests, where
+  // the customer posts a price up front instead of collecting bids.
+  //
+
+  String pricingType;
+
+  // Answers to the predefined pricing questions for this request's
+  // subcategory -- currently just {'hours': ..., 'recipients': ...},
+  // kept as a map so future subcategory-specific questions can be
+  // added without another model change.
+  Map<String, dynamic> fixedPriceAnswers;
+
+  int? numberOfServiceRecipients;
+  double? serviceDurationHours;
+
+  // The system-computed fair price from FixedPriceSubCategoryConfig,
+  // for the answers above.
+  double? computedFairPrice;
+
+  // What the customer actually posts the request at -- starts equal
+  // to computedFairPrice (auto-filled), can be edited down (triggers
+  // the below-floor warning) or raised later via the raise-price flow.
+  double? postedPrice;
+
+  // ============================================================
+  // MATERIAL SOURCING (non-Quick-Service requests only)
+  // Added 2026-09-04 -- ServiceRequestScreen is only ever used for
+  // BID-priced requests (Quick Services / FIXED_PRICE goes through
+  // FixedPriceRequestScreen instead -- see subcategory_screen.dart),
+  // so these fields only ever get set there.
+  // ============================================================
+  //
+  // null until the customer makes a choice (mandatory before they
+  // can continue) -- true: customer brings their own material, so
+  // the professional's Materials Cost field is grayed out/locked to
+  // ₹0 on their side; false: professional sources it, in which case
+  // materialGrade is mandatory (customer picks it on this screen)
+  // and materialBrandPreference is an optional free-text hint.
+  //
+
+  bool? customerProvidesMaterial;
+  String? materialGrade;
+  String? materialBrandPreference;
+
+  // ============================================================
   // CONSTRUCTOR
   // ============================================================
 
@@ -86,6 +137,15 @@ class ServiceRequest {
     this.categoryId,
     this.customerId,
     this.urgency = 'NORMAL',
+    this.pricingType = 'BID',
+    this.fixedPriceAnswers = const {},
+    this.numberOfServiceRecipients,
+    this.serviceDurationHours,
+    this.computedFairPrice,
+    this.postedPrice,
+    this.customerProvidesMaterial,
+    this.materialGrade,
+    this.materialBrandPreference,
   }) : requestId = requestId ?? _generateRequestId();
 
   // ============================================================
@@ -110,6 +170,15 @@ class ServiceRequest {
     String? categoryId,
     String? customerId,
     String? urgency,
+    String? pricingType,
+    Map<String, dynamic>? fixedPriceAnswers,
+    int? numberOfServiceRecipients,
+    double? serviceDurationHours,
+    double? computedFairPrice,
+    double? postedPrice,
+    bool? customerProvidesMaterial,
+    String? materialGrade,
+    String? materialBrandPreference,
   }) {
     return ServiceRequest(
       categoryName:
@@ -164,6 +233,33 @@ class ServiceRequest {
 
       urgency:
           urgency ?? this.urgency,
+
+      pricingType:
+          pricingType ?? this.pricingType,
+
+      fixedPriceAnswers:
+          fixedPriceAnswers ?? this.fixedPriceAnswers,
+
+      numberOfServiceRecipients:
+          numberOfServiceRecipients ?? this.numberOfServiceRecipients,
+
+      serviceDurationHours:
+          serviceDurationHours ?? this.serviceDurationHours,
+
+      computedFairPrice:
+          computedFairPrice ?? this.computedFairPrice,
+
+      postedPrice:
+          postedPrice ?? this.postedPrice,
+
+      customerProvidesMaterial:
+          customerProvidesMaterial ?? this.customerProvidesMaterial,
+
+      materialGrade:
+          materialGrade ?? this.materialGrade,
+
+      materialBrandPreference:
+          materialBrandPreference ?? this.materialBrandPreference,
     );
   }
 
@@ -205,6 +301,33 @@ class ServiceRequest {
 
       'urgency':
           urgency,
+
+      'pricingType':
+          pricingType,
+
+      'fixedPriceAnswers':
+          fixedPriceAnswers,
+
+      'numberOfServiceRecipients':
+          numberOfServiceRecipients,
+
+      'serviceDurationHours':
+          serviceDurationHours,
+
+      'computedFairPrice':
+          computedFairPrice,
+
+      'postedPrice':
+          postedPrice,
+
+      'customerProvidesMaterial':
+          customerProvidesMaterial,
+
+      'materialGrade':
+          materialGrade,
+
+      'materialBrandPreference':
+          materialBrandPreference,
 
       // Firebase Storage URLs will be added later.
       'photos': <String>[],
@@ -273,6 +396,45 @@ class ServiceRequest {
 
       urgency:
           map['urgency'] ?? 'NORMAL',
+
+      pricingType:
+          map['pricingType'] ?? 'BID',
+
+      fixedPriceAnswers:
+          map['fixedPriceAnswers'] == null
+              ? const {}
+              : Map<String, dynamic>.from(
+                  map['fixedPriceAnswers'],
+                ),
+
+      numberOfServiceRecipients:
+          map['numberOfServiceRecipients'] == null
+              ? null
+              : (map['numberOfServiceRecipients'] as num).toInt(),
+
+      serviceDurationHours:
+          map['serviceDurationHours'] == null
+              ? null
+              : (map['serviceDurationHours'] as num).toDouble(),
+
+      computedFairPrice:
+          map['computedFairPrice'] == null
+              ? null
+              : (map['computedFairPrice'] as num).toDouble(),
+
+      postedPrice:
+          map['postedPrice'] == null
+              ? null
+              : (map['postedPrice'] as num).toDouble(),
+
+      customerProvidesMaterial:
+          map['customerProvidesMaterial'] as bool?,
+
+      materialGrade:
+          map['materialGrade'] as String?,
+
+      materialBrandPreference:
+          map['materialBrandPreference'] as String?,
 
       photos: [],
 

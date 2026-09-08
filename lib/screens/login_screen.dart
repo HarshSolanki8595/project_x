@@ -330,7 +330,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: darkText,
-                      fontSize: 30,
+                      fontSize: 32,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.7,
                       height: 1.15,

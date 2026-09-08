@@ -22,9 +22,10 @@ class BidService {
   // or touch activeOrderCount. The real "customer accepts this
   // bid" action goes through the acceptBid Cloud Function (see
   // order_acceptance_service.dart), which is the only place that
-  // atomically creates the order and enforces the 2-active-orders
-  // cap. Don't call BidService.acceptBid() expecting an order to
-  // come out of it.
+  // atomically creates the order and enforces the active-orders
+  // cap (2 for Individual, 5 for Business -- see maxActiveOrdersFor()
+  // in functions/index.js). Don't call BidService.acceptBid()
+  // expecting an order to come out of it.
   //
 
   static final FirebaseFirestore _firestore =
@@ -72,6 +73,9 @@ class BidService {
     required String warranty,
     required String additionalWork,
     required String message,
+    // Business (GST) registrations only -- added 2026-09-04. Null
+    // for Individual professionals.
+    String? employeeName,
   }) async {
     final bool canBid = await OpportunityService.canProfessionalBid(
       requestId: requestId,
@@ -120,6 +124,7 @@ class BidService {
       'warranty': warranty,
       'additionalWork': additionalWork,
       'message': message,
+      'employeeName': employeeName,
       'bidSubmittedAt': Timestamp.fromDate(now),
       'status': MarketplaceStatus.bidSubmitted,
     }, SetOptions(merge: true));
@@ -135,6 +140,7 @@ class BidService {
       warranty: warranty,
       additionalWork: additionalWork,
       message: message,
+      employeeName: employeeName,
       status: MarketplaceStatus.submitted,
       createdAt: now,
     );
@@ -362,6 +368,7 @@ class BidService {
       warranty: data['warranty'] as String? ?? '',
       additionalWork: data['additionalWork'] as String? ?? '',
       message: data['message'] as String? ?? '',
+      employeeName: data['employeeName'] as String?,
       status: status,
       createdAt: data['bidSubmittedAt'] is Timestamp
           ? (data['bidSubmittedAt'] as Timestamp).toDate()

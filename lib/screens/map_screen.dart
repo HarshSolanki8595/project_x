@@ -426,7 +426,7 @@ class _MapScreenState extends State<MapScreen> {
                   "Selected Address",
                   style: TextStyle(
                     color: textPrimary,
-                    fontSize: 21,
+                    fontSize: 20,
                     fontWeight:
                         FontWeight.w700,
                     letterSpacing:
@@ -500,7 +500,7 @@ class _MapScreenState extends State<MapScreen> {
                               const TextStyle(
                             color:
                                 textPrimary,
-                            fontSize: 13.5,
+                            fontSize: 14,
                             height: 1.35,
                             fontWeight:
                                 FontWeight

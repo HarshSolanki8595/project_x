@@ -9,6 +9,7 @@ import '../models/service_request_model.dart';
 import '../services/order_service.dart';
 import '../services/professional_firestore_service.dart';
 import '../services/request_repository.dart';
+import 'fixed_price_waiting_screen.dart';
 import 'order_status_screen.dart';
 import 'professionals_screen.dart';
 
@@ -114,6 +115,32 @@ class _BookingsScreenState extends State<BookingsScreen>
       categoryId: model.categoryId,
       customerId: model.customerId,
       urgency: model.urgency,
+      // Quick Services (Cleaning + Helper Services) -- without these,
+      // re-opening a fixed-price request from Bookings would default
+      // back to the bid flow (pricingType defaults to 'BID') instead
+      // of the fixed-price waiting/raise-price screen it actually
+      // belongs on.
+      pricingType: model.pricingType,
+      postedPrice: model.postedPrice,
+      computedFairPrice: model.computedFairPrice,
+    );
+  }
+
+  // Quick Services (Cleaning + Helper Services) requests skip the bid
+  // list entirely -- any eligible professional can Accept the posted
+  // price directly. Re-opening one from Bookings needs to land back on
+  // FixedPriceWaitingScreen, not ProfessionalsScreen (the bid list),
+  // same as the initial post-submit flow already does.
+  void _openUpcomingRequest(ServiceRequestModel request) {
+    final legacyRequest = _toLegacyRequest(request);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => request.pricingType == 'FIXED_PRICE'
+            ? FixedPriceWaitingScreen(request: legacyRequest)
+            : ProfessionalsScreen(request: legacyRequest),
+      ),
     );
   }
 
@@ -239,7 +266,7 @@ class _BookingsScreenState extends State<BookingsScreen>
           content: Text(
             message,
             style: const TextStyle(
-              fontSize: 13.5,
+              fontSize: 14,
               height: 1.4,
               color: textSecondary,
             ),
@@ -588,21 +615,14 @@ class _BookingsScreenState extends State<BookingsScreen>
     final bool isCancelled =
         request.status.toUpperCase() == 'CANCELLED';
 
+    final bool isFixedPrice = request.pricingType == 'FIXED_PRICE';
+
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ProfessionalsScreen(
-                request: _toLegacyRequest(request),
-              ),
-            ),
-          );
-        },
+        onTap: () => _openUpcomingRequest(request),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16),
@@ -644,7 +664,11 @@ class _BookingsScreenState extends State<BookingsScreen>
                   const SizedBox(width: 10),
                   Flexible(
                     child: _statusChip(
-                      isCancelled ? 'Cancelled' : 'Searching',
+                      isCancelled
+                          ? 'Cancelled'
+                          : (isFixedPrice
+                              ? 'Awaiting acceptance'
+                              : 'Searching'),
                       isCancelled
                           ? const Color(0xFFFDECEC)
                           : lightBlue,
@@ -682,6 +706,14 @@ class _BookingsScreenState extends State<BookingsScreen>
                 _formatDate(request.createdAt),
               ),
 
+              if (isFixedPrice && request.postedPrice != null) ...[
+                const SizedBox(height: 8),
+                _infoLine(
+                  Icons.payments_outlined,
+                  'Posted at ₹${request.postedPrice!.toStringAsFixed(0)}',
+                ),
+              ],
+
               const SizedBox(height: 12),
 
               Row(
@@ -712,16 +744,7 @@ class _BookingsScreenState extends State<BookingsScreen>
                   else
                     const SizedBox.shrink(),
                   TextButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ProfessionalsScreen(
-                            request: _toLegacyRequest(request),
-                          ),
-                        ),
-                      );
-                    },
+                    onPressed: () => _openUpcomingRequest(request),
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 4,
@@ -1093,7 +1116,7 @@ class _BookingsScreenState extends State<BookingsScreen>
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: foreground,
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: FontWeight.w700,
         ),
       ),

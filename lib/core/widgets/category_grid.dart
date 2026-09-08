@@ -12,7 +12,11 @@ class CategoryGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final categories = ServiceCategories.all;
+    // Quick Services (Helper Services, Cleaning) get their own
+    // segregated section above this one -- see QuickServicesSection --
+    // so they're excluded here instead of appearing in both places.
+    final categories =
+        ServiceCategories.all.where((c) => !c.isQuickService).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

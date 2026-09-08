@@ -12,6 +12,13 @@ class OrderModel {
   final double agreedPrice;
   final String warranty;
 
+  // Employee assigned to fulfill this job -- Business (GST)
+  // registrations only, added 2026-09-04. Carried over from the
+  // accepted bid's employeeName by the acceptBid Cloud Function;
+  // null for Individual professionals and for any order created
+  // before this existed.
+  final String? employeeName;
+
   final String status;
 
   // ============================================================
@@ -80,6 +87,41 @@ class OrderModel {
   final DateTime? startedAt;
   final DateTime? completedAt;
 
+  // ============================================================
+  // START-JOB OTP (NEW — 2026-09-08)
+  // ============================================================
+  //
+  // 4-digit code generated once by acceptBid/acceptFixedPriceOpportunity
+  // (index.js) and shown to the customer on the Order Status screen
+  // while the order is CONFIRMED -- see order_status_screen.dart's
+  // _buildStartCodeCard. The professional has to ask for this code
+  // on arrival and enter it in their own app before startJob lets
+  // the job begin (verified server-side, not just in the UI).
+  //
+
+  final String startOtp;
+
+  // ============================================================
+  // IN-JOB PICKUP ESCALATION (NEW — 2026-09-08)
+  // ============================================================
+  //
+  // Rare exception path (Automobile/Appliances only) -- see
+  // escalateToPickup/advancePickupStage/completeJob in index.js.
+  // pickupOtp/deliveryOtp are generated up front (same moment as
+  // startOtp above) so there's never a gap; order_status_screen.dart
+  // only actually surfaces each one once it's relevant (pickupOtp
+  // while the job is on-site and not yet escalated, deliveryOtp once
+  // pickupStage reaches OUT_FOR_DELIVERY).
+  //
+  // pickupStage: '' (not a pickup job) | 'PICKED_UP' | 'IN_REPAIR' |
+  // 'OUT_FOR_DELIVERY'.
+  //
+
+  final bool isPickupJob;
+  final String pickupStage;
+  final String pickupOtp;
+  final String deliveryOtp;
+
   const OrderModel({
     required this.orderId,
     required this.requestId,
@@ -90,6 +132,7 @@ class OrderModel {
     required this.bidId,
     required this.agreedPrice,
     this.warranty = '',
+    this.employeeName,
     required this.status,
     this.paymentStatus = '',
     this.paymentChannel = '',
@@ -104,6 +147,11 @@ class OrderModel {
     required this.createdAt,
     this.startedAt,
     this.completedAt,
+    this.startOtp = '',
+    this.isPickupJob = false,
+    this.pickupStage = '',
+    this.pickupOtp = '',
+    this.deliveryOtp = '',
   });
 
   // ============================================================
@@ -131,6 +179,7 @@ class OrderModel {
       bidId: data['bidId'] as String? ?? '',
       agreedPrice: (data['agreedPrice'] as num?)?.toDouble() ?? 0,
       warranty: data['warranty'] as String? ?? '',
+      employeeName: data['employeeName'] as String?,
       status: data['status'] as String? ?? '',
       paymentStatus: data['paymentStatus'] as String? ?? '',
       paymentChannel: data['paymentChannel'] as String? ?? '',
@@ -151,6 +200,11 @@ class OrderModel {
       completedAt: data['completedAt'] == null
           ? null
           : _readDate(data['completedAt']),
+      startOtp: data['startOtp'] as String? ?? '',
+      isPickupJob: data['isPickupJob'] as bool? ?? false,
+      pickupStage: data['pickupStage'] as String? ?? '',
+      pickupOtp: data['pickupOtp'] as String? ?? '',
+      deliveryOtp: data['deliveryOtp'] as String? ?? '',
     );
   }
 
@@ -175,10 +229,14 @@ class OrderModel {
       bidId: data['bidId'] as String? ?? '',
       agreedPrice: (data['agreedPrice'] as num?)?.toDouble() ?? 0,
       warranty: data['warranty'] as String? ?? '',
+      employeeName: data['employeeName'] as String?,
       status: data['status'] as String? ?? '',
       createdAt: _readDate(data['createdAt']),
       startedAt: null,
       completedAt: null,
+      startOtp: data['startOtp'] as String? ?? '',
+      pickupOtp: data['pickupOtp'] as String? ?? '',
+      deliveryOtp: data['deliveryOtp'] as String? ?? '',
     );
   }
 

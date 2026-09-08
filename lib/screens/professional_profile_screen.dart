@@ -155,7 +155,7 @@ class ProfessionalProfileScreen extends StatelessWidget {
                 : 'Professional',
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 19,
+              fontSize: 20,
               fontWeight: FontWeight.w800,
               color: textPrimary,
             ),
@@ -193,7 +193,7 @@ class ProfessionalProfileScreen extends StatelessWidget {
             'Verified Professional',
             style: TextStyle(
               color: green,
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -213,7 +213,7 @@ class ProfessionalProfileScreen extends StatelessWidget {
         'Member since ${_formatMonthYear(createdAt)}',
         style: const TextStyle(
           color: textSecondary,
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -279,7 +279,7 @@ class ProfessionalProfileScreen extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontSize: 11,
+              fontSize: 12,
               color: textSecondary,
             ),
           ),
@@ -400,6 +400,27 @@ class ProfessionalProfileScreen extends StatelessWidget {
           );
         }
 
+        // ------------------------------------------------------------
+        // FIX (2026-09-06): Harsh's point 6 -- "the written reviews
+        // are nowhere visible on the app." Root cause: this is a
+        // composite query (where professionalId + orderBy createdAt)
+        // and firestore.indexes.json never had the matching index, so
+        // Firestore rejected it with FAILED_PRECONDITION every single
+        // time. Before this fix, that error was swallowed by
+        // `snapshot.data ?? const <ReviewModel>[]` above and this
+        // screen just showed "No reviews yet" -- indistinguishable
+        // from there genuinely being no reviews, even though real
+        // written reviews existed in Firestore the whole time. Now
+        // surfaced as its own state so a real failure is never
+        // mistaken for an empty list again.
+        // ------------------------------------------------------------
+        if (snapshot.hasError) {
+          return _emptyCard(
+            icon: Icons.error_outline_rounded,
+            message: "Couldn't load reviews right now. Please try again.",
+          );
+        }
+
         if (reviews.isEmpty) {
           return _emptyCard(
             icon: Icons.rate_review_outlined,
@@ -453,7 +474,7 @@ class ProfessionalProfileScreen extends StatelessWidget {
               Text(
                 _formatMonthYear(review.createdAt),
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 12,
                   color: textSecondary,
                 ),
               ),
@@ -498,7 +519,7 @@ class ProfessionalProfileScreen extends StatelessWidget {
           Text(
             message,
             style: const TextStyle(
-              fontSize: 12.5,
+              fontSize: 13,
               color: textSecondary,
             ),
           ),

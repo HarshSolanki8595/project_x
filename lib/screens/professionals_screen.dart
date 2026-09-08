@@ -8,7 +8,8 @@ import '../models/service_request.dart';
 import '../services/bid_service.dart';
 import '../services/order_acceptance_service.dart';
 import '../services/professional_firestore_service.dart';
-import 'main_screen.dart';
+import '../utils/pricing.dart';
+import 'main_navigation_screen.dart';
 import 'professional_profile_screen.dart';
 
 class ProfessionalsScreen extends StatefulWidget {
@@ -263,7 +264,7 @@ class _ProfessionalsScreenState
                       TextAlign.center,
                   style: const TextStyle(
                     color: textPrimary,
-                    fontSize: 21,
+                    fontSize: 20,
                     fontWeight:
                         FontWeight.w700,
                   ),
@@ -279,6 +280,77 @@ class _ProfessionalsScreenState
                     fontWeight:
                         FontWeight.w800,
                   ),
+                ),
+
+                const Text(
+                  "Professional's quote",
+                  style: TextStyle(
+                    color: textSecondary,
+                    fontSize: 11,
+                  ),
+                ),
+
+                // --------------------------------------------------
+                // FIX (2026-09-06): Harsh's point 7 -- "when the
+                // customer sees the quote and accepts the quote it
+                // should show what it would have to pay at the end."
+                // Before this, the only figure shown here was the
+                // professional's raw quote -- the customer had no
+                // idea, at the moment they're deciding whether to
+                // accept, that Platform Charges + GST would be added
+                // on top. See utils/pricing.dart, which mirrors
+                // functions/index.js's calculatePlatformCharges()
+                // exactly, so this estimate matches to the rupee
+                // what recordPayment will actually charge later.
+                // --------------------------------------------------
+                const SizedBox(height: 14),
+
+                Builder(
+                  builder: (context) {
+                    final pricing =
+                        CustomerPricing.fromAgreedPrice(bid.totalPrice);
+
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          color: const Color(0xFFE1E7EF),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _priceBreakdownRow(
+                            "Service quote",
+                            '₹${pricing.agreedPrice.toStringAsFixed(0)}',
+                          ),
+                          const SizedBox(height: 6),
+                          _priceBreakdownRow(
+                            'Platform Charges (9.5%)',
+                            '+ ₹${pricing.platformCharge.toStringAsFixed(0)}',
+                          ),
+                          const SizedBox(height: 6),
+                          _priceBreakdownRow(
+                            'GST on Platform Charges (18%)',
+                            '+ ₹${pricing.gst.toStringAsFixed(0)}',
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            height: 1,
+                            color: const Color(0xFFE1E7EF),
+                          ),
+                          const SizedBox(height: 10),
+                          _priceBreakdownRow(
+                            "You'll pay",
+                            '₹${pricing.total.toStringAsFixed(0)}',
+                            emphasize: true,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
 
                 if (bid.warranty.trim().isNotEmpty) ...[
@@ -403,6 +475,39 @@ class _ProfessionalsScreenState
     return result ?? false;
   }
 
+  // ------------------------------------------------------------
+  // PRICE BREAKDOWN ROW (2026-09-06, Harsh's point 7)
+  // ------------------------------------------------------------
+
+  Widget _priceBreakdownRow(
+    String label,
+    String value, {
+    bool emphasize = false,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: emphasize ? textPrimary : textSecondary,
+              fontSize: emphasize ? 14 : 12.5,
+              fontWeight: emphasize ? FontWeight.w800 : FontWeight.w500,
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            color: emphasize ? primaryBlue : textPrimary,
+            fontSize: emphasize ? 16 : 12.5,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+
   // ============================================================
   // ORDER CREATED DIALOG
   // ============================================================
@@ -461,15 +566,38 @@ class _ProfessionalsScreenState
 
               const SizedBox(height: 8),
 
-              Text(
-                '₹${price.toStringAsFixed(0)}',
-                style:
-                    const TextStyle(
-                  color: primaryBlue,
-                  fontSize: 24,
-                  fontWeight:
-                      FontWeight.w800,
-                ),
+              // --------------------------------------------------
+              // FIX (2026-09-06): Harsh's point 7 -- show what the
+              // customer actually pays (service quote + Platform
+              // Charges + GST), not just the raw professional quote,
+              // now that the order is confirmed. See
+              // utils/pricing.dart.
+              // --------------------------------------------------
+              Builder(
+                builder: (context) {
+                  final pricing = CustomerPricing.fromAgreedPrice(price);
+
+                  return Column(
+                    children: [
+                      Text(
+                        '₹${pricing.total.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          color: primaryBlue,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      const Text(
+                        'Total amount you will pay',
+                        style: TextStyle(
+                          color: textSecondary,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
 
               const SizedBox(height: 14),
@@ -515,15 +643,28 @@ class _ProfessionalsScreenState
                   // double-pop sometimes left the customer on a
                   // stale intermediate screen instead of landing on
                   // Bookings. This clears the entire navigation
-                  // stack and lands cleanly on the Bookings tab
-                  // every time, regardless of how the customer
-                  // arrived here.
+                  // stack and lands cleanly on the home tab every
+                  // time, regardless of how the customer arrived
+                  // here.
+                  //
+                  // FIXED (2026-09-06, Harsh's point 10): this used
+                  // to push MainScreen(initialIndex: 1) -- but
+                  // MainScreen is a leftover/orphaned navigation
+                  // shell that the rest of the app never actually
+                  // uses (the real app is rooted at
+                  // MainNavigationScreen, reached from splash/login/
+                  // OTP/create-profile). Landing here meant the
+                  // customer's "Done" tap dropped them into a
+                  // disconnected duplicate shell on the Bookings tab
+                  // instead of back into the real app on Home --
+                  // which read as "nothing happened" / stuck on the
+                  // same screen. Now routes to the real shell,
+                  // MainNavigationScreen, which opens on its Home tab
+                  // by default.
                   //
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
-                      builder: (_) => const MainScreen(
-                        initialIndex: 1,
-                      ),
+                      builder: (_) => const MainNavigationScreen(),
                     ),
                     (route) => false,
                   );
@@ -766,7 +907,7 @@ class _ProfessionalsScreenState
                 const Text(
                   'Choose the right professional',
                   style: TextStyle(
-                    fontSize: 27,
+                    fontSize: 28,
                     height: 1.15,
                     fontWeight:
                         FontWeight.w700,
@@ -890,7 +1031,7 @@ class _ProfessionalsScreenState
               selectedColor: primaryBlue,
               backgroundColor: Colors.white,
               labelStyle: TextStyle(
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: selected ? Colors.white : textSecondary,
               ),
@@ -1003,7 +1144,7 @@ class _ProfessionalsScreenState
                   style: TextStyle(
                     color:
                         textSecondary,
-                    fontSize: 11,
+                    fontSize: 12,
                   ),
                 ),
 
@@ -1034,7 +1175,7 @@ class _ProfessionalsScreenState
             style:
                 const TextStyle(
               color: textSecondary,
-              fontSize: 10,
+              fontSize: 12,
               fontWeight:
                   FontWeight.w600,
             ),
@@ -1419,7 +1560,7 @@ class _ProfessionalsScreenState
                                 color:
                                     primaryBlue,
                                 fontSize:
-                                    10.5,
+                                    12,
                                 fontWeight:
                                     FontWeight
                                         .w600,
@@ -1468,7 +1609,7 @@ class _ProfessionalsScreenState
                             color:
                                 textSecondary,
                             fontSize:
-                                11,
+                                12,
                             fontWeight:
                                 FontWeight
                                     .w500,
@@ -1485,7 +1626,7 @@ class _ProfessionalsScreenState
                             color:
                                 primaryBlue,
                             fontSize:
-                                25,
+                                24,
                             fontWeight:
                                 FontWeight
                                     .w800,
@@ -1510,7 +1651,7 @@ class _ProfessionalsScreenState
                             color:
                                 textSecondary,
                             fontSize:
-                                10,
+                                12,
                           ),
                         ),
 
@@ -1557,6 +1698,37 @@ class _ProfessionalsScreenState
                   fontSize: 13,
                   height: 1.4,
                 ),
+              ),
+            ],
+
+            // ----------------------------------------------------
+            // EMPLOYEE ASSIGNED -- Business (GST) registrations
+            // only, added 2026-09-04
+            // ----------------------------------------------------
+
+            if (bid.employeeName != null &&
+                bid.employeeName!.trim().isNotEmpty) ...[
+              const SizedBox(height: 8),
+
+              Row(
+                children: [
+                  const Icon(
+                    Icons.badge_outlined,
+                    size: 15,
+                    color: textSecondary,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Employee assigned: ${bid.employeeName}',
+                      style: const TextStyle(
+                        color: textSecondary,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
 
@@ -1659,7 +1831,7 @@ class _ProfessionalsScreenState
             style: TextStyle(
               color:
                   Color(0xFF35A853),
-              fontSize: 11,
+              fontSize: 12,
               fontWeight:
                   FontWeight.w700,
             ),
@@ -1696,7 +1868,7 @@ class _ProfessionalsScreenState
           'New professional',
           style: TextStyle(
             color: textSecondary,
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -1725,7 +1897,7 @@ class _ProfessionalsScreenState
             '${professional.averageRating.toStringAsFixed(1)} · ${professional.completedJobsCount} job${professional.completedJobsCount == 1 ? '' : 's'}',
             style: const TextStyle(
               color: Color(0xFF92620A),
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -1758,7 +1930,7 @@ class _ProfessionalsScreenState
           style:
               const TextStyle(
             color: textSecondary,
-            fontSize: 11.5,
+            fontSize: 12,
           ),
         ),
 
@@ -1774,7 +1946,7 @@ class _ProfessionalsScreenState
             style:
                 const TextStyle(
               color: textPrimary,
-              fontSize: 11.5,
+              fontSize: 12,
               fontWeight:
                   FontWeight.w600,
             ),

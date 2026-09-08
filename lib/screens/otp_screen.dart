@@ -255,8 +255,8 @@ class _OtpScreenState extends State<OtpScreen> {
                   tag: "habio_logo",
                   child: Image.asset(
                     "assets/logo/habio_logo_blue.png",
-                    height: 70,
-                    width: 70,
+                    height: 100,
+                    width: 100,
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -268,7 +268,7 @@ class _OtpScreenState extends State<OtpScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: darkText,
-                    fontSize: 30,
+                    fontSize: 32,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.6,
                     height: 1.15,

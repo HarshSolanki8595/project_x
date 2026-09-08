@@ -234,7 +234,7 @@ class _RateReviewScreenState extends State<RateReviewScreen> {
           Text(
             _ratingLabel(_rating),
             style: const TextStyle(
-              fontSize: 12.5,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
               color: textSecondary,
             ),

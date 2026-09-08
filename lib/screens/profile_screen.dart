@@ -4,7 +4,26 @@ import 'package:flutter/material.dart';
 
 import 'bookings_screen.dart';
 import 'saved_addresses_screen.dart';
+import 'support_chat_screen.dart';
 import 'login_screen.dart';
+
+// ============================================================
+// PROFILE -- restyled to match the professional app 2026-09-05
+// ============================================================
+//
+// Harsh's to-do #2: same options as before (My Bookings, Saved
+// Addresses, Settings, Help & Support, Logout), navigating to the
+// exact same places with the exact same data source (users/{uid}
+// in Firestore) -- only the visual treatment changes, to match
+// habio_professional's profile_screen.dart: a left-aligned inline
+// title instead of a centered AppBar, a smaller avatar with the
+// name/phone underneath in the professional app's type scale,
+// white bordered cards with a colored icon tile + subtitle for
+// each option (instead of plain ListTiles with no subtitle), and
+// logout moved out of the list into its own full-width outlined
+// button below -- still signs out immediately on tap, exactly as
+// before, just restyled.
+// ============================================================
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -14,6 +33,7 @@ class ProfileScreen extends StatelessWidget {
   static const Color background = Color(0xFFF7F8FC);
   static const Color textPrimary = Color(0xFF0F172A);
   static const Color textSecondary = Color(0xFF64748B);
+  static const Color cardBorder = Color(0xFFE5E8EE);
 
   @override
   Widget build(BuildContext context) {
@@ -28,229 +48,246 @@ class ProfileScreen extends StatelessWidget {
       );
     }
 
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection("users")
-          .doc(user.uid)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState ==
-            ConnectionState.waiting) {
-          return const Scaffold(
-            backgroundColor: background,
-            body: Center(
-              child: CircularProgressIndicator(
-                color: primaryBlue,
-              ),
-            ),
-          );
-        }
-
-        final data =
-            snapshot.data?.data()
-                as Map<String, dynamic>?;
-
-        final fullName =
-            data?["fullName"] ?? "User";
-
-        final phoneNumber =
-            data?["phoneNumber"] ?? "";
-
-        return Scaffold(
-          backgroundColor: background,
-
-          appBar: AppBar(
-            backgroundColor: background,
-            elevation: 0,
-            centerTitle: true,
-
-            title: const Text(
-              "My Profile",
-              style: TextStyle(
-                color: textPrimary,
-                fontSize: 28,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-
-          body: ListView(
-            padding: const EdgeInsets.fromLTRB(
-              32,
-              18,
-              32,
-              30,
-            ),
-            children: [
-              const SizedBox(height: 10),
-
-              // PROFILE IMAGE
-              Center(
-                child: Container(
-                  height: 150,
-                  width: 150,
-                  decoration: const BoxDecoration(
-                    color: lightBlue,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.person,
-                    size: 78,
-                    color: primaryBlue,
-                  ),
+    return Scaffold(
+      backgroundColor: background,
+      body: SafeArea(
+        child: StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection("users")
+              .doc(user.uid)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: primaryBlue,
                 ),
-              ),
+              );
+            }
 
-              const SizedBox(height: 22),
+            final data = snapshot.data?.data() as Map<String, dynamic>?;
 
-              Center(
-                child: Text(
-                  fullName,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: textPrimary,
-                    fontSize: 30,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
+            final fullName = data?["fullName"] ?? "User";
+            final phoneNumber = data?["phoneNumber"] ?? "";
 
-              const SizedBox(height: 8),
-
-              Center(
-                child: Text(
-                  "+91 $phoneNumber",
-                  style: const TextStyle(
-                    color: textSecondary,
-                    fontSize: 18,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 42),
-
-              _profileOption(
-                context,
-                icon: Icons.receipt_long_rounded,
-                title: "My Bookings",
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          const BookingsScreen(),
+            return SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 30),
+              child: Column(
+                children: [
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "My Profile",
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: textPrimary,
+                      ),
                     ),
-                  );
-                },
-              ),
-
-              _profileOption(
-                context,
-                icon: Icons.location_on_rounded,
-                title: "Saved Addresses",
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          const SavedAddressesScreen(),
-                    ),
-                  );
-                },
-              ),
-
-              _profileOption(
-                context,
-                icon: Icons.settings_rounded,
-                title: "Settings",
-                onTap: () {},
-              ),
-
-              _profileOption(
-                context,
-                icon: Icons.help_outline_rounded,
-                title: "Help & Support",
-                onTap: () {},
-              ),
-
-              const SizedBox(height: 10),
-
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-
-                leading: const Icon(
-                  Icons.logout_rounded,
-                  size: 30,
-                  color: Color(0xFFD92D20),
-                ),
-
-                title: const Text(
-                  "Logout",
-                  style: TextStyle(
-                    color: Color(0xFFD92D20),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
                   ),
-                ),
 
-                trailing: const SizedBox(
-                  width: 30,
-                ),
+                  const SizedBox(height: 30),
 
-                onTap: () async {
-                  await FirebaseAuth.instance
-                      .signOut();
-
-                  if (!context.mounted) return;
-
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          const LoginScreen(),
+                  // AVATAR / NAME / PHONE BLOCK
+                  Container(
+                    width: 88,
+                    height: 88,
+                    decoration: const BoxDecoration(
+                      color: lightBlue,
+                      shape: BoxShape.circle,
                     ),
-                    (route) => false,
-                  );
-                },
+                    child: const Icon(
+                      Icons.person_rounded,
+                      color: primaryBlue,
+                      size: 44,
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  Text(
+                    fullName,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: textPrimary,
+                    ),
+                  ),
+
+                  if (phoneNumber.toString().isNotEmpty) ...[
+                    const SizedBox(height: 5),
+                    Text(
+                      "+91 $phoneNumber",
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: textSecondary,
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 30),
+
+                  _ProfileTile(
+                    icon: Icons.receipt_long_outlined,
+                    title: "My Bookings",
+                    subtitle: "View your past and upcoming bookings",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const BookingsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  _ProfileTile(
+                    icon: Icons.location_on_outlined,
+                    title: "Saved Addresses",
+                    subtitle: "Manage your saved addresses",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SavedAddressesScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  _ProfileTile(
+                    icon: Icons.settings_outlined,
+                    title: "Settings",
+                    subtitle: "Notifications and preferences",
+                    onTap: () {},
+                  ),
+
+                  _ProfileTile(
+                    icon: Icons.help_outline_rounded,
+                    title: "Help & Support",
+                    subtitle: "Get help or contact support",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SupportChatScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: OutlinedButton(
+                      onPressed: () async {
+                        await FirebaseAuth.instance.signOut();
+
+                        if (!context.mounted) return;
+
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const LoginScreen(),
+                          ),
+                          (route) => false,
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(
+                          color: Color(0xFFE5B7B7),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: const Text(
+                        "Logout",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _profileOption(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-
-      leading: Icon(
-        icon,
-        size: 30,
-        color: textPrimary,
-      ),
-
-      title: Text(
-        title,
-        style: const TextStyle(
-          color: textPrimary,
-          fontSize: 18,
-          fontWeight: FontWeight.w500,
+            );
+          },
         ),
       ),
+    );
+  }
+}
 
-      trailing: const Icon(
-        Icons.arrow_forward_ios_rounded,
-        size: 23,
-        color: textPrimary,
+class _ProfileTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _ProfileTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(
+          color: ProfileScreen.cardBorder,
+        ),
       ),
-
-      onTap: onTap,
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 5,
+        ),
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: ProfileScreen.lightBlue,
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: Icon(
+            icon,
+            color: ProfileScreen.primaryBlue,
+          ),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: ProfileScreen.textPrimary,
+          ),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 3),
+          child: Text(
+            subtitle,
+            style: const TextStyle(
+              fontSize: 12,
+              color: ProfileScreen.textSecondary,
+            ),
+          ),
+        ),
+        trailing: const Icon(
+          Icons.chevron_right_rounded,
+          color: ProfileScreen.textSecondary,
+        ),
+      ),
     );
   }
 }

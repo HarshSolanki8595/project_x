@@ -11,9 +11,14 @@
         android:icon="@mipmap/ic_launcher">
 
         <!-- Google Maps API Key -->
+        <!-- Injected from android/secrets.properties at build time -->
+        <!-- (see build.gradle.kts's manifestPlaceholders), added   -->
+        <!-- 2026-09-06 so the real key no longer sits here as a    -->
+        <!-- plaintext literal, readable straight out of a          -->
+        <!-- decompiled/cloned APK or out of git history.           -->
         <meta-data
     android:name="com.google.android.geo.API_KEY"
-    android:value="AIzaSyCZmpg6M5W_WHg4ofWPDo4CTVLqC828fwg"/>
+    android:value="${MAPS_API_KEY}"/>
 
         <activity
             android:name=".MainActivity"

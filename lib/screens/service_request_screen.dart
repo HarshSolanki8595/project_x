@@ -29,12 +29,27 @@ class ServiceRequestScreen extends StatefulWidget {
   // subcategoryIds contains subCategoryId.
   final String categoryId;
 
+  // ============================================================
+  // INITIAL EMERGENCY STATE -- added 2026-09-04
+  // ============================================================
+  //
+  // Lets a caller land here with the emergency switch already on --
+  // used by EmergencyAssistanceScreen, so picking a subcategory from
+  // the curated emergency list doesn't also require manually
+  // flipping the switch below. Defaults to false so every existing
+  // call site (CategoryGrid, QuickServicesSection, FrequentlyUsedSection,
+  // TrendingServices, the "Ask Habio" free-text flow) is unaffected.
+  //
+
+  final bool initialIsEmergency;
+
   const ServiceRequestScreen({
     super.key,
     required this.categoryName,
     required this.subCategoryName,
     required this.subCategoryId,
     this.categoryId = '',
+    this.initialIsEmergency = false,
   });
 
   @override
@@ -54,10 +69,39 @@ class _ServiceRequestScreenState
 
   final ImagePicker _picker = ImagePicker();
 
-  bool isEmergency = false;
+  late bool isEmergency;
 
   List<File> selectedPhotos = [];
   File? selectedVideo;
+
+  // ============================================================
+  // MATERIAL SOURCING -- added 2026-09-04
+  // ============================================================
+  //
+  // "Will the customer provide the material?" -- mandatory choice
+  // before Continue. null means not yet chosen (deliberately, so
+  // it can be validated as missing rather than defaulting silently
+  // to either answer). When the customer says no, a material grade
+  // is mandatory too; the brand field is always optional.
+  //
+
+  static const List<String> _materialGrades = [
+    'Low',
+    'Standard',
+    'Luxury',
+  ];
+
+  bool? customerProvidesMaterial;
+  String? materialGrade;
+
+  final TextEditingController materialBrandController =
+      TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    isEmergency = widget.initialIsEmergency;
+  }
 
   Future<void> pickPhotos() async {
     final List<XFile> images =
@@ -92,6 +136,7 @@ class _ServiceRequestScreenState
   @override
   void dispose() {
     issueController.dispose();
+    materialBrandController.dispose();
     super.dispose();
   }
 
@@ -101,6 +146,35 @@ class _ServiceRequestScreenState
         const SnackBar(
           content: Text(
             "Please describe your issue.",
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    // ==========================================================
+    // MATERIAL SOURCING -- mandatory choice, grade required if the
+    // professional is sourcing it.
+    // ==========================================================
+
+    if (customerProvidesMaterial == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Please let us know who will provide the material.",
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    if (customerProvidesMaterial == false && materialGrade == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Please select a material grade.",
           ),
         ),
       );
@@ -178,6 +252,20 @@ class _ServiceRequestScreenState
 
             customerId:
                 currentUser.uid,
+
+            customerProvidesMaterial:
+                customerProvidesMaterial,
+
+            materialGrade:
+                customerProvidesMaterial == false
+                    ? materialGrade
+                    : null,
+
+            materialBrandPreference:
+                customerProvidesMaterial == false &&
+                        materialBrandController.text.trim().isNotEmpty
+                    ? materialBrandController.text.trim()
+                    : null,
           ),
         ),
       ),
@@ -225,6 +313,10 @@ class _ServiceRequestScreenState
               const SizedBox(height: 26),
 
               _buildMediaSection(),
+
+              const SizedBox(height: 26),
+
+              _buildMaterialSection(),
 
               const SizedBox(height: 26),
 
@@ -677,6 +769,240 @@ class _ServiceRequestScreenState
           fontSize: 14,
           fontWeight:
               FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // MATERIAL SOURCING -- added 2026-09-04
+  // ============================================================
+  //
+  // "Who's providing the material?" -- I'll provide it / Professional
+  // sources it. Choosing "Professional sources it" reveals a
+  // mandatory grade selector plus an optional brand-preference field,
+  // so the professional's quote (and materials cost specifically --
+  // see ProfessionalQuoteScreen on the professional app) reflects
+  // what the customer actually wants.
+  // ============================================================
+
+  Widget _buildMaterialSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Who's providing the material?",
+          style: TextStyle(
+            color: darkText,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+
+        const SizedBox(height: 5),
+
+        const Text(
+          "This helps the professional quote you accurately.",
+          style: TextStyle(
+            color: secondaryText,
+            fontSize: 14,
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
+        Row(
+          children: [
+            Expanded(
+              child: _materialOptionCard(
+                icon: Icons.inventory_2_outlined,
+                label: "I'll provide it",
+                selected: customerProvidesMaterial == true,
+                onTap: () {
+                  setState(() {
+                    customerProvidesMaterial = true;
+                    materialGrade = null;
+                    materialBrandController.clear();
+                  });
+                },
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            Expanded(
+              child: _materialOptionCard(
+                icon: Icons.storefront_outlined,
+                label: "Professional sources it",
+                selected: customerProvidesMaterial == false,
+                onTap: () {
+                  setState(() {
+                    customerProvidesMaterial = false;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+
+        if (customerProvidesMaterial == false) ...[
+          const SizedBox(height: 18),
+
+          const Text(
+            "Material grade",
+            style: TextStyle(
+              color: darkText,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+
+          const SizedBox(height: 3),
+
+          const Text(
+            "Required — helps the professional price the right quality.",
+            style: TextStyle(
+              color: secondaryText,
+              fontSize: 12.5,
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          Row(
+            children: [
+              for (int i = 0; i < _materialGrades.length; i++) ...[
+                if (i > 0) const SizedBox(width: 10),
+                Expanded(
+                  child: _gradeChip(_materialGrades[i]),
+                ),
+              ],
+            ],
+          ),
+
+          const SizedBox(height: 18),
+
+          const Text(
+            "Preferred brand (optional)",
+            style: TextStyle(
+              color: darkText,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: const Color(0xFFDCE3EC),
+              ),
+            ),
+            child: TextField(
+              controller: materialBrandController,
+              textCapitalization: TextCapitalization.words,
+              style: const TextStyle(
+                color: darkText,
+                fontSize: 15,
+              ),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                hintText: "e.g. Havells, Asian Paints, Jaguar...",
+                hintStyle: TextStyle(
+                  color: Color(0xFF94A1B5),
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _materialOptionCard({
+    required IconData icon,
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(
+          vertical: 16,
+          horizontal: 10,
+        ),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFFEEF3FF) : Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: selected ? primaryBlue : const Color(0xFFE1E7EF),
+            width: selected ? 1.6 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: selected ? primaryBlue : secondaryText,
+              size: 26,
+            ),
+
+            const SizedBox(height: 8),
+
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: selected ? primaryBlue : darkText,
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _gradeChip(String grade) {
+    final bool selected = materialGrade == grade;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () {
+        setState(() {
+          materialGrade = grade;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? primaryBlue : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: selected ? primaryBlue : const Color(0xFFDCE3EC),
+          ),
+        ),
+        child: Text(
+          grade,
+          style: TextStyle(
+            color: selected ? Colors.white : darkText,
+            fontSize: 13.5,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );

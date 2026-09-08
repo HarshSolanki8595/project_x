@@ -266,7 +266,7 @@ class ReviewBookingScreen extends StatelessWidget {
                                                   Color(
                                                 0xFFD92D20,
                                               ),
-                                              fontSize: 11,
+                                              fontSize: 12,
                                               fontWeight:
                                                   FontWeight
                                                       .w700,
@@ -545,9 +545,11 @@ class ReviewBookingScreen extends StatelessWidget {
                           BorderRadius.circular(17),
                     ),
                   ),
-                  child: const Text(
-                    "Request Quotes",
-                    style: TextStyle(
+                  child: Text(
+                    request.pricingType == 'FIXED_PRICE'
+                        ? "Submit Request"
+                        : "Request Quotes",
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),

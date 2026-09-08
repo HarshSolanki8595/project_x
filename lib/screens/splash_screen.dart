@@ -33,12 +33,12 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _logoScale = Tween<double>(
-      begin: 0.75,
+      begin: 0.6,
       end: 1.0,
     ).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Curves.easeOutBack,
+        curve: Curves.easeOutCubic,
       ),
     );
 
@@ -151,69 +151,111 @@ class _SplashScreenState extends State<SplashScreen>
       body: Stack(
         children: [
 
-          /// CITY OUTLINE
+          // --------------------------------------------------------
+          // CITY OUTLINE (2026-08-28, FINAL): anchored to the
+          // absolute bottom, faded, sits BEHIND the logo/text
+          // --------------------------------------------------------
+          //
+          // This is the FIRST child in the Stack, so it renders
+          // behind everything else placed after it (logo, "Habio",
+          // tagline) -- it can never visually clash with or overlap
+          // on top of them. Its bottom edge is pinned to bottom: 0
+          // (the true bottom of the screen, not floating), and it
+          // extends upward from there. A ShaderMask applies a
+          // top-to-bottom alpha gradient on top of the existing
+          // white re-tint (ColorFiltered srcIn) -- fully transparent
+          // near the top, fading in to clearly visible by the
+          // bottom -- so the cityscape reads as a soft background
+          // texture rather than competing with the foreground
+          // content above it.
+          //
+
           Positioned(
             left: 0,
             right: 0,
-            top: size.height * .45,
             bottom: 0,
-            child: IgnorePointer(
-              child: Opacity(
-                opacity: .22,
-                child: OverflowBox(
-                  maxWidth: double.infinity,
-                  maxHeight: double.infinity,
-                  alignment: Alignment.bottomCenter,
-                  child: Image.asset(
-                    "assets/images/city_outline_gold.png",
-                    width: size.width,
-                    fit: BoxFit.fitWidth,
-                    alignment: Alignment.bottomCenter,
+            height: size.height * .55,
+            child: ClipRect(
+              child: IgnorePointer(
+                child: ShaderMask(
+                shaderCallback: (rect) {
+                  return const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.white,
+                    ],
+                    stops: [0.0, 0.55],
+                  ).createShader(rect);
+                },
+                blendMode: BlendMode.dstIn,
+                child: ColorFiltered(
+                  colorFilter: const ColorFilter.mode(
+                    Colors.white,
+                    BlendMode.srcIn,
+                  ),
+                  child: Opacity(
+                    opacity: .6,
+                    child: OverflowBox(
+                      maxWidth: double.infinity,
+                      maxHeight: double.infinity,
+                      alignment: Alignment.bottomCenter,
+                      child: Image.asset(
+                        "assets/images/cityscape_gold_transparent_1.png",
+                        width: size.width,
+                        fit: BoxFit.fitWidth,
+                        alignment: Alignment.bottomCenter,
+                      ),
+                    ),
                   ),
                 ),
+              ),
               ),
             ),
           ),
 
-          /// LOGO
-          Positioned(
-            top: size.height * .08,
-            left: 0,
-            right: 0,
-            child: FadeTransition(
-              opacity: _logoFade,
-              child: ScaleTransition(
-                scale: _logoScale,
-                child: Hero(
-                  tag: "habio_logo",
-                  child: Image.asset(
-                    "assets/logo/habio_logo_white.png",
-                    height: 340,
-                  ),
-                ),
-              ),
-            ),
-          ),
+          // --------------------------------------------------------
+          // LOGO + WORDMARK + TAGLINE (2026-08-28, FINAL)
+          // --------------------------------------------------------
+          //
+          // Reworked back to a single grouped Column, matching the
+          // reference image directly, instead of three independently
+          // percentage-positioned bands -- that approach kept
+          // producing confusing, hard-to-predict sizing as each
+          // element's box constrained or clipped it differently.
+          // This group is vertically centered in the space ABOVE
+          // the cityscape (not a fixed percentage offset), so it
+          // stays correctly centered regardless of device screen
+          // height. The cityscape above remains the FIRST child in
+          // this Stack, so it always renders behind this group.
+          //
 
-          /// HABIO TITLE
+          // --------------------------------------------------------
+          // LOGO — ungrouped, independently positioned, sized by
+          // WIDTH not height (2026-08-28). The mark is nearly
+          // square (w/h ≈ 0.98), so on a tall narrow phone screen,
+          // sizing it by a height fraction made it balloon out to
+          // ~69% of screen WIDTH even at .32 height — width is the
+          // tighter constraint here. 30% of screen width works out
+          // to roughly 14% of screen height. Top offset unchanged
+          // so it still clears the status bar / notch.
+          // --------------------------------------------------------
+
           Positioned(
-            top: size.height * .39,
+            top: size.height * .10,
             left: 0,
             right: 0,
-            child: FadeTransition(
-              opacity: _textFade,
-              child: const Hero(
-                tag: "habio_text",
-                child: Material(
-                  color: Colors.transparent,
-                  child: Text(
-                    "Habio",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 74,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -2,
+            child: Center(
+              child: FadeTransition(
+                opacity: _logoFade,
+                child: ScaleTransition(
+                  scale: _logoScale,
+                  child: Hero(
+                    tag: "habio_logo",
+                    child: Image.asset(
+                      "assets/logo/habio_logo_white_solid_transparent.png",
+                      width: size.width * .30,
                     ),
                   ),
                 ),
@@ -221,21 +263,63 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
 
-          /// TAGLINE
+          // --------------------------------------------------------
+          // "HABIO" WORDMARK — ungrouped, independently positioned
+          // --------------------------------------------------------
+          //
+          // Gap after logo (2026-08-28): with the logo now sized by
+          // width (~14% of screen height instead of 32%), its
+          // bottom edge sits much higher up, so this top offset was
+          // brought in from .45 to .27 to close the resulting gap.
+          //
+
           Positioned(
-            top: size.height * .515,
-            left: 28,
-            right: 28,
-            child: FadeTransition(
-              opacity: _textFade,
-              child: const Text(
-                "Connecting Homes\nwith Trusted Professionals",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 21,
-                  fontWeight: FontWeight.w400,
-                  height: 1.25,
+            top: size.height * .27,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: FadeTransition(
+                opacity: _textFade,
+                child: const Hero(
+                  tag: "habio_text",
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Text(
+                      "Habio",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 44,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // --------------------------------------------------------
+          // TAGLINE — same .10 gap after "Habio" as before
+          // --------------------------------------------------------
+
+          Positioned(
+            top: size.height * .37,
+            left: 24,
+            right: 24,
+            child: Center(
+              child: FadeTransition(
+                opacity: _textFade,
+                child: const Text(
+                  "Connecting Homes\nwith Trusted Professionals",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400,
+                    height: 1.3,
+                  ),
                 ),
               ),
             ),

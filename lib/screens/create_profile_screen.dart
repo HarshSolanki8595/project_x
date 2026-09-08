@@ -176,7 +176,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: darkText,
-                    fontSize: 30,
+                    fontSize: 32,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.6,
                   ),

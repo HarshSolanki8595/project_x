@@ -12,6 +12,14 @@ class ProfessionalBidModel {
   final String additionalWork;
   final String message;
 
+  // Name of the employee the professional is sending to fulfill this
+  // job -- Business (GST) registrations only, added 2026-09-04.
+  // Collected on the professional app's quote screen and required
+  // there when the submitting professional is Business-registered;
+  // null for Individual professionals and for any bid submitted
+  // before this existed.
+  final String? employeeName;
+
   final String status;
   final DateTime createdAt;
 
@@ -26,6 +34,7 @@ class ProfessionalBidModel {
     required this.warranty,
     required this.additionalWork,
     required this.message,
+    this.employeeName,
     required this.status,
     required this.createdAt,
   });

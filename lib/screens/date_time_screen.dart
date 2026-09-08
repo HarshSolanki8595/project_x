@@ -3,6 +3,60 @@ import 'package:flutter/material.dart';
 import '../models/service_request.dart';
 import 'review_booking_screen.dart';
 
+// ================================================================
+// TIME SLOT MODEL -- Added 2026-09-02
+// ================================================================
+// Replaces the old Morning/Afternoon/Evening loose buckets with all
+// 24 specific one-hour slots for the day, per Harsh's request to
+// "redo the time to create a request for all the categories by all
+// 24 hrs and scrap the morning, afternoon, etc." This screen is
+// shared by every category's request flow (bid-based and fixed-
+// price alike), so the change applies everywhere at once.
+//
+// "Anytime" is kept as a 25th option per Harsh's follow-up answer --
+// a customer who genuinely has no preference isn't forced to guess
+// an hour.
+//
+// `preferredTimeSlot` on ServiceRequest/ServiceRequestModel stays a
+// plain String on both apps -- no model changes needed anywhere.
+// It used to hold "Morning"/"Afternoon"/"Evening"/"Anytime"; it now
+// holds "Anytime" or a full slot label like "6:00 AM – 7:00 AM".
+// Every place that reads it (e.g. the professional's Job Details
+// schedule card) just interpolates the string as-is, so nothing
+// downstream needed to change.
+// ================================================================
+
+class _HourSlot {
+  final String chipLabel; // compact, for the grid, e.g. "6–7 AM"
+  final String fullLabel; // descriptive, stored + shown elsewhere
+
+  const _HourSlot(this.chipLabel, this.fullLabel);
+}
+
+String _hour12Full(int hour24) {
+  final String period = hour24 < 12 ? 'AM' : 'PM';
+  int hour12 = hour24 % 12;
+  if (hour12 == 0) hour12 = 12;
+  return '$hour12:00 $period';
+}
+
+String _hour12Short(int hour24) {
+  final String period = hour24 < 12 ? 'AM' : 'PM';
+  int hour12 = hour24 % 12;
+  if (hour12 == 0) hour12 = 12;
+  return '$hour12 $period';
+}
+
+final List<_HourSlot> _allHourSlots = List.generate(24, (hour) {
+  final int nextHour = (hour + 1) % 24;
+
+  final String chip = '${_hour12Short(hour)}–${_hour12Short(nextHour)}';
+  final String full =
+      '${_hour12Full(hour)} – ${_hour12Full(nextHour)}';
+
+  return _HourSlot(chip, full);
+});
+
 class DateTimeScreen extends StatefulWidget {
   final ServiceRequest request;
 
@@ -66,7 +120,7 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
   }
 
   // ============================================================
-  // TIME OPTION
+  // "ANYTIME" OPTION (kept as its own card, same look as before)
   // ============================================================
 
   Widget _buildTimeOption(
@@ -125,7 +179,7 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: 15.5,
+                    fontSize: 16,
                     fontWeight: selected
                         ? FontWeight.w700
                         : FontWeight.w500,
@@ -160,6 +214,50 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
                     : null,
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // HOUR SLOT CHIP -- Added 2026-09-02
+  // ============================================================
+  //
+  // One of the 24 specific one-hour slots, shown in a compact grid
+  // below the "Anytime" card. Selection is keyed off the slot's
+  // full descriptive label (what actually gets stored), not the
+  // compact chip text.
+  //
+
+  Widget _buildHourChip(_HourSlot slot) {
+    final bool selected = selectedSlot == slot.fullLabel;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () {
+        setState(() {
+          selectedSlot = slot.fullLabel;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? lightBlue : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: selected ? primaryBlue : borderColor,
+            width: selected ? 1.6 : 1,
+          ),
+        ),
+        child: Text(
+          slot.chipLabel,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            color: selected ? primaryBlue : textPrimary,
           ),
         ),
       ),
@@ -350,23 +448,37 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
                     const SizedBox(height: 9),
 
                     _buildTimeOption(
-                      "Morning",
-                      Icons.wb_sunny_outlined,
-                    ),
-
-                    _buildTimeOption(
-                      "Afternoon",
-                      Icons.wb_sunny_rounded,
-                    ),
-
-                    _buildTimeOption(
-                      "Evening",
-                      Icons.nightlight_outlined,
-                    ),
-
-                    _buildTimeOption(
                       "Anytime",
                       Icons.access_time_rounded,
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Text(
+                      "Or pick a specific hour",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: textSecondary,
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _allHourSlots.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10,
+                        childAspectRatio: 2.5,
+                      ),
+                      itemBuilder: (context, index) {
+                        return _buildHourChip(_allHourSlots[index]);
+                      },
                     ),
                   ],
                 ),

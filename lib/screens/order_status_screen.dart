@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/marketplace_status.dart';
@@ -56,6 +58,22 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
   ProfessionalModel? _professional;
   bool _loadingProfessional = true;
   bool _withdrawing = false;
+
+  // ------------------------------------------------------------
+  // PICKUP ESCALATION ELIGIBILITY (NEW — 2026-09-08)
+  // ------------------------------------------------------------
+  //
+  // The pickup-code contingency card below only makes sense for
+  // Automobile/Appliances requests -- the categories the rare
+  // in-job pickup exception path actually applies to (see
+  // escalateToPickup in index.js, which independently re-checks
+  // this server-side).
+  //
+
+  bool get _isPickupEligibleCategory {
+    final String category = (widget.request.categoryId ?? '').trim().toLowerCase();
+    return category == 'automobile' || category == 'appliances';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -212,8 +230,29 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
         _buildStatusTimeline(order),
         const SizedBox(height: 14),
         _buildProfessionalCard(order),
+        if (order.status == MarketplaceStatus.confirmed) ...[
+          const SizedBox(height: 14),
+          _buildStartCodeCard(order),
+        ],
+        if (order.isPickupJob) ...[
+          const SizedBox(height: 14),
+          _buildPickupStatusCard(order),
+        ] else if (order.status == MarketplaceStatus.active &&
+            _isPickupEligibleCategory) ...[
+          const SizedBox(height: 14),
+          _buildPickupContingencyCard(order),
+        ],
+        if (order.status == MarketplaceStatus.active) ...[
+          const SizedBox(height: 14),
+          _LiveLocationCard(orderId: order.orderId),
+        ],
         const SizedBox(height: 14),
         _buildPriceCard(order),
+        if (order.employeeName != null &&
+            order.employeeName!.trim().isNotEmpty) ...[
+          const SizedBox(height: 14),
+          _buildAssignedEmployeeCard(order),
+        ],
         if (showPaymentSection) ...[
           const SizedBox(height: 14),
           _buildPaymentCard(order),
@@ -317,7 +356,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           const Text(
             'You can withdraw from this booking. A flat ₹150 cancellation fee applies once a professional has been confirmed.',
             style: TextStyle(
-              fontSize: 12.5,
+              fontSize: 13,
               height: 1.4,
               color: textSecondary,
             ),
@@ -419,7 +458,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             "Don't worry — we're finding you a new professional for "
             "this job at no extra cost to you.",
             style: TextStyle(
-              fontSize: 12.5,
+              fontSize: 13,
               height: 1.4,
               color: textSecondary,
             ),
@@ -477,7 +516,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               child: Text(
                 'Cancellation fee of ₹${order.cancellationFee.toStringAsFixed(0)} paid.',
                 style: const TextStyle(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   color: green,
                   fontWeight: FontWeight.w700,
                 ),
@@ -531,7 +570,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           Text(
             'A flat ₹${order.cancellationFee.toStringAsFixed(0)} cancellation fee applies. Your booking stays active until it\'s paid — pay it to complete the cancellation.',
             style: const TextStyle(
-              fontSize: 12.5,
+              fontSize: 13,
               height: 1.4,
               color: textSecondary,
             ),
@@ -594,7 +633,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           content: const Text(
             'A flat ₹150 cancellation fee applies. Your booking stays active — the professional isn\'t notified and nothing changes — until you pay it on the next screen.',
             style: TextStyle(
-              fontSize: 13.5,
+              fontSize: 14,
               height: 1.4,
               color: textSecondary,
             ),
@@ -711,7 +750,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           const Text(
             'Pay securely in the app whenever you\'re ready — no need to wait for the job to finish.',
             style: TextStyle(
-              fontSize: 12.5,
+              fontSize: 13,
               height: 1.4,
               color: textSecondary,
             ),
@@ -811,13 +850,13 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
         Expanded(
           child: Text(
             label,
-            style: TextStyle(fontSize: 12.5, color: color),
+            style: TextStyle(fontSize: 13, color: color),
           ),
         ),
         Text(
           '₹${amount.toStringAsFixed(2)}',
           style: TextStyle(
-            fontSize: 12.5,
+            fontSize: 13,
             fontWeight: FontWeight.w600,
             color: color,
           ),
@@ -1044,7 +1083,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                   config.subtitle,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 12.5,
+                    fontSize: 13,
                     height: 1.35,
                   ),
                 ),
@@ -1149,7 +1188,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 10.5,
+                  fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: isDone || isCurrent
                       ? textPrimary
@@ -1241,7 +1280,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                         'Verified Professional',
                         style: TextStyle(
                           color: green,
-                          fontSize: 11,
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -1253,7 +1292,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                   Text(
                     professional!.phoneNumber,
                     style: const TextStyle(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w500,
                       color: textSecondary,
                     ),
@@ -1280,6 +1319,287 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // START CODE CARD (NEW — 2026-09-08)
+  // ============================================================
+  //
+  // Shown only while the order is CONFIRMED (before the professional
+  // has started the job). The 4-digit code is generated once by
+  // acceptBid/acceptFixedPriceOpportunity and stored on this same
+  // order doc, so it's already part of `order` here -- no separate
+  // stream needed. The professional must ask for this code on
+  // arrival and enter it in their own app; startJob (index.js)
+  // verifies it server-side before the job is allowed to begin.
+  //
+
+  Widget _buildStartCodeCard(OrderModel order) {
+    if (order.startOtp.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor),
+      ),
+      child: Row(
+        children: [
+          Container(
+            height: 52,
+            width: 52,
+            decoration: BoxDecoration(
+              color: lightBlue,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.password_rounded,
+              color: primaryBlue,
+              size: 26,
+            ),
+          ),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Share this code on arrival',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Your professional needs this to start the job',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            order.startOtp,
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: primaryBlue,
+              letterSpacing: 4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // PICKUP CONTINGENCY CARD (NEW — 2026-09-08)
+  // ============================================================
+  //
+  // Shown only for Automobile/Appliances jobs while the professional
+  // is still on-site (ACTIVE, not yet escalated) -- a proactive
+  // heads-up that if on-site repair turns out not to be possible,
+  // the professional may ask for this same code to confirm taking
+  // the item away. pickupOtp is generated up front (same moment as
+  // startOtp) so it's always ready, even though it's only ever
+  // needed in this rare exception case.
+  //
+
+  Widget _buildPickupContingencyCard(OrderModel order) {
+    if (order.pickupOtp.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor),
+      ),
+      child: Row(
+        children: [
+          Container(
+            height: 52,
+            width: 52,
+            decoration: BoxDecoration(
+              color: lightBlue,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.local_shipping_outlined,
+              color: primaryBlue,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'If your item needs to be taken for repair',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Share this code so your professional can confirm they\'re taking it',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    height: 1.35,
+                    color: textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            order.pickupOtp,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: primaryBlue,
+              letterSpacing: 3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // PICKUP STATUS CARD (NEW — 2026-09-08)
+  // ============================================================
+  //
+  // Shown once order.isPickupJob is true -- the item has been taken
+  // for repair. Displays the current sub-status
+  // (PICKED_UP/IN_REPAIR/OUT_FOR_DELIVERY) and, once out for
+  // delivery, the deliveryOtp the customer shares back on handoff
+  // (checked server-side by completeJob before the job can close).
+  //
+
+  Widget _buildPickupStatusCard(OrderModel order) {
+    final Map<String, (IconData, String, String)> stageConfig = {
+      'PICKED_UP': (
+        Icons.inventory_2_outlined,
+        'Item picked up',
+        'Your professional has taken your item for repair.',
+      ),
+      'IN_REPAIR': (
+        Icons.build_circle_outlined,
+        'Being repaired',
+        'Your item is currently being repaired.',
+      ),
+      'OUT_FOR_DELIVERY': (
+        Icons.local_shipping_outlined,
+        'Out for delivery',
+        'Your item is on its way back to you.',
+      ),
+    };
+
+    final config = stageConfig[order.pickupStage] ??
+        (
+          Icons.inventory_2_outlined,
+          'Item picked up',
+          'Your professional has taken your item for repair.',
+        );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                height: 44,
+                width: 44,
+                decoration: BoxDecoration(
+                  color: lightBlue,
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Icon(config.$1, color: primaryBlue, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      config.$2,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      config.$3,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (order.pickupStage == 'OUT_FOR_DELIVERY' &&
+              order.deliveryOtp.trim().isNotEmpty) ...[
+            const SizedBox(height: 14),
+            const Divider(height: 1, color: Color(0xFFE4E7EC)),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Share this code when your item is delivered back',
+                    style: TextStyle(
+                      fontSize: 12,
+                      height: 1.35,
+                      color: textSecondary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  order.deliveryOtp,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: primaryBlue,
+                    letterSpacing: 3,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -1322,7 +1642,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                   'Agreed price',
                   style: TextStyle(
                     color: textSecondary,
-                    fontSize: 11.5,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -1345,7 +1665,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 'Warranty',
                 style: TextStyle(
                   color: textSecondary,
-                  fontSize: 11.5,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -1361,6 +1681,70 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // ASSIGNED EMPLOYEE -- Business (GST) registrations only, added
+  // 2026-09-04
+  // ============================================================
+  //
+  // Only shown when this order carries an employeeName -- set at
+  // bid submission time by a Business-registered professional (see
+  // the "Employee Assigned" field on their quote screen), so the
+  // customer knows who's actually being sent to do the job.
+  //
+
+  Widget _buildAssignedEmployeeCard(OrderModel order) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: lightBlue,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.badge_outlined,
+              color: primaryBlue,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Employee assigned',
+                  style: TextStyle(
+                    color: textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  order.employeeName!,
+                  style: const TextStyle(
+                    color: textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -1426,7 +1810,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 label,
                 style: const TextStyle(
                   color: textSecondary,
-                  fontSize: 11,
+                  fontSize: 12,
                 ),
               ),
               const SizedBox(height: 2),
@@ -1599,7 +1983,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
               const Text(
                 'Review & Pay',
                 style: TextStyle(
-                  fontSize: 19,
+                  fontSize: 20,
                   fontWeight: FontWeight.w800,
                   color: textPrimary,
                 ),
@@ -1765,7 +2149,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: selected ? primaryBlue : textSecondary,
               ),
@@ -1869,7 +2253,7 @@ class _CancellationFeeSheetState extends State<_CancellationFeeSheet> {
               const Text(
                 'Pay Cancellation Fee',
                 style: TextStyle(
-                  fontSize: 19,
+                  fontSize: 20,
                   fontWeight: FontWeight.w800,
                   color: textPrimary,
                 ),
@@ -2027,13 +2411,160 @@ class _CancellationFeeSheetState extends State<_CancellationFeeSheet> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: selected ? primaryBlue : textSecondary,
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ================================================================
+// LIVE LOCATION CARD (NEW — 2026-09-07)
+// ================================================================
+//
+// Shown only while the order is ACTIVE. Listens directly to
+// live_locations/{orderId} -- written by the professional app's
+// LocationTrackingService for as long as that job stays ACTIVE, see
+// firestore.rules' matching live_locations/{orderId} block -- and
+// drops a single marker on a small embedded map. This is a live
+// Firestore snapshot stream (not polling), so the marker moves in
+// real time as new positions come in, and disappears again once the
+// professional marks the job complete (LocationTrackingService
+// deletes the doc at that point).
+//
+
+class _LiveLocationCard extends StatefulWidget {
+  final String orderId;
+
+  const _LiveLocationCard({required this.orderId});
+
+  @override
+  State<_LiveLocationCard> createState() => _LiveLocationCardState();
+}
+
+class _LiveLocationCardState extends State<_LiveLocationCard> {
+  GoogleMapController? _mapController;
+
+  @override
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('live_locations')
+          .doc(widget.orderId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        final Map<String, dynamic>? data = snapshot.data?.data();
+
+        if (data == null || data['lat'] == null || data['lng'] == null) {
+          return _card(
+            child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 2),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.location_searching_rounded,
+                    color: Color(0xFF1557FF),
+                    size: 20,
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      "Waiting for the professional to start sharing "
+                      "their live location...",
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        height: 1.4,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final LatLng position = LatLng(
+          (data['lat'] as num).toDouble(),
+          (data['lng'] as num).toDouble(),
+        );
+
+        _mapController?.animateCamera(CameraUpdate.newLatLng(position));
+
+        return _card(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: SizedBox(
+              height: 170,
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: position,
+                  zoom: 15,
+                ),
+                markers: {
+                  Marker(
+                    markerId: const MarkerId('professional'),
+                    position: position,
+                  ),
+                },
+                onMapCreated: (controller) => _mapController = controller,
+                zoomControlsEnabled: false,
+                myLocationButtonEnabled: false,
+                scrollGesturesEnabled: false,
+                rotateGesturesEnabled: false,
+                tiltGesturesEnabled: false,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _card({required Widget child}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE1E7EF)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                Icons.my_location_rounded,
+                color: Color(0xFF1557FF),
+                size: 18,
+              ),
+              SizedBox(width: 8),
+              Text(
+                "Professional's Live Location",
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF0F172A),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          child,
+        ],
       ),
     );
   }

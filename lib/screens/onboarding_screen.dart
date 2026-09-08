@@ -1,6 +1,33 @@
 import 'package:flutter/material.dart';
 import 'welcome_screen.dart';
 
+// ============================================================
+// CUSTOMER APP -- POST-SPLASH ONBOARDING CAROUSEL
+// ============================================================
+//
+// Restyled 2026-09-06 (Harsh's point 9, redo of point 4) to match
+// the professional app's post-splash intro screen
+// (professional_intro_screen.dart): the illustration fills the top
+// of the screen instead of sitting below a logo, then a numbered
+// circle-icon + bold title on one line, then the description
+// paragraph below -- and, per his explicit instruction, the logo +
+// "Habio" wordmark block that used to sit above the carousel is
+// removed entirely so the illustration is the first thing on the
+// screen. The three-illustration image padding was tightened
+// (point 11) since this app's artwork is landscape-shaped, unlike
+// the professional app's portrait artwork, so it needs less side
+// padding to render at a comparable size. The feature-badges row
+// (three icon+label chips, one per page) was dropped in the point-9
+// restyle to match the professional app exactly, then restored per
+// Harsh's point 12 -- it now sits below the subtitle on all three
+// pages, its own icons per page (see the PageView below). Same
+// three pages, same artwork (handshake.png, describe_problem.png,
+// completed_service.png) and the same underlying copy -- only the
+// hard line-breaks baked into the old two-line titles/descriptions
+// are let wrap naturally instead. Nothing about what the carousel
+// says or where "Skip"/"Next"/"Get Started" take you has changed.
+// ============================================================
+
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -13,40 +40,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   int currentPage = 0;
 
-  final List<Map<String, dynamic>> pages = [
-    {
-      "image": "assets/images/onboarding/handshake.png",
-      "title": "Trusted Professionals,\nRight at Home",
-      "description": "Verified experts. Fair prices.\nServices you can trust.",
-      "features": [
-        {"icon": Icons.verified_user_outlined, "label": "Verified\nExperts"},
-        {"icon": Icons.sell_outlined, "label": "Fair\nPricing"},
-        {"icon": Icons.thumb_up_outlined, "label": "Reliable\nService"},
-      ],
-    },
-    {
-      "image": "assets/images/onboarding/describe_problem.png",
-      "title": "Describe Your\nProblem",
-      "description":
-          "Tell us what's wrong, upload photos,\nand receive quotes.",
-      "features": [
-        {"icon": Icons.camera_alt_outlined, "label": "Upload\nPhotos"},
-        {"icon": Icons.chat_bubble_outline, "label": "Quick\nQuotes"},
-        {"icon": Icons.bolt_outlined, "label": "Fast\nResponse"},
-      ],
-    },
-    {
-      "image": "assets/images/onboarding/completed_service.png",
-      "title": "Compare.\nChoose. Relax.",
-      "description":
-          "Choose the professional you trust\nand book instantly.",
-      "features": [
-        {"icon": Icons.compare_arrows_outlined, "label": "Compare\nOptions"},
-        {"icon": Icons.event_available_outlined, "label": "Instant\nBooking"},
-        {"icon": Icons.spa_outlined, "label": "Sit Back\n& Relax"},
-      ],
-    },
-  ];
+  static const int _pageCount = 3;
 
   @override
   void dispose() {
@@ -68,239 +62,186 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            /// SKIP BUTTON
-            Padding(
-              padding: const EdgeInsets.only(top: 6, right: 24),
-              child: Align(
-                alignment: Alignment.topRight,
-                child: TextButton(
-                  onPressed: _goToWelcomeScreen,
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xFF64748B),
-                  ),
-                  child: const Text(
-                    "Skip",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            Column(
+              children: [
+                const SizedBox(height: 4),
 
-            /// LOGO + HABIO WORDMARK (matches reference: logo above, text below)
-            const SizedBox(height: 8),
-            Image.asset(
-              "assets/logo/habio_logo_blue.png",
-              height: 130,
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              "Habio",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF0F172A),
-                letterSpacing: -0.5,
-              ),
-            ),
-
-            /// PAGE VIEW — title, subtitle, illustration, badges all change per page
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: pages.length,
-                onPageChanged: (index) {
-                  setState(() {
-                    currentPage = index;
-                  });
-                },
-                itemBuilder: (context, index) {
-                  final page = pages[index];
-                  final features =
-                      page["features"] as List<Map<String, dynamic>>;
-
-                  return Column(
-                    children: [
-                      const SizedBox(height: 18),
-
-                      /// TITLE
-                      Padding(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 30),
-                        child: Text(
-                          page["title"] as String,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF0F172A),
-                            height: 1.2,
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    onPageChanged: (index) {
+                      setState(() {
+                        currentPage = index;
+                      });
+                    },
+                    children: const [
+                      _IntroPage(
+                        imageAsset: "assets/images/onboarding/handshake.png",
+                        icon: Icons.verified_user_rounded,
+                        number: '1',
+                        title: 'Trusted Professionals, Right at Home',
+                        subtitle:
+                            'Verified experts. Fair prices. Services you '
+                            'can trust.',
+                        badges: [
+                          _FeatureBadge(
+                            icon: Icons.verified_user_outlined,
+                            label: 'Verified\nExperts',
                           ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      /// SUBTITLE
-                      Padding(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 30),
-                        child: Text(
-                          page["description"] as String,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF64748B),
-                            height: 1.4,
+                          _FeatureBadge(
+                            icon: Icons.sell_outlined,
+                            label: 'Fair\nPricing',
                           ),
-                        ),
-                      ),
-
-                      /// ILLUSTRATION — the extracted asset already has the
-                      /// blob backdrop baked in, so it's shown as-is with
-                      /// no extra decoration behind it. It fills the space
-                      /// left over between the text above and badges below.
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 10,
+                          _FeatureBadge(
+                            icon: Icons.thumb_up_outlined,
+                            label: 'Reliable\nService',
                           ),
-                          child: Image.asset(
-                            page["image"] as String,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) {
-                              debugPrint(error.toString());
-                              return Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
-                                  borderRadius:
-                                      BorderRadius.circular(20),
-                                ),
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.image_not_supported_outlined,
-                                    size: 70,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              );
-                            },
+                        ],
+                      ),
+                      _IntroPage(
+                        imageAsset:
+                            "assets/images/onboarding/describe_problem.png",
+                        icon: Icons.camera_alt_rounded,
+                        number: '2',
+                        title: 'Describe Your Problem',
+                        subtitle:
+                            "Tell us what's wrong, upload photos, and "
+                            'receive quotes.',
+                        badges: [
+                          _FeatureBadge(
+                            icon: Icons.photo_camera_outlined,
+                            label: 'Upload\nPhotos',
                           ),
-                        ),
+                          _FeatureBadge(
+                            icon: Icons.chat_bubble_outline_rounded,
+                            label: 'Quick\nQuotes',
+                          ),
+                          _FeatureBadge(
+                            icon: Icons.bolt_outlined,
+                            label: 'Fast\nResponse',
+                          ),
+                        ],
                       ),
-
-                      /// FEATURE BADGES ROW
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                        ),
-                        child: Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.spaceEvenly,
-                          children: List.generate(features.length, (i) {
-                            final feature = features[i];
-                            return Row(
-                              children: [
-                                _FeatureBadge(
-                                  icon: feature["icon"] as IconData,
-                                  label: feature["label"] as String,
-                                ),
-                                if (i != features.length - 1)
-                                  Container(
-                                    height: 36,
-                                    width: 1,
-                                    margin: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                    ),
-                                    color: const Color(0xFFE1E7EF),
-                                  ),
-                              ],
-                            );
-                          }),
-                        ),
+                      _IntroPage(
+                        imageAsset:
+                            "assets/images/onboarding/completed_service.png",
+                        icon: Icons.event_available_rounded,
+                        number: '3',
+                        title: 'Compare. Choose. Relax.',
+                        subtitle:
+                            'Choose the professional you trust and book '
+                            'instantly.',
+                        badges: [
+                          _FeatureBadge(
+                            icon: Icons.compare_arrows_rounded,
+                            label: 'Compare\nOptions',
+                          ),
+                          _FeatureBadge(
+                            icon: Icons.event_available_outlined,
+                            label: 'Instant\nBooking',
+                          ),
+                          _FeatureBadge(
+                            icon: Icons.spa_outlined,
+                            label: 'Sit Back\n& Relax',
+                          ),
+                        ],
                       ),
-
-                      const SizedBox(height: 14),
                     ],
-                  );
-                },
-              ),
-            ),
-
-            /// PAGE INDICATOR
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  pages.length,
-                  (index) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: const EdgeInsets.symmetric(horizontal: 5),
-                    height: 8,
-                    width: currentPage == index ? 28 : 8,
-                    decoration: BoxDecoration(
-                      color: currentPage == index
-                          ? const Color(0xFF1557FF)
-                          : const Color(0xFFE1E7EF),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
                   ),
                 ),
-              ),
-            ),
 
-            /// NEXT / GET STARTED BUTTON
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: SizedBox(
-                width: double.infinity,
-                height: 58,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (currentPage < pages.length - 1) {
-                      _pageController.nextPage(
-                        duration: const Duration(milliseconds: 350),
-                        curve: Curves.easeInOut,
-                      );
-                    } else {
-                      _goToWelcomeScreen();
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1557FF),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  ),
+                /// PAGE INDICATOR
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        currentPage == pages.length - 1
-                            ? "Get Started"
-                            : "Next",
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
+                    children: List.generate(
+                      _pageCount,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 5),
+                        height: 8,
+                        width: currentPage == index ? 28 : 8,
+                        decoration: BoxDecoration(
+                          color: currentPage == index
+                              ? const Color(0xFF1557FF)
+                              : const Color(0xFFE1E7EF),
+                          borderRadius: BorderRadius.circular(30),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.arrow_forward, size: 20),
-                    ],
+                    ),
+                  ),
+                ),
+
+                /// NEXT / GET STARTED BUTTON
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 58,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (currentPage < _pageCount - 1) {
+                          _pageController.nextPage(
+                            duration: const Duration(milliseconds: 350),
+                            curve: Curves.easeInOut,
+                          );
+                        } else {
+                          _goToWelcomeScreen();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1557FF),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            currentPage == _pageCount - 1
+                                ? "Get Started"
+                                : "Next",
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward, size: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+              ],
+            ),
+
+            /// SKIP BUTTON
+            Positioned(
+              top: 6,
+              right: 24,
+              child: TextButton(
+                onPressed: _goToWelcomeScreen,
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF64748B),
+                ),
+                child: const Text(
+                  "Skip",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ),
-
-            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -308,43 +249,198 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 }
 
-/// Small reusable widget for the "Verified Experts / Fair Pricing / ..."
-/// badges shown under the illustration.
-class _FeatureBadge extends StatelessWidget {
-  final IconData icon;
-  final String label;
+// ============================================================
+// SINGLE PAGE LAYOUT -- mirrors the professional app's _IntroPage
+// exactly: illustration fills the top, then a numbered circle icon
+// + bold title on one line, then the description paragraph below.
+// ============================================================
 
-  const _FeatureBadge({
+class _IntroPage extends StatelessWidget {
+  final String imageAsset;
+  final IconData icon;
+  final String number;
+  final String title;
+  final String subtitle;
+  final List<_FeatureBadge> badges;
+
+  const _IntroPage({
+    required this.imageAsset,
     required this.icon,
-    required this.label,
+    required this.number,
+    required this.title,
+    required this.subtitle,
+    required this.badges,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          height: 42,
-          width: 42,
-          decoration: const BoxDecoration(
-            color: Color(0xFFE8EDFF),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            icon,
-            color: const Color(0xFF1557FF),
-            size: 20,
+        const SizedBox(height: 4),
+
+        Expanded(
+          child: Padding(
+            // Tightened from horizontal: 30 (2026-09-06, Harsh's
+            // point 11) -- these 3 illustrations are landscape-shaped
+            // (1536x1024), unlike the professional app's portrait
+            // artwork, so with BoxFit.contain the image is always
+            // width-limited here: less side padding is the only lever
+            // that makes it render bigger without cropping or
+            // distorting it. New artwork in a portrait aspect ratio
+            // would fill the space more fully still, but that's
+            // parked for later (Higgsfield generation is out of
+            // credits) -- this is the code-only improvement in the
+            // meantime.
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Image.asset(
+              imageAsset,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                debugPrint(error.toString());
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.image_not_supported_outlined,
+                      size: 70,
+                      color: Colors.grey,
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
         ),
-        const SizedBox(height: 6),
+
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 26),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                margin: const EdgeInsets.only(top: 3),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF1557FF),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 15, color: Colors.white),
+              ),
+              const SizedBox(width: 10),
+              Flexible(
+                child: Text(
+                  '$number. $title',
+                  textAlign: TextAlign.left,
+                  style: const TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0F172A),
+                    height: 1.25,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 10),
+
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF64748B),
+              height: 1.4,
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // FEATURE BADGES ROW (restored 2026-09-06, Harsh's point 12)
+        // -- three icon+label chips, one per page, separated by thin
+        // vertical dividers. Was dropped in the point-9 restyle to
+        // match the professional app's screens (which don't have
+        // one); Harsh asked for it back on all three pages.
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _FeatureBadgeItem(badge: badges[0])),
+              Container(
+                width: 1,
+                height: 48,
+                margin: const EdgeInsets.only(top: 2),
+                color: const Color(0xFFE1E7EF),
+              ),
+              Expanded(child: _FeatureBadgeItem(badge: badges[1])),
+              Container(
+                width: 1,
+                height: 48,
+                margin: const EdgeInsets.only(top: 2),
+                color: const Color(0xFFE1E7EF),
+              ),
+              Expanded(child: _FeatureBadgeItem(badge: badges[2])),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+}
+
+// ============================================================
+// FEATURE BADGE -- one icon+label chip in the row below the
+// subtitle on each onboarding page.
+// ============================================================
+
+class _FeatureBadge {
+  final IconData icon;
+  final String label;
+
+  const _FeatureBadge({required this.icon, required this.label});
+}
+
+class _FeatureBadgeItem extends StatelessWidget {
+  final _FeatureBadge badge;
+
+  const _FeatureBadgeItem({required this.badge});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: const BoxDecoration(
+            color: Color(0xFFEEF3FF),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(badge.icon, color: const Color(0xFF1557FF), size: 20),
+        ),
+        const SizedBox(height: 8),
         Text(
-          label,
+          badge.label,
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 12,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             color: Color(0xFF0F172A),
-            height: 1.2,
+            height: 1.3,
           ),
         ),
       ],

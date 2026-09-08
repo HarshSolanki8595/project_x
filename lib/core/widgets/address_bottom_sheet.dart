@@ -50,7 +50,7 @@ class AddressBottomSheet extends StatelessWidget {
                 "Selected Address",
                 style: TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
 

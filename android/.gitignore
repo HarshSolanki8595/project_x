@@ -12,3 +12,8 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Never publicly share API keys either (2026-09-06, app-cloning
+# hardening) -- see secrets.properties + build.gradle.kts's
+# manifestPlaceholders wiring.
+secrets.properties

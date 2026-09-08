@@ -31,9 +31,9 @@ class WelcomeScreen extends StatelessWidget {
               Hero(
                 tag: "habio_logo",
                 child: Image.asset(
-                  "assets/logo/habio_logo_blue.png",
-                  height: 105,
-                  width: 105,
+                  "assets/logo/habio_logo_blue_transparent.png",
+                  height: 90,
+                  width: 90,
                   fit: BoxFit.contain,
                 ),
               ),
@@ -52,7 +52,7 @@ class WelcomeScreen extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: darkText,
-                      fontSize: 30,
+                      fontSize: 32,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.7,
                       height: 1.15,
@@ -308,7 +308,7 @@ class WelcomeScreen extends StatelessWidget {
                     "Trusted professionals",
                     style: TextStyle(
                       color: lightText,
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -319,7 +319,7 @@ class WelcomeScreen extends StatelessWidget {
                       "•",
                       style: TextStyle(
                         color: lightText,
-                        fontSize: 11,
+                        fontSize: 12,
                       ),
                     ),
                   ),
@@ -328,7 +328,7 @@ class WelcomeScreen extends StatelessWidget {
                     "Transparent pricing",
                     style: TextStyle(
                       color: lightText,
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
                   ),

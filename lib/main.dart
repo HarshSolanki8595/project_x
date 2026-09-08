@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 
 import 'firebase_options.dart';
@@ -26,6 +28,27 @@ Future<void> main() async {
   );
 
   FirebaseFirestore.setLoggingEnabled(true);
+
+  // ============================================================
+  // APP CHECK (added 2026-09-06, app-cloning hardening)
+  // ============================================================
+  //
+  // Attaches a Play Integrity-verified token to every Firebase
+  // Auth/Firestore/Storage/Functions request this app makes, so a
+  // decompiled or repackaged clone of this APK -- even one that's
+  // fully re-signed -- can't successfully talk to the real Habio
+  // backend. In debug builds this uses the debug provider instead,
+  // which prints a debug token to the console/Logcat on first run --
+  // register that token once under Firebase Console > App Check >
+  // Apps > (this app) > Manage debug tokens, or every debug run will
+  // be rejected the same as an unrecognized client. Release builds
+  // need no such registration: Play Integrity verifies automatically
+  // once the app is signed with the real release key.
+  //
+  await FirebaseAppCheck.instance.activate(
+    androidProvider:
+        kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+  );
 
   // NOTE: the old MatchingDemo dev harness that used to run here has
   // been removed — it wrote fake test requests through the mock

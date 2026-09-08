@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../models/notification_model.dart';
 import '../services/notification_service.dart';
+import 'main_navigation_screen.dart';
 
 // ================================================================
 // NOTIFICATIONS SCREEN — REWIRED TO REAL DATA (2026-08-23)
@@ -14,6 +15,16 @@ import '../services/notification_service.dart';
 // etc. -- see index.js). Tapping a notification marks it read; a
 // "Mark all read" action is available whenever there are unread
 // items.
+//
+// NAVIGATE ON TAP (NEW — 2026-09-06, Harsh's point 10): a
+// BID_ACCEPTED notification is the one the customer gets the
+// moment a professional accepts their fixed-price request
+// (acceptFixedPriceOpportunity in index.js -- "Professional
+// found!"). Tapping it used to only mark it read and leave the
+// customer sitting on this same Notifications tab with no sense
+// that anything happened. It now also takes them to the Home tab,
+// via the real navigation shell (MainNavigationScreen, which opens
+// on Home by default) rather than just popping/doing nothing.
 //
 
 class NotificationsScreen extends StatelessWidget {
@@ -132,7 +143,7 @@ class NotificationsScreen extends StatelessWidget {
               "No Notifications Yet",
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
                 color: textPrimary,
               ),
             ),
@@ -164,6 +175,15 @@ class NotificationsScreen extends StatelessWidget {
             NotificationService.markAsRead(
               userId,
               notification.notificationId,
+            );
+          }
+
+          if (notification.type == 'BID_ACCEPTED') {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (_) => const MainNavigationScreen(),
+              ),
+              (route) => false,
             );
           }
         },
@@ -206,7 +226,7 @@ class NotificationsScreen extends StatelessWidget {
                     Text(
                       notification.body,
                       style: const TextStyle(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         color: textSecondary,
                         height: 1.35,
                       ),
@@ -215,7 +235,7 @@ class NotificationsScreen extends StatelessWidget {
                     Text(
                       _formatRelative(notification.createdAt),
                       style: const TextStyle(
-                        fontSize: 10.5,
+                        fontSize: 12,
                         color: textSecondary,
                       ),
                     ),
@@ -243,6 +263,8 @@ class NotificationsScreen extends StatelessWidget {
     switch (type) {
       case 'BID_SUBMITTED':
         return Icons.receipt_long_outlined;
+      case 'BID_ACCEPTED':
+        return Icons.celebration_outlined;
       case 'JOB_STARTED':
         return Icons.play_circle_outline_rounded;
       case 'JOB_COMPLETED':

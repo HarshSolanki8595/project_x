@@ -44,7 +44,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           title: const Text(
             'My Bookings',
             style: TextStyle(
-              fontSize: 30,
+              fontSize: 32,
               fontWeight: FontWeight.w400,
               letterSpacing: -0.5,
             ),

@@ -377,7 +377,7 @@ if (_predictions.isNotEmpty)
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight:
-                                FontWeight.bold,
+                                FontWeight.w700,
                           ),
                         ),
 

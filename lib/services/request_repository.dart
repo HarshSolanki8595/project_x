@@ -35,6 +35,20 @@ class RequestRepository {
       'createdAt': Timestamp.fromDate(
         request.createdAt,
       ),
+      'categoryName': request.categoryName,
+      'subCategoryName': request.subCategoryName,
+      'address': request.address,
+      'preferredDate': request.preferredDate?.millisecondsSinceEpoch,
+      'preferredTimeSlot': request.preferredTimeSlot,
+      'pricingType': request.pricingType,
+      'fixedPriceAnswers': request.fixedPriceAnswers,
+      'numberOfServiceRecipients': request.numberOfServiceRecipients,
+      'serviceDurationHours': request.serviceDurationHours,
+      'computedFairPrice': request.computedFairPrice,
+      'postedPrice': request.postedPrice,
+      'customerProvidesMaterial': request.customerProvidesMaterial,
+      'materialGrade': request.materialGrade,
+      'materialBrandPreference': request.materialBrandPreference,
     });
   }
 
@@ -161,6 +175,56 @@ class RequestRepository {
 
       createdAt:
           _readDate(data['createdAt']),
+
+      categoryName:
+          data['categoryName'] as String?,
+
+      subCategoryName:
+          data['subCategoryName'] as String?,
+
+      address:
+          data['address'] as String?,
+
+      preferredDate:
+          data['preferredDate'] == null
+              ? null
+              : DateTime.fromMillisecondsSinceEpoch(
+                  data['preferredDate'] as int,
+                ),
+
+      preferredTimeSlot:
+          data['preferredTimeSlot'] as String?,
+
+      pricingType:
+          data['pricingType'] as String? ?? 'BID',
+
+      fixedPriceAnswers:
+          data['fixedPriceAnswers'] == null
+              ? const {}
+              : Map<String, dynamic>.from(
+                  data['fixedPriceAnswers'] as Map,
+                ),
+
+      numberOfServiceRecipients:
+          (data['numberOfServiceRecipients'] as num?)?.toInt(),
+
+      serviceDurationHours:
+          (data['serviceDurationHours'] as num?)?.toDouble(),
+
+      computedFairPrice:
+          (data['computedFairPrice'] as num?)?.toDouble(),
+
+      postedPrice:
+          (data['postedPrice'] as num?)?.toDouble(),
+
+      customerProvidesMaterial:
+          data['customerProvidesMaterial'] as bool?,
+
+      materialGrade:
+          data['materialGrade'] as String?,
+
+      materialBrandPreference:
+          data['materialBrandPreference'] as String?,
     );
   }
 

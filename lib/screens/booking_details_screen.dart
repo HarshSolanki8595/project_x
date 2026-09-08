@@ -365,7 +365,7 @@ class _BookingDetailsScreenState
                       TextOverflow.ellipsis,
 
                   style: const TextStyle(
-                    fontSize: 27,
+                    fontSize: 28,
                     height: 1.05,
                     fontWeight:
                         FontWeight.w800,
@@ -661,7 +661,7 @@ class _BookingDetailsScreenState
                     TextOverflow.ellipsis,
 
                 style: const TextStyle(
-                  fontSize: 13.5,
+                  fontSize: 14,
                   height: 1.35,
                   color: textSecondary,
                 ),
@@ -810,7 +810,7 @@ class _BookingDetailsScreenState
                 const Text(
                   "Service Address",
                   style: TextStyle(
-                    fontSize: 11.5,
+                    fontSize: 12,
                     color: textSecondary,
                   ),
                 ),
@@ -895,7 +895,7 @@ class _BookingDetailsScreenState
 
                 style:
                     const TextStyle(
-                  fontSize: 11.5,
+                  fontSize: 12,
                   color: textSecondary,
                 ),
               ),

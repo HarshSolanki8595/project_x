@@ -6,6 +6,7 @@ import '../models/service_request.dart';
 import '../models/service_request_model.dart';
 import '../services/request_classifier.dart';
 import '../services/request_service.dart';
+import 'fixed_price_waiting_screen.dart';
 import 'professionals_screen.dart';
 
 class FindingProfessionalsScreen extends StatefulWidget {
@@ -37,6 +38,12 @@ class _FindingProfessionalsScreenState
 
   bool _requestProcessed = false;
   String? _processingError;
+
+  // Quick Services (Cleaning + Helper Services) post a fixed price up
+  // front instead of collecting bids -- this screen is shared with the
+  // bidding flow, so a couple of lines of copy need to differ for that
+  // case rather than talking about "quotations" that will never arrive.
+  bool get _isFixedPrice => widget.request.pricingType == 'FIXED_PRICE';
 
   @override
   void initState() {
@@ -185,6 +192,32 @@ class _FindingProfessionalsScreenState
         latitude: widget.request.latitude!,
         longitude: widget.request.longitude!,
         urgency: widget.request.urgency,
+        // Display/schedule fields -- previously dropped here, which
+        // is why the professional app's request card had nothing
+        // beyond the generic "Service Request" title and posted
+        // price. See ServiceRequestModel / RequestService /
+        // RequestRepository for the rest of this fix.
+        categoryName: widget.request.categoryName,
+        subCategoryName: widget.request.subCategoryName,
+        address: widget.request.address,
+        preferredDate: widget.request.preferredDate,
+        preferredTimeSlot: widget.request.preferredTimeSlot,
+        // Fixed-price fields (Helper Services + Cleaning only) --
+        // pricingType defaults to 'BID' on ServiceRequest itself,
+        // so every other category's request is written exactly as
+        // before. See fixed_price_service_config.dart.
+        pricingType: widget.request.pricingType,
+        fixedPriceAnswers: widget.request.fixedPriceAnswers,
+        numberOfServiceRecipients: widget.request.numberOfServiceRecipients,
+        serviceDurationHours: widget.request.serviceDurationHours,
+        computedFairPrice: widget.request.computedFairPrice,
+        postedPrice: widget.request.postedPrice,
+        // Material sourcing (non-Quick-Service requests only) --
+        // see ServiceRequestScreen. All null for FIXED_PRICE
+        // requests, which never touch that screen.
+        customerProvidesMaterial: widget.request.customerProvidesMaterial,
+        materialGrade: widget.request.materialGrade,
+        materialBrandPreference: widget.request.materialBrandPreference,
       );
 
       // --------------------------------------------------------
@@ -274,13 +307,18 @@ class _FindingProfessionalsScreenState
       return;
     }
 
+    // Fixed-price requests (Helper Services + Cleaning) have no bids
+    // to review -- any eligible professional can Accept the posted
+    // price directly, so this goes to the waiting screen instead of
+    // the bid list. Every other category is unaffected.
+    final bool isFixedPrice = widget.request.pricingType == 'FIXED_PRICE';
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            ProfessionalsScreen(
-          request: widget.request,
-        ),
+        builder: (_) => isFixedPrice
+            ? FixedPriceWaitingScreen(request: widget.request)
+            : ProfessionalsScreen(request: widget.request),
       ),
     );
   }
@@ -576,8 +614,9 @@ class _FindingProfessionalsScreenState
                           Colors.orange,
                       title:
                           'Request Sent',
-                      subtitle:
-                          'Waiting for quotations',
+                      subtitle: _isFixedPrice
+                          ? 'Waiting for a professional to accept'
+                          : 'Waiting for quotations',
                     ),
                   ],
                 ),
@@ -589,13 +628,16 @@ class _FindingProfessionalsScreenState
               // MARKETPLACE MESSAGE
               // ------------------------------------------------
 
-              const Text(
-                'Professionals will decide their price.\n'
-                'You decide which offer is right for you.',
+              Text(
+                _isFixedPrice
+                    ? 'Your price is already set.\n'
+                        'A nearby professional just needs to accept it.'
+                    : 'Professionals will decide their price.\n'
+                        'You decide which offer is right for you.',
                 textAlign:
                     TextAlign.center,
                 style:
-                    TextStyle(
+                    const TextStyle(
                   color:
                       Colors.grey,
                   fontSize: 12,

@@ -9,9 +9,11 @@ import '../core/widgets/emergency_card.dart';
 import '../core/widgets/frequently_used_section.dart';
 import '../core/widgets/home_app_bar.dart';
 import '../core/widgets/home_search_bar.dart';
+import '../core/widgets/quick_services_section.dart';
 import '../core/widgets/trending_services.dart';
 
 import 'categories/subcategory_screen.dart';
+import 'emergency_assistance_screen.dart';
 import 'map_screen.dart';
 import 'search_screen.dart';
 import 'service_request_screen.dart';
@@ -162,8 +164,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 30),
 
+              QuickServicesSection(
+                onCategoryTap: (category) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SubcategoryScreen(
+                        categoryName: category,
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 32),
+
               FrequentlyUsedSection(
-                onServiceTap: (service) {},
+                onServiceTap: (category) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SubcategoryScreen(
+                        categoryName: category,
+                      ),
+                    ),
+                  );
+                },
               ),
 
               const SizedBox(height: 32),
@@ -190,7 +216,14 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 32),
 
               EmergencyCard(
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const EmergencyAssistanceScreen(),
+                    ),
+                  );
+                },
               ),
 
               const SizedBox(height: 8),

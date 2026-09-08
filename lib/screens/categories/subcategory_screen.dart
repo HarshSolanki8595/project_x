@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/service_categories.dart';
 import '../../models/category.dart';
+import '../fixed_price_request_screen.dart';
 import '../service_request_screen.dart';
 
 class SubcategoryScreen extends StatelessWidget {
@@ -54,12 +55,25 @@ final Category? category =
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ServiceRequestScreen(
-            categoryName: category.name,
-            subCategoryName: subCategory.name,
-            subCategoryId: subCategory.id,
-            categoryId: category.id,
-          ),
+          // Quick Services (Helper Services + Cleaning) skip the
+          // free-text "describe your issue" flow entirely and go
+          // straight to the fixed-price pricing screen -- see
+          // fixed_price_service_config.dart. Every other category
+          // is completely unaffected: same ServiceRequestScreen,
+          // same navigation as before.
+          builder: (_) => category.isQuickService
+              ? FixedPriceRequestScreen(
+                  categoryName: category.name,
+                  subCategoryName: subCategory.name,
+                  subCategoryId: subCategory.id,
+                  categoryId: category.id,
+                )
+              : ServiceRequestScreen(
+                  categoryName: category.name,
+                  subCategoryName: subCategory.name,
+                  subCategoryId: subCategory.id,
+                  categoryId: category.id,
+                ),
         ),
       );
     },
@@ -99,7 +113,7 @@ final Category? category =
                                 subCategory.name,
                                 style: const TextStyle(
                                   fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
 

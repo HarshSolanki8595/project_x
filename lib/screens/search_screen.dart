@@ -30,7 +30,7 @@ class _SearchScreenState extends State<SearchScreen> {
           "Search Services",
           style: TextStyle(
             color: Colors.black,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),
@@ -65,7 +65,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 "Recent Searches",
                 style: TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
 
@@ -87,7 +87,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 "Popular Services",
                 style: TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
 

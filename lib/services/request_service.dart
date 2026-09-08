@@ -30,6 +30,20 @@ class RequestService {
     required double latitude,
     required double longitude,
     String urgency = 'NORMAL',
+    String? categoryName,
+    String? subCategoryName,
+    String? address,
+    DateTime? preferredDate,
+    String? preferredTimeSlot,
+    String pricingType = 'BID',
+    Map<String, dynamic> fixedPriceAnswers = const {},
+    int? numberOfServiceRecipients,
+    double? serviceDurationHours,
+    double? computedFairPrice,
+    double? postedPrice,
+    bool? customerProvidesMaterial,
+    String? materialGrade,
+    String? materialBrandPreference,
   }) async {
     // ----------------------------------------------------------
     // GENERATE A UNIQUE REQUEST ID
@@ -52,6 +66,20 @@ class RequestService {
       urgency: urgency,
       status: 'OPEN',
       createdAt: DateTime.now(),
+      categoryName: categoryName,
+      subCategoryName: subCategoryName,
+      address: address,
+      preferredDate: preferredDate,
+      preferredTimeSlot: preferredTimeSlot,
+      pricingType: pricingType,
+      fixedPriceAnswers: fixedPriceAnswers,
+      numberOfServiceRecipients: numberOfServiceRecipients,
+      serviceDurationHours: serviceDurationHours,
+      computedFairPrice: computedFairPrice,
+      postedPrice: postedPrice,
+      customerProvidesMaterial: customerProvidesMaterial,
+      materialGrade: materialGrade,
+      materialBrandPreference: materialBrandPreference,
     );
 
     await RequestRepository.addRequest(
