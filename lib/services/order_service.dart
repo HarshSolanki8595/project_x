@@ -111,52 +111,17 @@ class OrderService {
   }
 
   // ============================================================
-  // PAY FOR ORDER (NEW — 2026-08-21)
+  // PAYMENT (job payment + cancellation fee)
   // ============================================================
   //
-  // Stage 3 of the payment/wallet build -- MOCKED/SIMULATED
-  // payment, no real Razorpay integration yet. Calls the
-  // recordPayment Cloud Function, which marks the order paid
-  // in-app and computes the customer's Platform Charges + GST.
-  // Orders are server-write-only, so this can't be a direct
-  // Firestore write.
+  // Moved to RazorpayPaymentService (2026-09-09) -- paying for an
+  // order or a cancellation fee now goes through a real Razorpay
+  // Checkout flow (createRazorpayOrder + verifyRazorpayPayment Cloud
+  // Functions), not a direct call from here. See
+  // lib/services/razorpay_payment_service.dart and its call sites in
+  // order_status_screen.dart's _PaymentSheet / _CancellationFeeSheet.
+  // The old payForOrder/payCancellationFee methods that used to live
+  // here called the now-removed MOCKED recordPayment/
+  // payCancellationFee Cloud Functions and have been deleted.
   //
-
-  static Future<void> payForOrder(String orderId) async {
-    try {
-      final callable =
-          FirebaseFunctions.instance.httpsCallable('recordPayment');
-
-      await callable.call(<String, dynamic>{
-        'orderId': orderId,
-      });
-    } on FirebaseFunctionsException catch (e) {
-      throw StateError(
-        e.message ?? 'Unable to process payment right now.',
-      );
-    }
-  }
-
-  // ============================================================
-  // PAY CANCELLATION FEE (NEW — 2026-08-30)
-  // ============================================================
-  //
-  // Collects the flat ₹150 fee cancelOrder records on withdrawal --
-  // MOCKED/SIMULATED, same as payForOrder above, no real gateway.
-  //
-
-  static Future<void> payCancellationFee(String orderId) async {
-    try {
-      final callable =
-          FirebaseFunctions.instance.httpsCallable('payCancellationFee');
-
-      await callable.call(<String, dynamic>{
-        'orderId': orderId,
-      });
-    } on FirebaseFunctionsException catch (e) {
-      throw StateError(
-        e.message ?? 'Unable to process payment right now.',
-      );
-    }
-  }
 }

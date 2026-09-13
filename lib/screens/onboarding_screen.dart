@@ -26,6 +26,14 @@ import 'welcome_screen.dart';
 // hard line-breaks baked into the old two-line titles/descriptions
 // are let wrap naturally instead. Nothing about what the carousel
 // says or where "Skip"/"Next"/"Get Started" take you has changed.
+//
+// 2026-09-13: briefly reworked into a randomized 11-flyer
+// differentiator carousel for Harsh's "advertisement flyers"
+// request, then reverted the same day -- he wants that content on
+// the Home screen instead (a compact swipeable strip near the
+// welcome greeting), not replacing this post-splash explainer. This
+// screen is back to the original 3-step "how it works" content
+// below.
 // ============================================================
 
 class OnboardingScreen extends StatefulWidget {

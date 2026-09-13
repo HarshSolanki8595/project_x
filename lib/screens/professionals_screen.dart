@@ -203,6 +203,17 @@ class _ProfessionalsScreenState
     final result =
         await showModalBottomSheet<bool>(
       context: context,
+      // FIX (2026-09-11): isScrollControlled lets this sheet grow past
+      // the default ~56% screen-height cap showModalBottomSheet
+      // otherwise imposes. Without it, a quote with a warranty note
+      // and/or a message from the professional could push the
+      // "Accept This Offer" button below that cap -- rendered but
+      // clipped below the visible sheet, exactly the bug Harsh
+      // reported (button visible in his screenshot, not actually
+      // tappable). Paired with the SingleChildScrollView wrap below,
+      // which handles the rarer case where content is taller than the
+      // full screen too.
+      isScrollControlled: true,
       backgroundColor: Colors.white,
       shape:
           const RoundedRectangleBorder(
@@ -220,7 +231,8 @@ class _ProfessionalsScreenState
               20,
               20,
             ),
-            child: Column(
+            child: SingleChildScrollView(
+              child: Column(
               mainAxisSize:
                   MainAxisSize.min,
               children: [
@@ -466,6 +478,7 @@ class _ProfessionalsScreenState
                   ),
                 ),
               ],
+              ),
             ),
           ),
         );

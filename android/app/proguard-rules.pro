@@ -49,6 +49,21 @@
 -keep class com.google.android.gms.maps.** { *; }
 
 # ----------------------------------------------------------------
+# Razorpay Checkout SDK (added 2026-09-09, real payment integration)
+# ----------------------------------------------------------------
+# Standard keep rules Razorpay's own docs specify for a minified
+# build -- without these, R8 can strip/rename classes and callback
+# methods the native Razorpay Checkout activity relies on, breaking
+# the payment flow (or crashing) only in release builds, never in
+# debug.
+-keep class com.razorpay.** { *; }
+-dontwarn com.razorpay.**
+-keepclasseswithmembers class * {
+  public void onPayment*(...);
+}
+-optimizations !method/inlining/*
+
+# ----------------------------------------------------------------
 # General safety -- reflection-based (de)serialization used
 # internally by several of the above
 # ----------------------------------------------------------------

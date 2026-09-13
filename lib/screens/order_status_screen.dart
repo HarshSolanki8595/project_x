@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -10,6 +11,7 @@ import '../models/review_model.dart';
 import '../models/service_request.dart';
 import '../services/order_service.dart';
 import '../services/professional_firestore_service.dart';
+import '../services/razorpay_payment_service.dart';
 import '../services/review_service.dart';
 import 'professionals_screen.dart';
 import 'rate_review_screen.dart';
@@ -24,13 +26,25 @@ import 'rate_review_screen.dart';
 // job through ACTIVE / ORDER_COMPLETED. Once completed, shows the
 // Rate & Review card at the bottom.
 //
-// PAYMENT (NEW — 2026-08-21): shows a "Pay Now" prompt whenever the
-// order isn't cancelled and hasn't been paid yet, and a "Paid"
-// confirmation once it has. This is Stage 3 of the payment/wallet
-// build -- a MOCKED/SIMULATED payment (no real Razorpay yet). Tapping
-// "Pay Now" opens a bottom sheet with the price breakdown (agreed
-// price + Platform Charges + GST) and a single confirm action that
-// calls the recordPayment Cloud Function.
+// PAYMENT (NEW — 2026-08-21, real Razorpay Checkout since 2026-09-09,
+// first-orders platform-fee waiver added same day):
+// shows a "Pay Now" prompt whenever the order isn't cancelled and
+// hasn't been paid yet, and a "Paid" confirmation once it has.
+// Tapping "Pay Now" opens a bottom sheet with the price breakdown
+// (agreed price + Platform Charges + GST) and a single confirm action
+// that opens Razorpay's Checkout UI via RazorpayPaymentService --
+// the customer pays for real, Razorpay's payment signature is
+// verified server-side (verifyRazorpayPayment), and only then is the
+// order marked paid. See razorpay_payment_service.dart.
+//
+// The breakdown shown is fetched from the server (createRazorpayOrder,
+// via RazorpayPaymentService.fetchPreview) the moment the sheet opens,
+// not computed client-side -- because a customer's first
+// FIRST_ORDERS_FEE_WAIVER_COUNT paid orders (see functions/index.js)
+// have their Platform Charges + GST waived, and only the server knows
+// whether that applies to THIS order. When it does, the sheet shows
+// Platform Charges/GST struck through with a "Waived" chip and the
+// customer only owes the agreed price.
 //
 
 class OrderStatusScreen extends StatefulWidget {
@@ -1889,10 +1903,12 @@ class _StatusConfig {
 // PAYMENT SHEET (NEW — 2026-08-21)
 // ================================================================
 //
-// Bottom sheet showing the price breakdown and a mocked payment
-// method selector (UPI / Card -- purely visual, no real gateway).
-// A single "Pay ₹X" button calls OrderService.payForOrder, which
-// invokes the recordPayment Cloud Function.
+// Bottom sheet showing the price breakdown and a payment method
+// selector (UPI / Card -- kept as a soft preference; Razorpay's own
+// Checkout UI is what actually lets the customer pick/complete a
+// method once it opens). A single "Pay ₹X" button opens Razorpay
+// Checkout via RazorpayPaymentService, which calls createRazorpayOrder
+// then verifyRazorpayPayment once the customer completes payment.
 // ================================================================
 
 class _PaymentSheet extends StatefulWidget {
@@ -1908,25 +1924,93 @@ class _PaymentSheetState extends State<_PaymentSheet> {
   static const Color primaryBlue = Color(0xFF1557FF);
   static const Color textPrimary = Color(0xFF0F172A);
   static const Color textSecondary = Color(0xFF64748B);
+  static const Color waivedGreen = Color(0xFF15803D);
+  static const Color waivedGreenBg = Color(0xFFEAF6EC);
 
   String _method = 'UPI';
   bool _isPaying = false;
 
-  // Same 9.5% Platform Charges + 18% GST math used server-side --
-  // shown here purely for display before the customer confirms.
-  // The Cloud Function recomputes and writes the authoritative
-  // values; this is not itself a source of truth.
-  double get _platformCharge => widget.order.agreedPrice * 0.095;
-  double get _gst => _platformCharge * 0.18;
-  double get _total => widget.order.agreedPrice + _platformCharge + _gst;
+  final RazorpayPaymentService _paymentService = RazorpayPaymentService();
+
+  // ============================================================
+  // BREAKDOWN PREVIEW (NEW — 2026-09-09, first-orders fee waiver)
+  // ============================================================
+  //
+  // The sheet used to compute Platform Charges/GST itself, client-
+  // side, purely from widget.order.agreedPrice -- fine as a display
+  // estimate when the customer always owed the full 9.5%+GST amount,
+  // but not anymore: whether THIS customer's Platform Charges are
+  // waived on this order depends on their server-side order count
+  // (users/{uid}.platformFeeWaiversUsed), which the client has no way
+  // to know on its own. So the sheet now calls createRazorpayOrder as
+  // soon as it opens -- via RazorpayPaymentService.fetchPreview --
+  // purely to read the real, authoritative breakdown (and whether it's
+  // waived) before showing the customer any number. The SAME already-
+  // created Razorpay order is then reused when Pay is tapped
+  // (preFetchedOrder below), so this never creates two Razorpay orders
+  // for one payment attempt.
+  Map<String, dynamic>? _preview;
+  String? _previewError;
+
+  bool get _previewLoading => _preview == null && _previewError == null;
+
+  double get _agreedPrice =>
+      (_preview?['agreedPrice'] as num?)?.toDouble() ?? widget.order.agreedPrice;
+  double get _platformCharge =>
+      (_preview?['platformCharge'] as num?)?.toDouble() ?? 0;
+  double get _gst => (_preview?['gst'] as num?)?.toDouble() ?? 0;
+  double get _fullTotal =>
+      (_preview?['fullTotal'] as num?)?.toDouble() ?? _agreedPrice;
+  bool get _waived => _preview?['platformFeeWaived'] == true;
+  // What the customer actually owes -- straight from the paise amount
+  // Razorpay's order was created for, so this can never drift from
+  // what Checkout is about to charge.
+  double get _amountDue =>
+      _preview != null ? (_preview!['amount'] as num).toDouble() / 100.0 : 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreview();
+  }
+
+  Future<void> _loadPreview() async {
+    try {
+      final preview = await _paymentService.fetchPreview(
+        orderId: widget.order.orderId,
+        purpose: 'JOB_PAYMENT',
+      );
+      if (mounted) {
+        setState(() => _preview = preview);
+      }
+    } on FirebaseFunctionsException catch (e) {
+      if (mounted) {
+        setState(() => _previewError = e.message ?? 'Unable to load your total.');
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _previewError = 'Unable to load your total.');
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _paymentService.dispose();
+    super.dispose();
+  }
 
   Future<void> _confirmPayment() async {
-    if (_isPaying) return;
+    if (_isPaying || _preview == null) return;
 
     setState(() => _isPaying = true);
 
     try {
-      await OrderService.payForOrder(widget.order.orderId);
+      await _paymentService.pay(
+        orderId: widget.order.orderId,
+        purpose: 'JOB_PAYMENT',
+        preFetchedOrder: _preview,
+      );
 
       if (mounted) {
         Navigator.pop(context);
@@ -1991,39 +2075,136 @@ class _PaymentSheetState extends State<_PaymentSheet> {
 
               const SizedBox(height: 16),
 
-              _row('Service amount', widget.order.agreedPrice),
-              const SizedBox(height: 8),
-              _row('Platform charges (9.5%)', _platformCharge),
-              const SizedBox(height: 8),
-              _row('GST on platform charges (18%)', _gst),
+              if (_previewLoading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            color: primaryBlue,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          'Calculating your total…',
+                          style: TextStyle(fontSize: 13, color: textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else if (_previewError != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _previewError!,
+                        style: const TextStyle(fontSize: 13, color: Colors.red),
+                      ),
+                      const SizedBox(height: 10),
+                      TextButton(
+                        onPressed: () {
+                          setState(() => _previewError = null);
+                          _loadPreview();
+                        },
+                        child: const Text('Try again'),
+                      ),
+                    ],
+                  ),
+                )
+              else ...[
+                if (_waived) ...[
+                  Container(
+                    width: double.infinity,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: waivedGreenBg,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.celebration_rounded,
+                            color: waivedGreen, size: 18),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Platform fee waived — welcome offer on your first orders',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: waivedGreen,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                ],
 
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                child: Divider(height: 1, color: Color(0xFFE4E7EC)),
-              ),
+                _row('Service amount', _agreedPrice),
+                const SizedBox(height: 8),
+                _row(
+                  'Platform charges (9.5%)',
+                  _platformCharge,
+                  waived: _waived,
+                ),
+                const SizedBox(height: 8),
+                _row(
+                  'GST on platform charges (18%)',
+                  _gst,
+                  waived: _waived,
+                ),
 
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'Total to pay',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: textPrimary,
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Divider(height: 1, color: Color(0xFFE4E7EC)),
+                ),
+
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Total to pay',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: textPrimary,
+                        ),
                       ),
                     ),
-                  ),
-                  Text(
-                    '₹${_total.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: primaryBlue,
+                    if (_waived) ...[
+                      Text(
+                        '₹${_fullTotal.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: textSecondary,
+                          decoration: TextDecoration.lineThrough,
+                          decorationColor: textSecondary,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    Text(
+                      '₹${_amountDue.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: _waived ? waivedGreen : primaryBlue,
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
 
               const SizedBox(height: 18),
 
@@ -2064,7 +2245,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: _isPaying ? null : _confirmPayment,
+                  onPressed: (_isPaying || _preview == null) ? null : _confirmPayment,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryBlue,
                     foregroundColor: Colors.white,
@@ -2083,7 +2264,9 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                           ),
                         )
                       : Text(
-                          'Pay ₹${_total.toStringAsFixed(0)}',
+                          _preview == null
+                              ? 'Pay'
+                              : 'Pay ₹${_amountDue.toStringAsFixed(0)}',
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
@@ -2098,7 +2281,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
     );
   }
 
-  Widget _row(String label, double amount) {
+  Widget _row(String label, double amount, {bool waived = false}) {
     return Row(
       children: [
         Expanded(
@@ -2107,12 +2290,32 @@ class _PaymentSheetState extends State<_PaymentSheet> {
             style: const TextStyle(fontSize: 13, color: textSecondary),
           ),
         ),
+        if (waived) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: waivedGreenBg,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Text(
+              'Waived',
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                color: waivedGreen,
+              ),
+            ),
+          ),
+        ],
         Text(
           '₹${amount.toStringAsFixed(2)}',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: textPrimary,
+            color: waived ? textSecondary : textPrimary,
+            decoration: waived ? TextDecoration.lineThrough : null,
+            decorationColor: textSecondary,
           ),
         ),
       ],
@@ -2165,10 +2368,11 @@ class _PaymentSheetState extends State<_PaymentSheet> {
 // CANCELLATION FEE SHEET (NEW — 2026-08-30)
 // ================================================================
 //
-// Same mocked payment-method-selector pattern as _PaymentSheet
-// above, but for the flat ₹150 cancellation fee instead of the job
-// price breakdown. Calls OrderService.payCancellationFee, which
-// invokes the payCancellationFee Cloud Function.
+// Same payment-method-selector pattern as _PaymentSheet above, but
+// for the flat ₹150 cancellation fee instead of the job price
+// breakdown. Opens Razorpay Checkout via RazorpayPaymentService
+// (purpose 'CANCELLATION_FEE'), same create/verify pair as the job
+// payment above.
 // ================================================================
 
 class _CancellationFeeSheet extends StatefulWidget {
@@ -2188,13 +2392,24 @@ class _CancellationFeeSheetState extends State<_CancellationFeeSheet> {
   String _method = 'UPI';
   bool _isPaying = false;
 
+  final RazorpayPaymentService _paymentService = RazorpayPaymentService();
+
+  @override
+  void dispose() {
+    _paymentService.dispose();
+    super.dispose();
+  }
+
   Future<void> _confirmPayment() async {
     if (_isPaying) return;
 
     setState(() => _isPaying = true);
 
     try {
-      await OrderService.payCancellationFee(widget.order.orderId);
+      await _paymentService.pay(
+        orderId: widget.order.orderId,
+        purpose: 'CANCELLATION_FEE',
+      );
 
       if (mounted) {
         Navigator.pop(context);

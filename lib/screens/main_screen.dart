@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -40,8 +42,19 @@ class _MainScreenState extends State<MainScreen> {
     _selectedIndex = widget.initialIndex;
   }
 
+  // NOTE (2026-09-13): HomeScreen now requires a `flyers` list (the
+  // Home-screen promo banner added that day) -- this screen is
+  // confirmed orphaned/unused elsewhere in this file's own 2026-09-06
+  // comment history (see professionals_screen.dart), but it still has
+  // to compile, so it gets its own one-off random pick here rather
+  // than reshuffling on tab switches like MainNavigationScreen does.
+  final List<FlyerContent> _flyerSelection =
+      (List<FlyerContent>.from(kHomeFlyers)..shuffle(Random()))
+          .take(3)
+          .toList();
+
   late final List<Widget> _pages = [
-    const HomeScreen(),
+    HomeScreen(flyers: _flyerSelection),
     const BookingsScreen(),
     const NotificationsScreen(),
     const ProfileScreen(),

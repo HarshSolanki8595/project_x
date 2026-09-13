@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -20,15 +22,34 @@ class _MainNavigationScreenState
     extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    BookingsScreen(),
-    NotificationsScreen(),
-    ProfileScreen(),
-  ];
+  // ============================================================
+  // HOME FLYER BANNER SELECTION -- added 2026-09-13
+  // ============================================================
+  //
+  // HomeScreen sits inside the IndexedStack below and is only ever
+  // built once per app launch, so its own initState wouldn't re-run
+  // each time the customer switches back to the Home tab. This
+  // screen owns the bottom nav tap handler, so it's what re-picks 3
+  // of the 11 flyers (kHomeFlyers, in home_screen.dart) every time
+  // the customer actually lands on Home, then hands the fresh list
+  // down to HomeScreen as a constructor param.
+  //
+
+  late List<FlyerContent> _flyerSelection = _pickFlyers();
+
+  List<FlyerContent> _pickFlyers() {
+    final shuffled = List<FlyerContent>.from(kHomeFlyers)..shuffle(Random());
+    return shuffled.take(3).toList();
+  }
 
   void _onItemTapped(int index) {
     setState(() {
+      // Landing on Home from another tab -- re-pick 3 of the 11
+      // flyer-banner promos. Not on every rebuild, just an actual
+      // tab switch onto Home.
+      if (index == 0 && _selectedIndex != 0) {
+        _flyerSelection = _pickFlyers();
+      }
       _selectedIndex = index;
     });
   }
@@ -79,11 +100,18 @@ class _MainNavigationScreenState
             final unreadNotificationCount =
                 notificationSnapshot.data?.docs.length ?? 0;
 
+            final List<Widget> screens = [
+              HomeScreen(flyers: _flyerSelection),
+              const BookingsScreen(),
+              const NotificationsScreen(),
+              const ProfileScreen(),
+            ];
+
             return Scaffold(
               backgroundColor: const Color(0xFFF7F8FC),
               body: IndexedStack(
                 index: _selectedIndex,
-                children: _screens,
+                children: screens,
               ),
               bottomNavigationBar: BottomNavBar(
                 currentIndex: _selectedIndex,
