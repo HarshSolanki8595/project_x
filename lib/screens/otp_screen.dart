@@ -3,17 +3,23 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../services/notification_service.dart';
 import 'create_profile_screen.dart';
 import 'main_navigation_screen.dart';
 
 class OtpScreen extends StatefulWidget {
   final String phoneNumber;
   final String verificationId;
+  // ADDED (2026-09-27, Harsh's point 14): the token Firebase hands
+  // back with the original SMS send, needed to resend an OTP for the
+  // *same* phone-verification session via forceResendingToken below.
+  final int? resendToken;
 
   const OtpScreen({
     super.key,
     required this.phoneNumber,
     required this.verificationId,
+    this.resendToken,
   });
 
   @override
@@ -28,6 +34,21 @@ class _OtpScreenState extends State<OtpScreen> {
 
   bool _isLoading = false;
 
+  // ============================================================
+  // RESEND OTP -- added 2026-09-27 (Harsh's point 14)
+  // ============================================================
+  //
+  // _verificationId/_resendToken start as whatever LoginScreen passed
+  // in, but a successful resend hands back a *new* verificationId --
+  // OTP entry after that point must be checked against the new one,
+  // not the original widget.verificationId, hence these are mutable
+  // state instead of read directly off widget.
+  //
+
+  late String _verificationId;
+  int? _resendToken;
+  bool _isResending = false;
+
   static const Color primaryBlue = Color(0xFF1557FF);
   static const Color darkText = Color(0xFF0F172A);
   static const Color secondaryText = Color(0xFF64748B);
@@ -40,6 +61,13 @@ class _OtpScreenState extends State<OtpScreen> {
   String get otp => controllers.map((e) => e.text).join();
 
   @override
+  void initState() {
+    super.initState();
+    _verificationId = widget.verificationId;
+    _resendToken = widget.resendToken;
+  }
+
+  @override
   void dispose() {
     for (final controller in controllers) {
       controller.dispose();
@@ -48,6 +76,46 @@ class _OtpScreenState extends State<OtpScreen> {
       node.dispose();
     }
     super.dispose();
+  }
+
+  // ============================================================
+  // ROUTE AFTER A SUCCESSFUL VERIFICATION
+  // ============================================================
+  //
+  // Pulled out of verifyOtp() below (2026-09-27) so _resendOtp()'s own
+  // auto-verification path (verificationCompleted, when Android
+  // silently confirms the number without the customer typing
+  // anything) can route the same way instead of duplicating this
+  // existing-user/new-user check.
+  //
+
+  Future<void> _routeAfterVerification(String uid) async {
+    final userDoc =
+        await FirebaseFirestore.instance.collection("users").doc(uid).get();
+
+    if (!mounted) return;
+
+    // Push notification registration (NEW — 2026-09-27): best-effort,
+    // fire-and-forget so it never delays navigation.
+    NotificationService.registerDeviceToken();
+
+    if (userDoc.exists) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+        (route) => false,
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CreateProfileScreen(
+            uid: uid,
+            phoneNumber: widget.phoneNumber,
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> verifyOtp() async {
@@ -64,17 +132,12 @@ class _OtpScreenState extends State<OtpScreen> {
 
     try {
       final PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: widget.verificationId,
+        verificationId: _verificationId,
         smsCode: otp,
       );
 
       final UserCredential userCredential =
           await FirebaseAuth.instance.signInWithCredential(credential);
-
-      final uid = userCredential.user!.uid;
-
-      final userDoc =
-          await FirebaseFirestore.instance.collection("users").doc(uid).get();
 
       if (!mounted) return;
 
@@ -82,23 +145,7 @@ class _OtpScreenState extends State<OtpScreen> {
         _isLoading = false;
       });
 
-      if (userDoc.exists) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-          (route) => false,
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => CreateProfileScreen(
-              uid: uid,
-              phoneNumber: widget.phoneNumber,
-            ),
-          ),
-        );
-      }
+      await _routeAfterVerification(userCredential.user!.uid);
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
 
@@ -108,6 +155,117 @@ class _OtpScreenState extends State<OtpScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? "OTP verification failed")),
+      );
+    }
+  }
+
+  // ============================================================
+  // RESEND OTP -- added 2026-09-27 (Harsh's point 14)
+  // ============================================================
+  //
+  // Same verifyPhoneNumber call LoginScreen makes to send the first
+  // code, but with forceResendingToken set so Firebase resends within
+  // the same verification session instead of starting a fresh one.
+  // On success, replaces _verificationId/_resendToken with the fresh
+  // ones Firebase hands back (a stale verificationId would make the
+  // next manual entry fail with invalid-verification-id), clears the
+  // 6 boxes so the customer isn't left staring at the old code, and
+  // refocuses the first box.
+  //
+
+  Future<void> _resendOtp() async {
+    if (_isResending || _isLoading) return;
+
+    setState(() {
+      _isResending = true;
+    });
+
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: "+91${widget.phoneNumber}",
+        forceResendingToken: _resendToken,
+
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          try {
+            final userCredential =
+                await FirebaseAuth.instance.signInWithCredential(credential);
+
+            if (!mounted) return;
+
+            setState(() {
+              _isResending = false;
+            });
+
+            await _routeAfterVerification(userCredential.user!.uid);
+          } on FirebaseAuthException catch (e) {
+            if (!mounted) return;
+
+            setState(() {
+              _isResending = false;
+            });
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(e.message ?? "Unable to complete sign-in.")),
+            );
+          }
+        },
+
+        verificationFailed: (FirebaseAuthException e) {
+          if (!mounted) return;
+
+          setState(() {
+            _isResending = false;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              duration: const Duration(seconds: 6),
+              content: Text(
+                "${e.code}\n${e.message ?? 'Unable to resend OTP. Please try again.'}",
+              ),
+            ),
+          );
+        },
+
+        codeSent: (String verificationId, int? resendToken) {
+          if (!mounted) return;
+
+          setState(() {
+            _verificationId = verificationId;
+            _resendToken = resendToken;
+            _isResending = false;
+            for (final controller in controllers) {
+              controller.clear();
+            }
+          });
+
+          focusNodes.first.requestFocus();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("A new OTP has been sent."),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        },
+
+        codeAutoRetrievalTimeout: (String verificationId) {
+          _verificationId = verificationId;
+        },
+
+        timeout: const Duration(seconds: 60),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isResending = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Unable to resend OTP. Please try again."),
+        ),
       );
     }
   }
@@ -299,13 +457,7 @@ class _OtpScreenState extends State<OtpScreen> {
               const SizedBox(height: 22),
               Center(
                 child: TextButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Resend OTP will be added shortly."),
-                      ),
-                    );
-                  },
+                  onPressed: (_isResending || _isLoading) ? null : _resendOtp,
                   style: TextButton.styleFrom(
                     foregroundColor: primaryBlue,
                     backgroundColor: const Color(0xFFEEF3FF),
@@ -317,14 +469,23 @@ class _OtpScreenState extends State<OtpScreen> {
                       borderRadius: BorderRadius.circular(24),
                     ),
                   ),
-                  child: const Text(
-                    "Resend OTP",
-                    style: TextStyle(
-                      color: primaryBlue,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: _isResending
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: primaryBlue,
+                          ),
+                        )
+                      : const Text(
+                          "Resend OTP",
+                          style: TextStyle(
+                            color: primaryBlue,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 42),
@@ -373,17 +534,13 @@ class _OtpScreenState extends State<OtpScreen> {
               const SizedBox(height: 5),
               Center(
                 child: GestureDetector(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Resend OTP will be added shortly."),
-                      ),
-                    );
-                  },
-                  child: const Text(
+                  onTap: (_isResending || _isLoading) ? null : _resendOtp,
+                  child: Text(
                     "Resend OTP",
                     style: TextStyle(
-                      color: primaryBlue,
+                      color: (_isResending || _isLoading)
+                          ? lightText
+                          : primaryBlue,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),

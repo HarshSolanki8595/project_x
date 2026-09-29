@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../core/widgets/safety_awareness_carousel.dart';
 import '../models/order_model.dart';
 import '../models/service_request.dart';
 import '../services/fixed_price_service.dart';
 import '../services/order_service.dart';
+import 'main_navigation_screen.dart';
 import 'order_status_screen.dart';
 
 // ================================================================
@@ -292,12 +294,51 @@ class _FixedPriceWaitingScreenState extends State<FixedPriceWaitingScreen>
     );
   }
 
+  // ============================================================
+  // BACK NAVIGATION -- close the loop (2026-09-27, Harsh's point 8)
+  // ============================================================
+  //
+  // Same fix as ProfessionalsScreen: back from here (there was no
+  // back button at all before -- only the Android system gesture,
+  // which retraced the whole request-creation stack) now jumps
+  // straight to Home. The request stays visible under
+  // Bookings -> Upcoming.
+  //
+  void _goHome(BuildContext context) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => const MainNavigationScreen(),
+      ),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final requestId = widget.request.requestId;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _goHome(context);
+      },
+      child: Scaffold(
       backgroundColor: backgroundColor,
+      appBar: AppBar(
+        backgroundColor: backgroundColor,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_rounded,
+            size: 22,
+            color: darkText,
+          ),
+          onPressed: () => _goHome(context),
+        ),
+      ),
       body: SafeArea(
         child: StreamBuilder<OrderModel?>(
           stream: requestId == null
@@ -391,7 +432,9 @@ class _FixedPriceWaitingScreenState extends State<FixedPriceWaitingScreen>
                       ],
                     ),
                   ),
-                  const Spacer(flex: 2),
+                  const SizedBox(height: 22),
+                  const SafetyAwarenessCarousel(),
+                  const Spacer(flex: 1),
                   if (_takingLong) ...[
                     Container(
                       width: double.infinity,
@@ -459,6 +502,7 @@ class _FixedPriceWaitingScreenState extends State<FixedPriceWaitingScreen>
             );
           },
         ),
+      ),
       ),
     );
   }

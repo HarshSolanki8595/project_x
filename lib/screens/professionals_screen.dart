@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math' as math;
 
+import '../core/widgets/safety_awareness_carousel.dart';
+import '../core/widgets/why_choose_us_carousel.dart';
 import '../models/marketplace_status.dart';
 import '../models/professional_bid_model.dart';
 import '../models/professional_model.dart';
@@ -41,11 +45,65 @@ class _ProfessionalsScreenState
 
   static const Color starGold = Color(0xFFF5A524);
 
+  static const Color waivedGreen = Color(0xFF15803D);
+  static const Color waivedGreenBg = Color(0xFFEAF6EC);
+
   // ============================================================
   // STATE
   // ============================================================
 
   bool _acceptingBid = false;
+
+  // ============================================================
+  // FEE WAIVER PREVIEW (NEW — 2026-09-27, Harsh's point 11)
+  // ============================================================
+  //
+  // Whether the customer's next paid order would have its Platform
+  // Charges + GST waived under the first-orders launch offer (see
+  // FIRST_ORDERS_FEE_WAIVER_COUNT in functions/index.js and the
+  // matching mirror in utils/pricing.dart). Fetched once here -- a
+  // plain read of the customer's own users/{uid} doc, not a Cloud
+  // Function call -- purely so the "Accept This Offer" and "Order
+  // Confirmed" price previews below reflect the same offer the real
+  // payment screen (order_status_screen.dart) already shows. This is
+  // a PREVIEW ONLY: the real charge is always decided authoritatively
+  // server-side at actual payment time, so a stale/failed read here
+  // just falls back to showing the full breakdown -- it can never
+  // cause an under- or over-charge.
+  //
+  bool _feeWaivedPreview = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFeeWaiverPreview();
+  }
+
+  Future<void> _loadFeeWaiverPreview() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      final int waiversUsed =
+          (snapshot.data()?['platformFeeWaiversUsed'] as num?)?.toInt() ?? 0;
+
+      if (mounted) {
+        setState(() {
+          _feeWaivedPreview =
+              waiversUsed < CustomerPricing.firstOrdersFeeWaiverCount;
+        });
+      }
+    } catch (_) {
+      // Leave _feeWaivedPreview at its safe default (false) -- worst
+      // case the customer just doesn't see the waiver messaging early,
+      // and still sees it correctly on the actual payment screen.
+    }
+  }
 
   // ============================================================
   // DISTANCE
@@ -334,19 +392,73 @@ class _ProfessionalsScreenState
                       ),
                       child: Column(
                         children: [
+                          // ----------------------------------------
+                          // FEE WAIVER (2026-09-27, Harsh's point 11)
+                          // ----------------------------------------
+                          //
+                          // "When selecting a bid, [the] amount to pay
+                          // appears -- it should say when in [the]
+                          // offer period that the charges are waived
+                          // off... or should not be shown at all."
+                          // Same banner + strikethrough treatment as
+                          // the real payment screen, so the customer
+                          // sees a consistent number here and later.
+                          //
+                          if (_feeWaivedPreview) ...[
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: waivedGreenBg,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(
+                                    Icons.celebration_rounded,
+                                    color: waivedGreen,
+                                    size: 18,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Platform fee waived — welcome offer on your first orders',
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: waivedGreen,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
                           _priceBreakdownRow(
                             "Service quote",
                             '₹${pricing.agreedPrice.toStringAsFixed(0)}',
                           ),
                           const SizedBox(height: 6),
+                          // Percentage deliberately not shown
+                          // (2026-09-27, Harsh's point 12) -- the
+                          // exact platform commission rate shouldn't
+                          // be disclosed anywhere in the app. GST's
+                          // rate stays shown below -- it's a
+                          // statutory tax rate, not a business figure.
                           _priceBreakdownRow(
-                            'Platform Charges (9.5%)',
+                            'Platform Charges',
                             '+ ₹${pricing.platformCharge.toStringAsFixed(0)}',
+                            waived: _feeWaivedPreview,
                           ),
                           const SizedBox(height: 6),
                           _priceBreakdownRow(
                             'GST on Platform Charges (18%)',
                             '+ ₹${pricing.gst.toStringAsFixed(0)}',
+                            waived: _feeWaivedPreview,
                           ),
                           const SizedBox(height: 10),
                           Container(
@@ -356,8 +468,9 @@ class _ProfessionalsScreenState
                           const SizedBox(height: 10),
                           _priceBreakdownRow(
                             "You'll pay",
-                            '₹${pricing.total.toStringAsFixed(0)}',
+                            '₹${(_feeWaivedPreview ? pricing.agreedPrice : pricing.total).toStringAsFixed(0)}',
                             emphasize: true,
+                            emphasizeColor: _feeWaivedPreview ? waivedGreen : null,
                           ),
                         ],
                       ),
@@ -496,6 +609,14 @@ class _ProfessionalsScreenState
     String label,
     String value, {
     bool emphasize = false,
+    // NEW (2026-09-27, Harsh's point 11): strikes the value through
+    // when this row's charge has been waived under the first-orders
+    // offer -- same treatment as order_status_screen.dart's payment
+    // sheet, so the two screens read consistently.
+    bool waived = false,
+    // NEW (2026-09-27, Harsh's point 11): lets the emphasized "You'll
+    // pay" row turn waivedGreen instead of primaryBlue when waived.
+    Color? emphasizeColor,
   }) {
     return Row(
       children: [
@@ -512,9 +633,13 @@ class _ProfessionalsScreenState
         Text(
           value,
           style: TextStyle(
-            color: emphasize ? primaryBlue : textPrimary,
+            color: waived
+                ? textSecondary
+                : (emphasize ? (emphasizeColor ?? primaryBlue) : textPrimary),
             fontSize: emphasize ? 16 : 12.5,
             fontWeight: FontWeight.w700,
+            decoration: waived ? TextDecoration.lineThrough : null,
+            decorationColor: textSecondary,
           ),
         ),
       ],
@@ -585,17 +710,24 @@ class _ProfessionalsScreenState
               // Charges + GST), not just the raw professional quote,
               // now that the order is confirmed. See
               // utils/pricing.dart.
+              //
+              // UPDATED (2026-09-27, Harsh's point 11): reflects the
+              // same first-orders fee-waiver preview shown on the
+              // "Accept This Offer" sheet just before this, so the
+              // number doesn't jump between the two.
               // --------------------------------------------------
               Builder(
                 builder: (context) {
                   final pricing = CustomerPricing.fromAgreedPrice(price);
+                  final double amountDue =
+                      _feeWaivedPreview ? pricing.agreedPrice : pricing.total;
 
                   return Column(
                     children: [
                       Text(
-                        '₹${pricing.total.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          color: primaryBlue,
+                        '₹${amountDue.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          color: _feeWaivedPreview ? waivedGreen : primaryBlue,
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
                         ),
@@ -608,6 +740,27 @@ class _ProfessionalsScreenState
                           fontSize: 11,
                         ),
                       ),
+                      if (_feeWaivedPreview) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: waivedGreenBg,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            'Platform fee waived — welcome offer',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: waivedGreen,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   );
                 },
@@ -720,33 +873,73 @@ class _ProfessionalsScreenState
   // BUILD
   // ============================================================
 
+  // ============================================================
+  // BACK NAVIGATION -- close the loop (2026-09-27, Harsh's point 8)
+  // ============================================================
+  //
+  // This screen sits at the end of a long request-creation stack
+  // (category -> subcategory -> service details -> date/time ->
+  // review -> finding-professionals). Once the request is actually
+  // placed and the customer is here choosing a professional, a
+  // plain back pop used to retrace that entire stack screen by
+  // screen. Now back -- whether the AppBar arrow, the Android
+  // system back gesture, or an edge swipe -- always jumps straight
+  // to Home instead, same as the "Done" action below already does
+  // once an order is confirmed. The request itself isn't lost: it's
+  // still visible under Bookings -> Upcoming.
+  //
+  void _goHome(BuildContext context) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => const MainNavigationScreen(),
+      ),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final requestId =
         widget.request.requestId;
 
-    return Scaffold(
-      backgroundColor: background,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _goHome(context);
+      },
+      child: Scaffold(
+        backgroundColor: background,
 
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: textPrimary,
-        elevation: 0,
-        scrolledUnderElevation: 0,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          foregroundColor: textPrimary,
+          elevation: 0,
+          scrolledUnderElevation: 0,
 
-        title: const Text(
-          'Professionals & Quotes',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              size: 22,
+            ),
+            onPressed: () => _goHome(context),
+          ),
+
+          title: const Text(
+            'Professionals & Quotes',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
-      ),
 
-      body: requestId == null ||
-              requestId.trim().isEmpty
-          ? _buildMissingRequest()
-          : _buildMarketplace(requestId),
+        body: requestId == null ||
+                requestId.trim().isEmpty
+            ? _buildMissingRequest()
+            : _buildMarketplace(requestId),
+      ),
     );
   }
 
@@ -942,7 +1135,15 @@ class _ProfessionalsScreenState
 
                 const SizedBox(height: 15),
 
-                _marketplaceMessage(),
+                const WhyChooseUsCarousel(),
+
+                const SizedBox(height: 14),
+
+                // ------------------------------------------------------
+                // SAFETY AWARENESS CAROUSEL (NEW — 2026-09-27)
+                // ------------------------------------------------------
+
+                const SafetyAwarenessCarousel(),
 
                 const SizedBox(height: 14),
 
@@ -1065,50 +1266,6 @@ class _ProfessionalsScreenState
   // ============================================================
   // MARKETPLACE MESSAGE
   // ============================================================
-
-  Widget _marketplaceMessage() {
-    return Container(
-      padding:
-          const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 12,
-      ),
-      decoration: BoxDecoration(
-        color: lightBlue,
-        borderRadius:
-            BorderRadius.circular(18),
-        border: Border.all(
-          color:
-              const Color(0xFFD7E2FF),
-        ),
-      ),
-      child: const Row(
-        children: [
-          Icon(
-            Icons.compare_arrows_rounded,
-            color: primaryBlue,
-            size: 24,
-          ),
-
-          SizedBox(width: 10),
-
-          Expanded(
-            child: Text(
-              'Professionals decide their price. You decide which offer gives you the best value.',
-              style: TextStyle(
-                color:
-                    Color(0xFF475569),
-                fontSize: 13,
-                height: 1.35,
-                fontWeight:
-                    FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   // ============================================================
   // REQUEST INFORMATION

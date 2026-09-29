@@ -44,6 +44,9 @@
 // the same question asked twice in one flow.
 // ================================================================
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+
 /// One selectable package for a subcategory -- e.g. "2 BHK" for
 /// home cleaning, or "4 Hours" for babysitting.
 class PriceTier {
@@ -97,7 +100,7 @@ class FixedPriceSubCategoryConfig {
 class FixedPriceCatalog {
   FixedPriceCatalog._();
 
-  static const Map<String, FixedPriceSubCategoryConfig> configs = {
+  static const Map<String, FixedPriceSubCategoryConfig> _hardcodedConfigs = {
     // ============================================================
     // CLEANING (17 subcategories)
     // ============================================================
@@ -243,6 +246,24 @@ class FixedPriceCatalog {
         PriceTier(key: 'small', label: 'Small', description: 'Up to 1,000 sq ft', price: 799, estimatedHours: 1.5),
         PriceTier(key: 'medium', label: 'Medium', description: '1,000-2,500 sq ft', price: 1299, estimatedHours: 2.5),
         PriceTier(key: 'large', label: 'Large', description: '2,500+ sq ft', price: 1999, estimatedHours: 4),
+      ],
+    ),
+    'clothes_cleaning': FixedPriceSubCategoryConfig(
+      subCategoryId: 'clothes_cleaning',
+      tierAxisLabel: 'Load size',
+      tiers: [
+        PriceTier(key: 'small', label: 'Up to 5 kg', description: 'Small load', price: 299, estimatedHours: 1),
+        PriceTier(key: 'medium', label: '6-10 kg', description: 'Medium load', price: 499, estimatedHours: 1.5),
+        PriceTier(key: 'large', label: '11+ kg', description: 'Large load', price: 799, estimatedHours: 2),
+      ],
+    ),
+    'clothes_washing': FixedPriceSubCategoryConfig(
+      subCategoryId: 'clothes_washing',
+      tierAxisLabel: 'Load size',
+      tiers: [
+        PriceTier(key: 'small', label: 'Up to 5 kg', description: 'Wash only, small load', price: 199, estimatedHours: 0.5),
+        PriceTier(key: 'medium', label: '6-10 kg', description: 'Wash only, medium load', price: 349, estimatedHours: 0.75),
+        PriceTier(key: 'large', label: '11+ kg', description: 'Wash only, large load', price: 549, estimatedHours: 1),
       ],
     ),
     'general_cleaning': FixedPriceSubCategoryConfig(
@@ -394,6 +415,66 @@ class FixedPriceCatalog {
       ],
     ),
   };
+
+  // ============================================================
+  // FIRESTORE OVERRIDE (NEW — 2026-09-16)
+  // ============================================================
+  //
+  // Same override pattern as ServiceCategories.all -- `configs` is
+  // now a getter that prefers a Firestore-loaded override, falling
+  // back to the exact hardcoded map above. Every existing call site
+  // (FixedPriceCatalog.configs / forSubCategory) keeps working
+  // unchanged. Lets the admin panel retune Quick-Service tier prices
+  // without an app rebuild.
+  //
+
+  static Map<String, FixedPriceSubCategoryConfig>? _firestoreOverride;
+
+  static Map<String, FixedPriceSubCategoryConfig> get configs =>
+      _firestoreOverride ?? _hardcodedConfigs;
+
+  static Future<void> loadFromFirestore() async {
+    try {
+      final snap =
+          await FirebaseFirestore.instance.collection('pricing_tiers').get();
+
+      if (snap.docs.isEmpty) return;
+
+      final Map<String, FixedPriceSubCategoryConfig> loaded = {};
+
+      for (final doc in snap.docs) {
+        final data = doc.data();
+        final tiersRaw = data['tiers'] as List<dynamic>? ?? const [];
+        if (tiersRaw.isEmpty) continue;
+
+        final tiers = <PriceTier>[
+          for (final t in tiersRaw)
+            PriceTier(
+              key: (t as Map<String, dynamic>)['key'] as String? ?? '',
+              label: t['label'] as String? ?? '',
+              description: t['description'] as String? ?? '',
+              price: (t['price'] as num?)?.toDouble() ?? 0,
+              estimatedHours:
+                  (t['estimatedHours'] as num?)?.toDouble() ?? 1,
+            ),
+        ];
+
+        loaded[doc.id] = FixedPriceSubCategoryConfig(
+          subCategoryId: data['subCategoryId'] as String? ?? doc.id,
+          tierAxisLabel: data['tierAxisLabel'] as String? ?? '',
+          tiers: tiers,
+        );
+      }
+
+      if (loaded.isNotEmpty) {
+        _firestoreOverride = loaded;
+      }
+    } catch (e, st) {
+      // Best-effort only, same reasoning as
+      // ServiceCategories.loadFromFirestore.
+      debugPrint('FixedPriceCatalog.loadFromFirestore failed: $e\n$st');
+    }
+  }
 
   static FixedPriceSubCategoryConfig? forSubCategory(String subCategoryId) {
     return configs[subCategoryId];

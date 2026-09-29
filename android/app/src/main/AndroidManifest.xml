@@ -5,6 +5,15 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
+    <!-- NOTIFICATION PERMISSION (added 2026-09-27) -->
+    <!-- Required on Android 13+ (API 33+) for the app to be able to post -->
+    <!-- to the system notification panel at all, without which this,     -->
+    <!-- FirebaseMessaging.instance.requestPermission() in main.dart      -->
+    <!-- can't actually grant anything, and a real push notification is   -->
+    <!-- delivered to the app but silently dropped by the OS instead of   -->
+    <!-- showing in the notification shade.                                -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <application
         android:label="Habio"
         android:name="${applicationName}"

@@ -33,7 +33,25 @@ class HomeScreen extends StatefulWidget {
   // fresh list down here.
   final List<FlyerContent> flyers;
 
-  const HomeScreen({super.key, required this.flyers});
+  // ADDED (2026-09-16): same "owned by the parent, not this screen"
+  // reasoning as `flyers` above -- MainNavigationScreen already
+  // computes the live unread-notification count for the bottom nav
+  // badge, so it hands the same count here rather than this screen
+  // re-querying Firestore itself. onNotificationTap lets the top-right
+  // bell act exactly like tapping the bottom bar's Notifications tab
+  // (same _onItemTapped(2) call), instead of pushing a separate
+  // screen on top. Both optional/nullable so the orphaned
+  // main_screen.dart nav host (see its own comments) keeps compiling
+  // without needing to wire either one up.
+  final VoidCallback? onNotificationTap;
+  final int notificationCount;
+
+  const HomeScreen({
+    super.key,
+    required this.flyers,
+    this.onNotificationTap,
+    this.notificationCount = 0,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -285,10 +303,32 @@ class _HomeScreenState extends State<HomeScreen> {
               HomeAppBar(
                 location: "Mumbai",
                 onLocationTap: _openMap,
-                onNotificationTap: () {},
+                onNotificationTap: widget.onNotificationTap,
+                showUnreadDot: widget.notificationCount > 0,
               ),
 
               const SizedBox(height: 12),
+
+              // ============================================================
+              // MOVED (2026-09-16): the flyer banner now sits right below
+              // the location bar and above the "Welcome" greeting, instead
+              // of below it -- was: HomeAppBar -> Welcome text -> flyers ->
+              // search bar; now: HomeAppBar -> flyers -> Welcome text ->
+              // search bar. Nothing about the banner itself (the
+              // 3-of-11-random-flyers selection, the reshuffle-on-Home-tab
+              // logic in MainNavigationScreen) changed, only where it's
+              // drawn in this Column.
+              // ============================================================
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _FlyerBanner(
+                  key: ValueKey(widget.flyers),
+                  flyers: widget.flyers,
+                ),
+              ),
+
+              const SizedBox(height: 18),
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -315,16 +355,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ],
-                ),
-              ),
-
-              const SizedBox(height: 14),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _FlyerBanner(
-                  key: ValueKey(widget.flyers),
-                  flyers: widget.flyers,
                 ),
               ),
 

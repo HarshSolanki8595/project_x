@@ -31,6 +31,7 @@ class RequestRepository {
       'latitude': request.latitude,
       'longitude': request.longitude,
       'urgency': request.urgency,
+      'isEmergency': request.isEmergency,
       'status': request.status,
       'createdAt': Timestamp.fromDate(
         request.createdAt,
@@ -169,6 +170,9 @@ class RequestRepository {
 
       urgency:
           data['urgency'] as String? ?? 'NORMAL',
+
+      isEmergency:
+          data['isEmergency'] as bool? ?? false,
 
       status:
           data['status'] as String? ?? 'OPEN',

@@ -192,6 +192,11 @@ class _FindingProfessionalsScreenState
         latitude: widget.request.latitude!,
         longitude: widget.request.longitude!,
         urgency: widget.request.urgency,
+        // The real urgency flag -- see ServiceRequestModel.isEmergency
+        // and request_repository.dart for the rest of this fix
+        // (2026-09-27). Previously dropped here entirely, which is
+        // why "Need urgent help?" never reached the professional app.
+        isEmergency: widget.request.isEmergency,
         // Display/schedule fields -- previously dropped here, which
         // is why the professional app's request card had nothing
         // beyond the generic "Service Request" title and posted

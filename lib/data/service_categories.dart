@@ -1,10 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 
 import '../models/category.dart';
 import '../models/subcategory.dart';
+import 'icon_registry.dart';
 
 class ServiceCategories {
-  static const List<Category> all = [
+  static const List<Category> _hardcoded = [
 Category(
   id: 'electrical',
   name: 'Electrical',
@@ -129,6 +132,16 @@ Category(
         'safety',
       ],
     ),
+    // -- Added 2026-09-16, from the finalized taxonomy PDF
+    // (habio_categories_subcategories_final.pdf). New ids only --
+    // every id above this line is untouched, so no already-
+    // onboarded professional's subcategoryIds selection breaks.
+    SubCategory(id: 'generator_repair', name: 'Generator Repair', icon: Icons.power, description: 'Generator repair and servicing.', keywords: ['generator']),
+    SubCategory(id: 'appliance_electrical_fault', name: 'Appliance Electrical Fault Diagnosis', icon: Icons.build_circle_outlined, description: 'Diagnosing electrical faults in home appliances.', keywords: ['appliance fault', 'electrical diagnosis']),
+    SubCategory(id: 'cctv_installation', name: 'CCTV Camera Installation', icon: Icons.videocam_outlined, description: 'CCTV camera installation and setup.', keywords: ['cctv', 'camera', 'security camera']),
+    SubCategory(id: 'smart_switch_automation', name: 'Smart Switch / Home Automation Setup', icon: Icons.home_max_outlined, description: 'Smart switch and home automation setup.', keywords: ['smart switch', 'home automation', 'smart home']),
+    SubCategory(id: 'solar_panel_installation', name: 'Solar Panel Installation & Wiring', icon: Icons.solar_power_outlined, description: 'Solar panel installation and wiring.', keywords: ['solar panel', 'solar']),
+    SubCategory(id: 'ac_electrical_point', name: 'AC Electrical Point Installation', icon: Icons.ac_unit, description: 'Dedicated electrical point installation for AC units.', keywords: ['ac point', 'ac electrical']),
     SubCategory(
       id: 'general',
       name: 'General Electrical Issue',
@@ -237,6 +250,14 @@ Category(
         'geyser connection',
       ],
     ),
+    // -- Added 2026-09-16, from the finalized taxonomy PDF
+    // (habio_categories_subcategories_final.pdf). New ids only --
+    // every id above this line is untouched, so no already-
+    // onboarded professional's subcategoryIds selection breaks.
+    SubCategory(id: 'water_purifier_plumbing_connection', name: 'Water Purifier Plumbing Connection', icon: Icons.water_drop_outlined, description: 'Plumbing connection for water purifiers/RO systems.', keywords: ['water purifier connection', 'ro connection']),
+    SubCategory(id: 'water_softener_installation', name: 'Water Softener Installation', icon: Icons.opacity, description: 'Water softener installation.', keywords: ['water softener']),
+    SubCategory(id: 'new_construction_pipeline_fitting', name: 'New Construction Pipeline Fitting', icon: Icons.plumbing, description: 'Pipeline fitting for new construction projects.', keywords: ['new construction', 'pipeline fitting']),
+    SubCategory(id: 'borewell_pump_repair', name: 'Borewell Pump Repair', icon: Icons.water, description: 'Borewell pump repair and servicing.', keywords: ['borewell', 'borewell pump']),
     SubCategory(
       id: 'general_plumbing',
       name: 'General Plumbing Issue',
@@ -355,6 +376,15 @@ Category(
         'vacuum cleaner',
       ],
     ),
+    // -- Added 2026-09-16, from the finalized taxonomy PDF
+    // (habio_categories_subcategories_final.pdf). New ids only --
+    // every id above this line is untouched, so no already-
+    // onboarded professional's subcategoryIds selection breaks.
+    SubCategory(id: 'tv_repair', name: 'TV Repair', icon: Icons.tv, description: 'Television repair and servicing.', keywords: ['tv', 'television']),
+    SubCategory(id: 'geyser_repair', name: 'Geyser Repair', icon: Icons.hot_tub_outlined, description: 'Geyser/water heater unit repair.', keywords: ['geyser repair', 'water heater repair']),
+    SubCategory(id: 'air_purifier_repair', name: 'Air Purifier Repair', icon: Icons.air, description: 'Air purifier repair and servicing.', keywords: ['air purifier']),
+    SubCategory(id: 'iron_press_repair', name: 'Iron / Press Repair', icon: Icons.iron, description: 'Iron and press repair.', keywords: ['iron', 'press']),
+    SubCategory(id: 'water_cooler_repair', name: 'Water Cooler Repair', icon: Icons.local_drink, description: 'Water cooler repair and servicing.', keywords: ['water cooler']),
     SubCategory(
       id: 'general_appliance',
       name: 'General Appliance Issue',
@@ -458,6 +488,16 @@ Category(
         'wood finish',
       ],
     ),
+    // -- Added 2026-09-16, from the finalized taxonomy PDF
+    // (habio_categories_subcategories_final.pdf). New ids only --
+    // every id above this line is untouched, so no already-
+    // onboarded professional's subcategoryIds selection breaks.
+    SubCategory(id: 'false_ceiling_carpentry', name: 'False Ceiling Carpentry Repair', icon: Icons.architecture, description: 'False ceiling carpentry work and repair.', keywords: ['false ceiling carpentry']),
+    SubCategory(id: 'wooden_flooring_installation', name: 'Wooden Flooring Installation', icon: Icons.grid_view, description: 'Wooden flooring installation.', keywords: ['wooden flooring', 'flooring']),
+    SubCategory(id: 'partition_wall_carpentry', name: 'Partition Wall Carpentry', icon: Icons.view_column_outlined, description: 'Partition wall carpentry work.', keywords: ['partition wall']),
+    SubCategory(id: 'wooden_gate_door_making', name: 'Wooden Gate / Door Making', icon: Icons.door_sliding_outlined, description: 'Custom wooden gate and door making.', keywords: ['wooden gate', 'door making']),
+    SubCategory(id: 'staircase_woodwork', name: 'Staircase Woodwork', icon: Icons.stairs, description: 'Staircase woodwork.', keywords: ['staircase woodwork', 'staircase']),
+    SubCategory(id: 'wardrobe_interior_fitting', name: 'Wardrobe Interior Fitting', icon: Icons.inventory_2_outlined, description: 'Wardrobe interior fitting and organizers.', keywords: ['wardrobe interior', 'wardrobe fitting']),
     SubCategory(
       id: 'general_carpentry',
       name: 'General Carpentry Issue',
@@ -480,8 +520,8 @@ Category(
   // Quick Service (2026-09-01) -- see Category.isQuickService.
   isQuickService: true,
   subCategories: [
-    SubCategory(id: 'home_cleaning', name: 'Home Deep Cleaning', icon: Icons.home, description: 'Complete home deep cleaning.', keywords: ['home','deep cleaning']),
-    SubCategory(id: 'kitchen_cleaning', name: 'Kitchen Cleaning', icon: Icons.kitchen, description: 'Kitchen cleaning services.', keywords: ['kitchen','chimney']),
+    SubCategory(id: 'home_cleaning', name: 'Home Cleaning', icon: Icons.home, description: 'Complete home cleaning.', keywords: ['home','cleaning']),
+    SubCategory(id: 'kitchen_cleaning', name: 'Kitchen/Utensil Cleaning', icon: Icons.kitchen, description: 'Kitchen and utensil cleaning services.', keywords: ['kitchen','utensils','dishes','vessels','chimney']),
     SubCategory(id: 'bathroom_cleaning', name: 'Bathroom Cleaning', icon: Icons.bathtub_outlined, description: 'Bathroom deep cleaning.', keywords: ['bathroom','toilet']),
     SubCategory(id: 'sofa_cleaning', name: 'Sofa & Upholstery', icon: Icons.weekend, description: 'Sofa and upholstery cleaning.', keywords: ['sofa','upholstery']),
     SubCategory(id: 'carpet_cleaning', name: 'Carpet & Mattress', icon: Icons.bed_outlined, description: 'Carpet and mattress cleaning.', keywords: ['carpet','mattress']),
@@ -500,6 +540,8 @@ Category(
     SubCategory(id: 'garden_cleaning', name: 'Garden & Lawn Cleaning', icon: Icons.grass, description: 'Garden and lawn clean-up.', keywords: ['garden','lawn']),
     SubCategory(id: 'post_construction_cleaning', name: 'Post-Construction Cleaning', icon: Icons.construction, description: 'Deep cleaning after construction or renovation work.', keywords: ['construction','renovation']),
     SubCategory(id: 'disinfection_service', name: 'Disinfection & Sanitization', icon: Icons.cleaning_services, description: 'Disinfection and sanitization service.', keywords: ['disinfection','sanitization']),
+    SubCategory(id: 'clothes_cleaning', name: 'Clothes Cleaning', icon: Icons.local_laundry_service, description: 'Wash, dry and fold laundry service.', keywords: ['clothes','laundry','wash','wash and fold']),
+    SubCategory(id: 'clothes_washing', name: 'Clothes Washing', icon: Icons.local_laundry_service, description: 'Daily wash-only pickup and drop service.', keywords: ['clothes','washing','daily wash','pickup drop']),
     SubCategory(id: 'general_cleaning', name: 'General Cleaning Service', icon: Icons.help_outline, description: 'Other cleaning services.', keywords: ['cleaning']),
   ],
 ),
@@ -546,6 +588,16 @@ Category(
     SubCategory(id: 'putty', name: 'Wall Putty', icon: Icons.layers_outlined, description: 'Wall putty services.', keywords: ['putty']),
     SubCategory(id: 'wallpaper', name: 'Wallpaper', icon: Icons.wallpaper, description: 'Wallpaper installation.', keywords: ['wallpaper']),
     SubCategory(id: 'wood_finish', name: 'Wood Polish & Finish', icon: Icons.format_color_fill, description: 'Wood polishing.', keywords: ['polish']),
+    // -- Added 2026-09-16, from the finalized taxonomy PDF
+    // (habio_categories_subcategories_final.pdf). New ids only --
+    // every id above this line is untouched, so no already-
+    // onboarded professional's subcategoryIds selection breaks.
+    SubCategory(id: 'grill_metal_painting', name: 'Grill & Metal Painting', icon: Icons.brush, description: 'Grill and metal painting.', keywords: ['grill painting', 'metal painting']),
+    SubCategory(id: 'false_ceiling_pop_painting', name: 'False Ceiling / POP Painting', icon: Icons.architecture, description: 'False ceiling and POP painting.', keywords: ['false ceiling painting', 'pop painting']),
+    SubCategory(id: 'stencil_mural_painting', name: 'Stencil / Mural Painting', icon: Icons.palette_outlined, description: 'Stencil and mural painting.', keywords: ['stencil', 'mural']),
+    SubCategory(id: 'pu_polish_enamel_painting', name: 'PU Polish & Enamel Painting', icon: Icons.format_paint, description: 'PU polish and enamel painting.', keywords: ['pu polish', 'enamel painting']),
+    SubCategory(id: 'metal_roof_painting', name: 'Metal Roof Painting', icon: Icons.roofing, description: 'Metal roof painting.', keywords: ['metal roof painting', 'roof painting']),
+    SubCategory(id: 'spray_painting', name: 'Spray Painting', icon: Icons.colorize, description: 'Spray painting.', keywords: ['spray painting']),
     SubCategory(id: 'general_painting', name: 'General Painting Service', icon: Icons.help_outline, description: 'Other painting work.', keywords: ['painting']),
   ],
 ),
@@ -562,6 +614,15 @@ Category(
     SubCategory(id: 'bedbug', name: 'Bed Bug Treatment', icon: Icons.bed, description: 'Bed bug removal.', keywords: ['bed bug']),
     SubCategory(id: 'ants', name: 'Ant Control', icon: Icons.bug_report_outlined, description: 'Ant removal.', keywords: ['ant']),
     SubCategory(id: 'bird', name: 'Bird & Pigeon Control', icon: Icons.flutter_dash, description: 'Bird control.', keywords: ['bird','pigeon']),
+    // -- Added 2026-09-16, from the finalized taxonomy PDF
+    // (habio_categories_subcategories_final.pdf). New ids only --
+    // every id above this line is untouched, so no already-
+    // onboarded professional's subcategoryIds selection breaks.
+    SubCategory(id: 'wood_borer_treatment', name: 'Wood Borer Treatment', icon: Icons.forest_outlined, description: 'Wood borer treatment.', keywords: ['wood borer']),
+    SubCategory(id: 'garden_lawn_pest_control', name: 'Garden / Lawn Pest Control', icon: Icons.grass, description: 'Garden and lawn pest control.', keywords: ['garden pest', 'lawn pest']),
+    SubCategory(id: 'lizard_snake_repellent', name: 'Lizard / Snake Repellent Treatment', icon: Icons.pest_control_outlined, description: 'Lizard and snake repellent treatment.', keywords: ['lizard', 'snake repellent']),
+    SubCategory(id: 'full_property_fumigation', name: 'Full-Property Fumigation Service', icon: Icons.cleaning_services, description: 'Full-property fumigation service.', keywords: ['fumigation']),
+    SubCategory(id: 'pre_construction_anti_termite', name: 'Pre-Construction Anti-Termite Treatment', icon: Icons.construction, description: 'Pre-construction anti-termite treatment.', keywords: ['pre construction termite', 'anti termite']),
     SubCategory(id: 'general_pest', name: 'General Pest Control', icon: Icons.help_outline, description: 'Other pest issues.', keywords: ['pest']),
   ],
 ),
@@ -578,6 +639,19 @@ Category(
     SubCategory(id: 'masonry', name: 'Masonry & Civil Work', icon: Icons.foundation, description: 'Brick and cement work.', keywords: ['masonry']),
     SubCategory(id: 'roof', name: 'Roofing Repairs', icon: Icons.roofing, description: 'Roof repair.', keywords: ['roof']),
     SubCategory(id: 'hardware', name: 'Lock & Hardware Repair', icon: Icons.lock_outline, description: 'Door hardware repair.', keywords: ['lock']),
+    // -- Added 2026-09-16, from the finalized taxonomy PDF
+    // (habio_categories_subcategories_final.pdf). New ids only --
+    // every id above this line is untouched, so no already-
+    // onboarded professional's subcategoryIds selection breaks.
+    SubCategory(id: 'general_handyman_multi_fix', name: 'General Handyman / Multi-Fix Visit', icon: Icons.build, description: 'A handyman visit to fix multiple small things at once.', keywords: ['handyman', 'multi fix']),
+    SubCategory(id: 'curtain_rod_blind_installation', name: 'Curtain Rod & Blind Installation', icon: Icons.curtains_closed_outlined, description: 'Curtain rod and blind installation.', keywords: ['curtain rod', 'blind installation']),
+    SubCategory(id: 'wall_mount_tv_mounting', name: 'Wall Mount / TV Mounting', icon: Icons.tv, description: 'Wall mount and TV mounting.', keywords: ['tv mounting', 'wall mount']),
+    SubCategory(id: 'small_appliance_mounting', name: 'Small Appliance Mounting', icon: Icons.handyman, description: 'Mounting of small appliances.', keywords: ['appliance mounting']),
+    SubCategory(id: 'furniture_assembly_flatpack', name: 'Furniture Assembly (Flat-Pack)', icon: Icons.chair_alt_outlined, description: 'Flat-pack furniture assembly.', keywords: ['furniture assembly', 'flat pack']),
+    SubCategory(id: 'clock_mirror_picture_hanging', name: 'Clock / Mirror / Picture Frame Hanging', icon: Icons.crop_original, description: 'Hanging clocks, mirrors and picture frames.', keywords: ['picture hanging', 'mirror hanging']),
+    SubCategory(id: 'doormat_threshold_fixing', name: 'Doormat & Threshold Fixing', icon: Icons.door_front_door, description: 'Doormat and threshold fixing.', keywords: ['doormat', 'threshold']),
+    SubCategory(id: 'cabinet_hinge_adjustment', name: 'Cabinet Hinge Adjustment', icon: Icons.build_circle_outlined, description: 'Cabinet hinge adjustment.', keywords: ['cabinet hinge']),
+    SubCategory(id: 'general_home_inspection_visit', name: 'General Home Inspection Visit', icon: Icons.fact_check_outlined, description: 'A general home inspection visit.', keywords: ['home inspection']),
     SubCategory(id: 'general_home', name: 'General Home Repair', icon: Icons.help_outline, description: 'Other home repairs.', keywords: ['repair']),
   ],
 ),
@@ -594,6 +668,17 @@ Category(
     SubCategory(id: 'wash', name: 'Car Wash & Detailing', icon: Icons.local_car_wash, description: 'Vehicle cleaning.', keywords: ['wash']),
     SubCategory(id: 'oil', name: 'Oil Change', icon: Icons.opacity, description: 'Engine oil replacement.', keywords: ['oil']),
     SubCategory(id: 'inspection', name: 'Vehicle Inspection', icon: Icons.fact_check, description: 'Vehicle inspection.', keywords: ['inspection']),
+    // -- Added 2026-09-16, from the finalized taxonomy PDF
+    // (habio_categories_subcategories_final.pdf). New ids only --
+    // every id above this line is untouched, so no already-
+    // onboarded professional's subcategoryIds selection breaks.
+    SubCategory(id: 'car_ac_repair', name: 'Car AC Repair', icon: Icons.ac_unit, description: 'Car AC repair and servicing.', keywords: ['car ac']),
+    SubCategory(id: 'car_denting_painting', name: 'Car Denting & Painting', icon: Icons.format_paint, description: 'Car denting and painting.', keywords: ['denting', 'car painting']),
+    SubCategory(id: 'car_electrical_repair', name: 'Car Electrical Repair', icon: Icons.electrical_services, description: 'Car electrical repair.', keywords: ['car electrical']),
+    SubCategory(id: 'roadside_breakdown_assistance', name: 'Roadside Breakdown Assistance', icon: Icons.car_repair, description: 'Roadside breakdown assistance.', keywords: ['roadside assistance', 'breakdown']),
+    SubCategory(id: 'wheel_alignment_balancing', name: 'Wheel Alignment & Balancing', icon: Icons.album_outlined, description: 'Wheel alignment and balancing.', keywords: ['wheel alignment', 'balancing']),
+    SubCategory(id: 'car_scratch_dent_removal', name: 'Car Scratch & Dent Removal', icon: Icons.brush, description: 'Car scratch and dent removal.', keywords: ['scratch removal', 'dent removal']),
+    SubCategory(id: 'ev_charging_point_installation', name: 'EV Charging Point Installation', icon: Icons.ev_station, description: 'EV charging point installation.', keywords: ['ev charging', 'electric vehicle']),
     SubCategory(id: 'general_auto', name: 'General Automobile Service', icon: Icons.help_outline, description: 'Other automobile work.', keywords: ['automobile']),
   ],
 ),
@@ -610,6 +695,15 @@ Category(
     SubCategory(id: 'appliance', name: 'Appliance Relocation', icon: Icons.kitchen, description: 'Move appliances safely.', keywords: ['appliance']),
     SubCategory(id: 'loading', name: 'Loading & Unloading', icon: Icons.move_up, description: 'Loading assistance.', keywords: ['loading']),
     SubCategory(id: 'storage', name: 'Storage Services', icon: Icons.warehouse, description: 'Temporary storage.', keywords: ['storage']),
+    // -- Added 2026-09-16, from the finalized taxonomy PDF
+    // (habio_categories_subcategories_final.pdf). New ids only --
+    // every id above this line is untouched, so no already-
+    // onboarded professional's subcategoryIds selection breaks.
+    SubCategory(id: 'intercity_relocation', name: 'Intercity Relocation', icon: Icons.local_shipping, description: 'Intercity home relocation.', keywords: ['intercity relocation']),
+    SubCategory(id: 'vehicle_transportation', name: 'Vehicle Transportation', icon: Icons.directions_car, description: 'Vehicle transportation services.', keywords: ['vehicle transportation']),
+    SubCategory(id: 'pet_relocation', name: 'Pet Relocation', icon: Icons.pets, description: 'Pet relocation services.', keywords: ['pet relocation']),
+    SubCategory(id: 'fragile_specialty_item_packing', name: 'Fragile / Specialty Item Packing', icon: Icons.inventory_2_outlined, description: 'Packing for fragile and specialty items.', keywords: ['fragile packing', 'specialty item']),
+    SubCategory(id: 'two_wheeler_vehicle_trailer_shifting', name: 'Two-Wheeler / Vehicle Trailer Shifting', icon: Icons.local_shipping, description: 'Two-wheeler and vehicle trailer shifting.', keywords: ['two wheeler shifting', 'trailer shifting']),
     SubCategory(id: 'general_move', name: 'General Moving Service', icon: Icons.help_outline, description: 'Other moving services.', keywords: ['moving']),
   ],
 ),
@@ -626,6 +720,15 @@ Category(
     SubCategory(id: 'waxing', name: 'Waxing & Threading', icon: Icons.auto_fix_high, description: 'Waxing services.', keywords: ['waxing']),
     SubCategory(id: 'nails', name: 'Manicure & Pedicure', icon: Icons.pan_tool, description: 'Nail care.', keywords: ['manicure']),
     SubCategory(id: 'massage', name: 'Massage & Spa', icon: Icons.self_improvement, description: 'Spa and massage.', keywords: ['massage']),
+    // -- Added 2026-09-16, from the finalized taxonomy PDF
+    // (habio_categories_subcategories_final.pdf). New ids only --
+    // every id above this line is untouched, so no already-
+    // onboarded professional's subcategoryIds selection breaks.
+    SubCategory(id: 'mens_grooming', name: 'Men\'s Grooming', icon: Icons.face_retouching_natural, description: 'Men\'s grooming (haircut, shave).', keywords: ['mens grooming', 'shave']),
+    SubCategory(id: 'bridal_makeup', name: 'Bridal Makeup', icon: Icons.brush, description: 'Bridal makeup services.', keywords: ['bridal makeup', 'bridal']),
+    SubCategory(id: 'mehendi_henna_services', name: 'Mehendi / Henna Services', icon: Icons.back_hand_outlined, description: 'Mehendi and henna services.', keywords: ['mehendi', 'henna']),
+    SubCategory(id: 'hair_coloring', name: 'Hair Coloring', icon: Icons.color_lens_outlined, description: 'Hair coloring services.', keywords: ['hair color', 'hair coloring']),
+    SubCategory(id: 'kids_grooming_services', name: 'Kids\' Grooming Services', icon: Icons.child_care, description: 'Kids\' grooming services.', keywords: ['kids grooming']),
     SubCategory(id: 'general_beauty', name: 'General Beauty Service', icon: Icons.help_outline, description: 'Other beauty services.', keywords: ['beauty']),
   ],
 ),
@@ -729,6 +832,115 @@ Category(
   ],
 ),
   ];
+
+  // ============================================================
+  // FIRESTORE OVERRIDE (NEW — 2026-09-16)
+  // ============================================================
+  //
+  // `all` used to be the const list itself; it's now a getter that
+  // prefers a Firestore-loaded override when one has been fetched,
+  // and otherwise falls back to the exact same hardcoded list as
+  // before. Every existing call site (ServiceCategories.all) keeps
+  // working completely unchanged -- Dart doesn't distinguish a
+  // static getter from a static const field at the call site.
+  //
+  // This means the admin panel's Category & Pricing Management
+  // screen can add/edit/reorder/retire categories in Firestore and
+  // have BOTH apps pick it up on next launch, with zero risk to the
+  // app if Firestore is unreachable, empty, or a document is
+  // malformed -- loadFromFirestore() only ever replaces
+  // _firestoreOverride on a fully successful parse, wrapped in its
+  // own try/catch, and is called once at splash (see
+  // splash_screen.dart) as a best-effort cache warm, never awaited
+  // in a way that could block app launch.
+  //
+
+  static List<Category>? _firestoreOverride;
+
+  static List<Category> get all => _firestoreOverride ?? _hardcoded;
+
+  /// True once a Firestore override has been successfully loaded
+  /// (even if a later reload fails -- the last good override stays
+  /// in place, same "keep serving stale over serving nothing"
+  /// pattern used elsewhere in this app for offline resilience).
+  static bool get isUsingFirestoreOverride => _firestoreOverride != null;
+
+  static Future<void> loadFromFirestore() async {
+    try {
+      final categoriesSnap = await FirebaseFirestore.instance
+          .collection('categories')
+          .orderBy('order')
+          .get();
+
+      if (categoriesSnap.docs.isEmpty) {
+        // Collection not seeded yet -- keep using the hardcoded
+        // catalog, don't overwrite a good state with an empty one.
+        return;
+      }
+
+      final List<Category> loaded = [];
+
+      for (final categoryDoc in categoriesSnap.docs) {
+        final data = categoryDoc.data();
+        if (data['isActive'] == false) continue;
+
+        final subSnap = await categoryDoc.reference
+            .collection('subcategories')
+            .orderBy('order')
+            .get();
+
+        final subCategories = <SubCategory>[
+          for (final subDoc in subSnap.docs)
+            if (subDoc.data()['isActive'] != false)
+              SubCategory(
+                id: subDoc.data()['id'] as String? ?? subDoc.id,
+                name: subDoc.data()['name'] as String? ?? '',
+                icon: IconRegistry.resolve(
+                  subDoc.data()['iconName'] as String?,
+                ),
+                description:
+                    subDoc.data()['description'] as String? ?? '',
+                keywords: List<String>.from(
+                  subDoc.data()['keywords'] ?? const [],
+                ),
+              ),
+        ];
+
+        // A category with no active subcategories left is dropped
+        // rather than shown empty -- shouldn't happen in practice,
+        // but keeps the browse grid sane if it ever does.
+        if (subCategories.isEmpty) continue;
+
+        loaded.add(
+          Category(
+            id: data['id'] as String? ?? categoryDoc.id,
+            name: data['name'] as String? ?? '',
+            icon: IconRegistry.resolve(data['iconName'] as String?),
+            color: _colorFromHex(data['colorHex'] as String?) ??
+                Colors.blueGrey,
+            subCategories: subCategories,
+            isQuickService: data['isQuickService'] as bool? ?? false,
+          ),
+        );
+      }
+
+      if (loaded.isNotEmpty) {
+        _firestoreOverride = loaded;
+      }
+    } catch (e, st) {
+      // Best-effort only -- any failure (offline, permission,
+      // malformed doc) just leaves the hardcoded catalog in place.
+      debugPrint('ServiceCategories.loadFromFirestore failed: $e\n$st');
+    }
+  }
+
+  static Color? _colorFromHex(String? hex) {
+    if (hex == null || hex.isEmpty) return null;
+    var normalized = hex.replaceFirst('#', '');
+    if (normalized.length == 6) normalized = 'FF$normalized';
+    final value = int.tryParse(normalized, radix: 16);
+    return value == null ? null : Color(value);
+  }
 
   static Category? getCategoryById(String id) {
     try {

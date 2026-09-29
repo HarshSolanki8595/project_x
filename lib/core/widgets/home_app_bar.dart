@@ -6,11 +6,19 @@ class HomeAppBar extends StatelessWidget {
     required this.location,
     this.onLocationTap,
     this.onNotificationTap,
+    this.showUnreadDot = true,
   });
 
   final String location;
   final VoidCallback? onLocationTap;
   final VoidCallback? onNotificationTap;
+
+  // ADDED (2026-09-16): the red dot used to render unconditionally,
+  // regardless of whether there was actually anything unread -- now
+  // it only shows when the caller (HomeScreen) says there's a real
+  // unread notification, same signal the bottom nav bar's own badge
+  // already used.
+  final bool showUnreadDot;
 
   static const Color primaryBlue = Color(0xFF1557FF);
   static const Color darkText = Color(0xFF0F172A);
@@ -112,18 +120,19 @@ class HomeAppBar extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(
-                top: 9,
-                right: 9,
-                child: Container(
-                  height: 9,
-                  width: 9,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFD92D20),
-                    shape: BoxShape.circle,
+              if (showUnreadDot)
+                Positioned(
+                  top: 9,
+                  right: 9,
+                  child: Container(
+                    height: 9,
+                    width: 9,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFD92D20),
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ],

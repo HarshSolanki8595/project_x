@@ -1,9 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/notification_model.dart';
+import '../services/notification_router.dart';
 import '../services/notification_service.dart';
-import 'main_navigation_screen.dart';
 
 // ================================================================
 // NOTIFICATIONS SCREEN — REWIRED TO REAL DATA (2026-08-23)
@@ -16,18 +17,29 @@ import 'main_navigation_screen.dart';
 // "Mark all read" action is available whenever there are unread
 // items.
 //
-// NAVIGATE ON TAP (NEW — 2026-09-06, Harsh's point 10): a
-// BID_ACCEPTED notification is the one the customer gets the
-// moment a professional accepts their fixed-price request
-// (acceptFixedPriceOpportunity in index.js -- "Professional
-// found!"). Tapping it used to only mark it read and leave the
-// customer sitting on this same Notifications tab with no sense
-// that anything happened. It now also takes them to the Home tab,
-// via the real navigation shell (MainNavigationScreen, which opens
-// on Home by default) rather than just popping/doing nothing.
+// NAVIGATE ON TAP (rewired 2026-09-27, Harsh's punch-list item #3):
+// originally (2026-09-06) only BID_ACCEPTED did anything on tap, and
+// that just sent the customer to the Home tab rather than the actual
+// booking. Every type now opens the real screen it refers to via
+// NotificationRouter (see notification_router.dart), which also
+// backs the tap handling for an actual system-tray push notification
+// (see main.dart) -- both paths land on the identical screen.
+//
+// RESPECTS THE "BOOKING UPDATES" SETTING (added 2026-09-16, Harsh:
+// "make sure every setting preference is operating and functional"):
+// converted from StatelessWidget to StatefulWidget so it can load
+// that toggle from SharedPreferences (same key settings_screen.dart
+// writes to) and filter kBookingNotificationTypes out of the list --
+// every notification type that currently exists in this app falls
+// under that set (see notification_service.dart), so turning the
+// toggle off empties this screen entirely, with a distinct empty
+// state explaining why rather than implying there's simply nothing
+// to show. "Mark all read" only marks the still-visible ones, so a
+// hidden booking notification correctly stays unread if the toggle
+// is turned back on later.
 //
 
-class NotificationsScreen extends StatelessWidget {
+class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
   static const Color primaryBlue = Color(0xFF1557FF);
@@ -36,6 +48,39 @@ class NotificationsScreen extends StatelessWidget {
   static const Color textPrimary = Color(0xFF0F172A);
   static const Color textSecondary = Color(0xFF64748B);
   static const Color borderColor = Color(0xFFE1E7EF);
+
+  @override
+  State<NotificationsScreen> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends State<NotificationsScreen> {
+  static const String _kBookingKey = 'settings_booking_notifications';
+
+  bool _bookingEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreference();
+  }
+
+  Future<void> _loadPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (!mounted) return;
+
+    setState(() {
+      _bookingEnabled = prefs.getBool(_kBookingKey) ?? true;
+    });
+  }
+
+  List<NotificationModel> _applyFilter(List<NotificationModel> all) {
+    if (_bookingEnabled) return all;
+
+    return all
+        .where((n) => !kBookingNotificationTypes.contains(n.type))
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,10 +95,10 @@ class NotificationsScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: background,
+      backgroundColor: NotificationsScreen.background,
       appBar: AppBar(
-        backgroundColor: background,
-        foregroundColor: textPrimary,
+        backgroundColor: NotificationsScreen.background,
+        foregroundColor: NotificationsScreen.textPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
         title: const Text(
@@ -64,23 +109,27 @@ class NotificationsScreen extends StatelessWidget {
           ),
         ),
         actions: [
-          StreamBuilder<int>(
-            stream: NotificationService.watchUnreadCount(user.uid),
+          StreamBuilder<List<NotificationModel>>(
+            stream: NotificationService.watchNotifications(user.uid),
             builder: (context, snapshot) {
-              final unread = snapshot.data ?? 0;
+              final visible = _applyFilter(snapshot.data ?? const []);
+              final unreadIds = visible
+                  .where((n) => !n.isRead)
+                  .map((n) => n.notificationId)
+                  .toList();
 
-              if (unread == 0) {
+              if (unreadIds.isEmpty) {
                 return const SizedBox.shrink();
               }
 
               return TextButton(
                 onPressed: () {
-                  NotificationService.markAllAsRead(user.uid);
+                  NotificationService.markManyAsRead(user.uid, unreadIds);
                 },
                 child: const Text(
                   'Mark all read',
                   style: TextStyle(
-                    color: primaryBlue,
+                    color: NotificationsScreen.primaryBlue,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
@@ -96,14 +145,23 @@ class NotificationsScreen extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting &&
               !snapshot.hasData) {
             return const Center(
-              child: CircularProgressIndicator(color: primaryBlue),
+              child: CircularProgressIndicator(
+                color: NotificationsScreen.primaryBlue,
+              ),
             );
           }
 
-          final notifications = snapshot.data ?? const [];
+          final allNotifications = snapshot.data ?? const [];
+          final notifications = _applyFilter(allNotifications);
 
           if (notifications.isEmpty) {
-            return _buildEmptyState();
+            // Distinguish "genuinely nothing yet" from "hidden by
+            // your own Settings toggle" -- otherwise turning Booking
+            // updates off looks identical to having no notifications
+            // at all, which is confusing rather than functional.
+            final hiddenByToggle =
+                !_bookingEnabled && allNotifications.isNotEmpty;
+            return _buildEmptyState(hiddenByToggle);
           }
 
           return ListView.builder(
@@ -126,7 +184,7 @@ class NotificationsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool hiddenByToggle) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(30),
@@ -134,23 +192,28 @@ class NotificationsScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.notifications_none,
+              hiddenByToggle
+                  ? Icons.notifications_off_outlined
+                  : Icons.notifications_none,
               size: 80,
               color: Colors.grey.shade400,
             ),
             const SizedBox(height: 20),
-            const Text(
-              "No Notifications Yet",
-              style: TextStyle(
+            Text(
+              hiddenByToggle ? "Booking Updates Are Off" : "No Notifications Yet",
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: textPrimary,
+                color: NotificationsScreen.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              "You'll receive booking updates here.",
-              style: TextStyle(color: textSecondary),
+            Text(
+              hiddenByToggle
+                  ? "Turn Booking updates back on in Settings to see them here."
+                  : "You'll receive booking updates here.",
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: NotificationsScreen.textSecondary),
             ),
           ],
         ),
@@ -166,7 +229,9 @@ class NotificationsScreen extends StatelessWidget {
     final icon = _iconForType(notification.type);
 
     return Material(
-      color: notification.isRead ? Colors.white : lightBlue,
+      color: notification.isRead
+          ? Colors.white
+          : NotificationsScreen.lightBlue,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -178,14 +243,16 @@ class NotificationsScreen extends StatelessWidget {
             );
           }
 
-          if (notification.type == 'BID_ACCEPTED') {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (_) => const MainNavigationScreen(),
-              ),
-              (route) => false,
-            );
-          }
+          // NAVIGATE ON TAP (rewired 2026-09-27, Harsh's punch-list
+          // item #3): previously only BID_ACCEPTED did anything, and
+          // that just went to Home rather than the actual booking.
+          // NotificationRouter fetches the underlying request/order
+          // and opens the real screen for every notification type.
+          NotificationRouter.open(
+            context,
+            type: notification.type,
+            relatedId: notification.relatedId,
+          );
         },
         child: Container(
           padding: const EdgeInsets.all(14),
@@ -193,7 +260,7 @@ class NotificationsScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: notification.isRead
-                  ? borderColor
+                  ? NotificationsScreen.borderColor
                   : const Color(0xFFD7E2FF),
             ),
           ),
@@ -207,7 +274,11 @@ class NotificationsScreen extends StatelessWidget {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: primaryBlue, size: 20),
+                child: Icon(
+                  icon,
+                  color: NotificationsScreen.primaryBlue,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -219,7 +290,7 @@ class NotificationsScreen extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: textPrimary,
+                        color: NotificationsScreen.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -227,7 +298,7 @@ class NotificationsScreen extends StatelessWidget {
                       notification.body,
                       style: const TextStyle(
                         fontSize: 13,
-                        color: textSecondary,
+                        color: NotificationsScreen.textSecondary,
                         height: 1.35,
                       ),
                     ),
@@ -236,7 +307,7 @@ class NotificationsScreen extends StatelessWidget {
                       _formatRelative(notification.createdAt),
                       style: const TextStyle(
                         fontSize: 12,
-                        color: textSecondary,
+                        color: NotificationsScreen.textSecondary,
                       ),
                     ),
                   ],
@@ -248,7 +319,7 @@ class NotificationsScreen extends StatelessWidget {
                   width: 8,
                   height: 8,
                   decoration: const BoxDecoration(
-                    color: primaryBlue,
+                    color: NotificationsScreen.primaryBlue,
                     shape: BoxShape.circle,
                   ),
                 ),

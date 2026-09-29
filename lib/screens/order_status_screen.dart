@@ -2152,8 +2152,13 @@ class _PaymentSheetState extends State<_PaymentSheet> {
 
                 _row('Service amount', _agreedPrice),
                 const SizedBox(height: 8),
+                // Percentage deliberately not shown (2026-09-27,
+                // Harsh's point 12) -- the exact platform commission
+                // rate shouldn't be disclosed anywhere in the app.
+                // GST's rate is fine to keep shown (see row below):
+                // it's a statutory tax rate, not a business figure.
                 _row(
-                  'Platform charges (9.5%)',
+                  'Platform charges',
                   _platformCharge,
                   waived: _waived,
                 ),

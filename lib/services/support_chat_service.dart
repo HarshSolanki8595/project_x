@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/support_message_model.dart';
+import 'support_ticket_service.dart';
 
 // ================================================================
 // SUPPORT CHAT SERVICE (NEW — 2026-08-29)
@@ -14,6 +15,12 @@ import '../models/support_message_model.dart';
 // panel exists. firestore.rules restricts a customer to only ever
 // reading/writing their OWN thread, and only ever as senderType
 // 'CUSTOMER' -- see the `support_chats` match block.
+//
+// UPDATED — 2026-09-17: sendMessage() now also calls
+// SupportTicketService.reopenIfResolved() -- see that file's header
+// comment. This is the thin ticket/status layer Harsh asked to be
+// put in front of this same chat; the chat's own schema/behavior
+// above is otherwise unchanged.
 //
 
 class SupportChatService {
@@ -76,6 +83,16 @@ class SupportChatService {
       throw StateError(
         e.message ?? 'Unable to send your message right now.',
       );
+    }
+
+    // Best-effort: if this thread's ticket was previously marked
+    // Resolved, sending a new message reopens it so it re-enters the
+    // admin's queue. Never allowed to fail the send itself, which
+    // has already succeeded above.
+    try {
+      await SupportTicketService.reopenIfResolved(customerId);
+    } catch (_) {
+      // Ticket bookkeeping only -- the message itself already sent.
     }
   }
 }

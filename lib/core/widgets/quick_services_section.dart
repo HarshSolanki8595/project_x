@@ -36,7 +36,6 @@ class QuickServicesSection extends StatelessWidget {
 
   static const Color _darkText = Color(0xFF0F172A);
   static const Color _secondaryText = Color(0xFF64748B);
-  static const Color _cardBorder = Color(0xFFEEF3FF);
   static const Color _primaryBlue = Color(0xFF1557FF);
 
   @override

@@ -106,7 +106,10 @@ class _BookingsScreenState extends State<BookingsScreen>
       categoryName: model.categoryId,
       subCategoryName: model.requestTypeId,
       issueDescription: model.description,
-      isEmergency: model.urgency.toUpperCase() == 'URGENT',
+      // Reads the real flag directly (2026-09-27 urgency wiring fix)
+      // instead of guessing from `urgency`, which is a separate,
+      // never-updated legacy field.
+      isEmergency: model.isEmergency,
       latitude: model.latitude,
       longitude: model.longitude,
       requestId: model.requestId,

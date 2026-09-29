@@ -21,6 +21,23 @@ class ServiceRequestModel {
   final double longitude;
 
   final String urgency;
+
+  // ============================================================
+  // EMERGENCY FLAG (added 2026-09-27 -- urgency wiring fix)
+  // ============================================================
+  // The REAL urgency flag, set via the customer app's "Need urgent
+  // help?" toggle on ServiceRequestScreen (ServiceRequest.isEmergency
+  // there). `urgency` above is a separate, legacy field that's never
+  // actually updated from that toggle -- it stays at its 'NORMAL'
+  // default regardless -- so it was never a reliable urgency signal.
+  // The professional app's opportunity/bid/request-details screens
+  // already read `isEmergency` (mirrors this same field there); this
+  // was simply never being written from the customer app's create-
+  // request path until now.
+  // ============================================================
+
+  final bool isEmergency;
+
   final String status;
 
   final DateTime createdAt;
@@ -81,6 +98,7 @@ class ServiceRequestModel {
     required this.latitude,
     required this.longitude,
     required this.urgency,
+    this.isEmergency = false,
     required this.status,
     required this.createdAt,
     this.categoryName,

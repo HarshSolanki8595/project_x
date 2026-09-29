@@ -19,6 +19,23 @@ class CustomerPricing {
   static const double platformChargeRate = 0.095;
   static const double gstRate = 0.18;
 
+  // ============================================================
+  // FIRST-ORDERS PLATFORM FEE WAIVER (2026-09-27, Harsh's point 11)
+  // ============================================================
+  //
+  // Mirrors FIRST_ORDERS_FEE_WAIVER_COUNT in functions/index.js: a
+  // customer's first this-many paid (IN_APP) orders have Platform
+  // Charges + GST waived entirely. The actual charge is always
+  // decided authoritatively server-side at payment time -- this
+  // constant exists purely so screens shown BEFORE that point (the
+  // "Accept This Offer" and "Order Confirmed" previews on
+  // professionals_screen.dart) can preview the same offer the real
+  // payment screen already honors. If this number ever changes
+  // server-side, update it here too -- there is no shared source
+  // between the two codebases, same caveat as the rates above.
+  //
+  static const int firstOrdersFeeWaiverCount = 3;
+
   final double agreedPrice;
   final double platformCharge;
   final double gst;

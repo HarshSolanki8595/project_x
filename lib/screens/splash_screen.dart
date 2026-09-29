@@ -4,6 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../data/fixed_price_service_config.dart';
+import '../data/service_categories.dart';
+import '../services/notification_service.dart';
 import 'create_profile_screen.dart';
 import 'main_navigation_screen.dart';
 import 'onboarding_screen.dart';
@@ -55,6 +58,14 @@ class _SplashScreenState extends State<SplashScreen>
         curve: Curves.easeIn,
       ),
     );
+
+    // Best-effort category catalog refresh from Firestore -- fires
+    // once per app launch, deliberately NOT awaited so it can never
+    // delay the splash animation or navigation below. See the long
+    // comment on ServiceCategories.loadFromFirestore() for why this
+    // is always safe to fire and forget.
+    ServiceCategories.loadFromFirestore();
+    FixedPriceCatalog.loadFromFirestore();
 
     _controller.forward();
 
@@ -117,6 +128,12 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     if (userDoc.exists) {
+      // Push notification registration (NEW — 2026-09-27): a warm
+      // relaunch of an already-signed-in customer, so token
+      // registration wasn't triggered by a fresh login just now.
+      // Best-effort, fire-and-forget.
+      NotificationService.registerDeviceToken();
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => const MainNavigationScreen(),

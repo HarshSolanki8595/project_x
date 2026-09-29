@@ -1,0 +1,214 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quick Services Repricing</title>
+<style>
+  :root{
+    --bg:#F5F7FC; --surface:#FFFFFF; --surface-2:#FAFBFE;
+    --ink:#0F172A; --muted:#5B6478; --faint:#98A1B3; --border:#E3E7F0;
+    --primary:#1D4ED8; --primary-ink:#152C6B; --primary-soft:#EAF0FE;
+    --gold:#B7862A; --gold-soft:#FBF3E3; --success:#158A50;
+    --shadow: 0 1px 2px rgba(16,24,55,.04), 0 8px 24px -12px rgba(16,24,55,.12);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0B1020; --surface:#131A2E; --surface-2:#101627;
+      --ink:#EEF1F8; --muted:#9CA6BE; --faint:#6B7590; --border:#232B45;
+      --primary:#6E93F7; --primary-ink:#DCE6FE; --primary-soft:#1B2647;
+      --gold:#D7AD5D; --gold-soft:#2B2413; --success:#4ED690;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:'Inter',system-ui,-apple-system,"Segoe UI",sans-serif; padding:32px 16px 64px;}
+  h1,h2,h3{font-family:'Sora','Inter',system-ui,sans-serif; text-wrap:balance;}
+  #app{max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:20px;}
+  .masthead{display:flex; flex-direction:column; gap:14px;}
+  .eyebrow{font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--gold); font-weight:600;}
+  .masthead h1{font-size:26px; font-weight:700; margin:0;}
+  .masthead p{margin:0; color:var(--muted); font-size:14px; line-height:1.55; max-width:60ch;}
+  .progress-card{background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:16px 20px; display:flex; flex-direction:column; gap:10px;}
+  .progress-top{display:flex; align-items:baseline; justify-content:space-between; gap:12px;}
+  .progress-top .count{font-variant-numeric:tabular-nums; font-weight:700; font-size:18px;}
+  .progress-top .label{color:var(--muted); font-size:13px;}
+  .bar-track{height:8px; border-radius:99px; background:var(--surface-2); border:1px solid var(--border); overflow:hidden;}
+  .bar-fill{height:100%; border-radius:99px; background:linear-gradient(90deg, var(--primary), var(--gold)); transition:width .35s ease;}
+  .note-banner{font-size:12.5px; color:var(--muted); background:var(--surface-2); border:1px dashed var(--border); border-radius:12px; padding:10px 14px; line-height:1.5;}
+  .callout{display:flex; gap:14px; align-items:flex-start; background:var(--primary-soft); border:1px solid var(--border); border-radius:16px; padding:16px 18px;}
+  .callout h3{margin:0 0 4px; font-size:15px; color:var(--primary-ink);}
+  .callout p{margin:0; font-size:13.5px; color:var(--muted); line-height:1.5;}
+  .section{background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); overflow:hidden;}
+  .section-head{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 20px; border-bottom:1px solid var(--border); cursor:pointer; user-select:none; background:var(--surface-2);}
+  .section-head h2{font-size:15px; margin:0;}
+  .section-head .sub{font-size:12px; color:var(--muted); font-weight:500;}
+  .section-head .chip{font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:99px; background:var(--surface); border:1px solid var(--border); color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .section-head .caret{color:var(--faint); transition:transform .2s ease; flex:0 0 auto;}
+  .section.collapsed .caret{transform:rotate(-90deg);}
+  .section.collapsed .item-list{display:none;}
+  .item-list{display:flex; flex-direction:column;}
+  .item{display:flex; gap:12px; align-items:flex-start; padding:12px 20px; border-bottom:1px solid var(--border);}
+  .item:last-child{border-bottom:none;}
+  .item input[type="checkbox"]{appearance:none; width:19px; height:19px; margin:1px 0 0; flex:0 0 auto; border:1.6px solid var(--faint); border-radius:6px; background:var(--surface); cursor:pointer; position:relative; transition:.15s ease;}
+  .item input[type="checkbox"]:hover{border-color:var(--primary);}
+  .item input[type="checkbox"]:checked{background:var(--success); border-color:var(--success);}
+  .item input[type="checkbox"]:checked::after{content:""; position:absolute; left:5px; top:1px; width:5px; height:10px; border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg);}
+  .item .txt{display:flex; flex-direction:column; gap:2px; min-width:0;}
+  .item .label{font-size:14px; line-height:1.45; color:var(--ink);}
+  .item .note{font-size:12.5px; color:var(--muted); line-height:1.45; font-variant-numeric:tabular-nums;}
+  .item.done .label{color:var(--faint); text-decoration:line-through; text-decoration-color:var(--faint);}
+  .item.done .note{color:var(--faint);}
+  .badge{display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:.03em; padding:2px 7px; border-radius:6px; margin-left:8px; vertical-align:1px; text-transform:uppercase;}
+  .badge.done{background:var(--success); color:#fff;}
+  .badge.next{background:var(--gold-soft); color:var(--gold);}
+  footer{text-align:center; font-size:12px; color:var(--faint); padding-top:8px;}
+  footer span{font-variant-numeric:tabular-nums;}
+  @media (max-width:480px){ .masthead h1{font-size:22px;} .section-head{padding:12px 16px;} .item{padding:11px 16px;} }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+  // status: "done" (real, reviewed price) | "todo" (still the original placeholder)
+  var SECTIONS = [
+    {
+      id:"cleaning",
+      title:"Cleaning",
+      sub:"17 subcategories",
+      items:[
+        {id:"home_cleaning_normal", label:"Home Cleaning — Normal Cleaning", note:"₹170 (1hr) / ₹230 (1.5hr) / ₹300 (2hr), by home size", status:"done", checked:true},
+        {id:"home_cleaning_deep", label:"Home Cleaning — Deep Cleaning", note:"New option, structure + pricing not started yet", status:"next", checked:false},
+        {id:"kitchen_cleaning", label:"Kitchen Cleaning", note:"currently ₹349 / ₹549 / ₹799", status:"todo", checked:false},
+        {id:"bathroom_cleaning", label:"Bathroom Cleaning", note:"currently ₹249 / ₹449 / ₹649", status:"todo", checked:false},
+        {id:"sofa_cleaning", label:"Sofa Cleaning", note:"currently ₹399 / ₹599 / ₹899", status:"todo", checked:false},
+        {id:"carpet_cleaning", label:"Carpet Cleaning", note:"currently ₹349 / ₹549 / ₹849", status:"todo", checked:false},
+        {id:"window_cleaning", label:"Window Cleaning", note:"currently ₹299 / ₹499 / ₹799", status:"todo", checked:false},
+        {id:"water_tank_cleaning", label:"Water Tank Cleaning", note:"currently ₹599 / ₹899 / ₹1,299", status:"todo", checked:false},
+        {id:"chimney_cleaning", label:"Chimney Cleaning", note:"currently ₹699 / ₹1,099 / ₹1,499", status:"todo", checked:false},
+        {id:"car_cleaning", label:"Car Cleaning", note:"currently ₹399 / ₹499 / ₹649", status:"todo", checked:false},
+        {id:"office_cleaning", label:"Office Cleaning", note:"currently ₹999 / ₹1,799 / ₹2,999", status:"todo", checked:false},
+        {id:"move_cleaning", label:"Move-In / Move-Out Cleaning", note:"currently ₹1,299 / ₹1,899 / ₹2,599", status:"todo", checked:false},
+        {id:"mattress_cleaning", label:"Mattress Cleaning", note:"currently ₹399 / ₹549 / ₹699", status:"todo", checked:false},
+        {id:"curtain_cleaning", label:"Curtain Cleaning", note:"currently ₹349 / ₹599 / ₹899", status:"todo", checked:false},
+        {id:"garden_cleaning", label:"Garden / Lawn Cleaning", note:"currently ₹499 / ₹799 / ₹1,299", status:"todo", checked:false},
+        {id:"post_construction_cleaning", label:"Post-Construction Cleaning", note:"currently ₹2,499 / ₹3,499 / ₹4,999", status:"todo", checked:false},
+        {id:"disinfection_service", label:"Disinfection Service", note:"currently ₹799 / ₹1,299 / ₹1,999", status:"todo", checked:false},
+        {id:"general_cleaning", label:"General Cleaning (catch-all)", note:"currently ₹349 / ₹599 / ₹949", status:"todo", checked:false}
+      ]
+    },
+    {
+      id:"helper",
+      title:"Helper Services",
+      sub:"15 subcategories",
+      items:[
+        {id:"maid_fulltime", label:"Maid — Full-Time", note:"currently ₹699 / ₹1,299 / ₹1,899", status:"todo", checked:false},
+        {id:"maid_parttime", label:"Maid — Part-Time", note:"currently ₹349 / ₹499 / ₹649", status:"todo", checked:false},
+        {id:"cook", label:"Cook", note:"currently ₹399 / ₹699 / ₹999", status:"todo", checked:false},
+        {id:"babysitter", label:"Babysitter", note:"currently ₹399 / ₹699 / ₹1,299", status:"todo", checked:false},
+        {id:"elderly_care", label:"Elderly Care", note:"currently ₹999 / ₹1,799 / ₹2,599", status:"todo", checked:false},
+        {id:"driver", label:"Driver", note:"currently ₹399 / ₹799 / ₹1,499", status:"todo", checked:false},
+        {id:"dog_walking", label:"Dog Walking", note:"currently ₹149 / ₹199 / ₹299", status:"todo", checked:false},
+        {id:"gardener", label:"Gardener", note:"currently ₹349 / ₹599 / ₹899", status:"todo", checked:false},
+        {id:"errand_assistant", label:"Errand Assistant", note:"currently ₹249 / ₹449 / ₹799", status:"todo", checked:false},
+        {id:"laundry_ironing", label:"Laundry / Ironing", note:"currently ₹249 / ₹449 / ₹699", status:"todo", checked:false},
+        {id:"night_caregiver", label:"Night Caregiver", note:"currently ₹1,199 / ₹1,599 / ₹1,999", status:"todo", checked:false},
+        {id:"party_cooking", label:"Party Cooking", note:"currently ₹1,499 / ₹2,499 / ₹3,999", status:"todo", checked:false},
+        {id:"pet_grooming", label:"Pet Grooming", note:"currently ₹499 / ₹699 / ₹999", status:"todo", checked:false},
+        {id:"plant_care", label:"Plant Care", note:"currently ₹249 / ₹399 / ₹599", status:"todo", checked:false},
+        {id:"general_helper", label:"General Helper (catch-all)", note:"currently ₹349 / ₹599 / ₹999", status:"todo", checked:false}
+      ]
+    }
+  ];
+
+  var app = document.getElementById('app');
+
+  function esc(s){ return String(s).replace(/[&<>]/g, function(c){ return c === '&' ? '&amp;' : (c === '<' ? '&lt;' : '&gt;'); }); }
+  function totalCounts(){
+    var total = 0, done = 0;
+    SECTIONS.forEach(function(s){ s.items.forEach(function(it){ total++; if(it.checked) done++; }); });
+    return {total:total, done:done};
+  }
+  function sectionCounts(s){
+    var total = s.items.length, done = 0;
+    s.items.forEach(function(it){ if(it.checked) done++; });
+    return {total:total, done:done};
+  }
+
+  function render(){
+    var t = totalCounts();
+    var pct = t.total ? Math.round((t.done/t.total)*100) : 0;
+    var html = '';
+
+    html += '<div class="masthead">'
+      + '<div class="eyebrow">Habio · Quick Services</div>'
+      + '<h1>Repricing Checklist</h1>'
+      + '<p>Working through Helper Services + Cleaning one subcategory at a time — deciding the real pricing structure to replace each placeholder. “currently” prices are what’s actually live in fixed_price_service_config.dart today.</p>'
+      + '</div>';
+
+    html += '<div class="progress-card">'
+      + '<div class="progress-top"><span class="count">' + t.done + ' / ' + t.total + ' repriced</span><span class="label">' + pct + '%</span></div>'
+      + '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%"></div></div>'
+      + '</div>';
+
+    html += '<div class="callout"><div><h3>Just shipped</h3>'
+      + '<p>Home Cleaning → Normal Cleaning is now real pricing (₹170/230/300 by duration, defaulted from home size) and committed to fixed_price_service_config.dart. Deep Cleaning is the next piece — needs its own price tiers and a way to choose between the two modes on the request screen.</p>'
+      + '</div></div>';
+
+    html += '<div class="note-banner">Plain file, not a hosted page — ticking a box here only holds while the page is open. Just tell me the next subcategory’s prices in chat and I’ll update the code, commit it, and refresh this list.</div>';
+
+    SECTIONS.forEach(function(s){
+      var c = sectionCounts(s);
+      html += '<div class="section" data-section="' + s.id + '">'
+        + '<div class="section-head" data-toggle="' + s.id + '">'
+        + '<div><h2>' + esc(s.title) + '</h2><div class="sub">' + esc(s.sub) + '</div></div>'
+        + '<div style="display:flex;align-items:center;gap:10px;">'
+        + '<span class="chip">' + c.done + '/' + c.total + '</span>'
+        + '<span class="caret">&#9662;</span>'
+        + '</div></div>'
+        + '<div class="item-list">';
+      s.items.forEach(function(it){
+        var badge = it.status === 'done' ? '<span class="badge done">Done</span>' : (it.status === 'next' ? '<span class="badge next">Up next</span>' : '');
+        html += '<label class="item' + (it.checked ? ' done' : '') + '">'
+          + '<input type="checkbox" data-id="' + it.id + '"' + (it.checked ? ' checked' : '') + ' />'
+          + '<span class="txt"><span class="label">' + esc(it.label) + badge + '</span>'
+          + '<span class="note">' + esc(it.note) + '</span>'
+          + '</span></label>';
+      });
+      html += '</div></div>';
+    });
+
+    html += '<footer>Reopening this file resets the checks. <span>' + t.done + '/' + t.total + '</span> checked right now.</footer>';
+
+    app.innerHTML = html;
+    attachHandlers();
+  }
+
+  function findItem(id){
+    for(var i=0;i<SECTIONS.length;i++){
+      for(var j=0;j<SECTIONS[i].items.length;j++){
+        if(SECTIONS[i].items[j].id === id) return SECTIONS[i].items[j];
+      }
+    }
+    return null;
+  }
+
+  function attachHandlers(){
+    app.querySelectorAll('input[type="checkbox"][data-id]').forEach(function(cb){
+      cb.addEventListener('change', function(){
+        var it = findItem(cb.getAttribute('data-id'));
+        if(it){ it.checked = cb.checked; }
+        render();
+      });
+    });
+    app.querySelectorAll('.section-head[data-toggle]').forEach(function(h){
+      h.addEventListener('click', function(){ h.closest('.section').classList.toggle('collapsed'); });
+    });
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

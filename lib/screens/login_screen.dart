@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../services/notification_service.dart';
 import 'create_profile_screen.dart';
 import 'main_navigation_screen.dart';
 import 'otp_screen.dart';
@@ -56,6 +57,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!mounted) return;
 
+    // Push notification registration (NEW — 2026-09-27): best-effort,
+    // fire-and-forget so a slow/denied permission never delays
+    // navigation. See NotificationService.registerDeviceToken().
+    NotificationService.registerDeviceToken();
+
     if (userDoc.exists) {
       Navigator.pushAndRemoveUntil(
         context,
@@ -65,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
         (route) => false,
       );
     } else {
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
           builder: (_) => CreateProfileScreen(
@@ -73,6 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
             phoneNumber: phoneNumber,
           ),
         ),
+        (route) => false,
       );
     }
   }
@@ -208,12 +215,18 @@ class _LoginScreenState extends State<LoginScreen> {
             _isLoading = false;
           });
 
-          Navigator.pushReplacement(
+          Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => OtpScreen(
                 phoneNumber: phone,
                 verificationId: verificationId,
+                // ADDED (2026-09-27, Harsh's point 14): forwarded so
+                // OtpScreen's "Resend OTP" can pass it back to
+                // verifyPhoneNumber as forceResendingToken -- without
+                // this, Firebase has no way to route a resend request
+                // to the same SMS session as the original send.
+                resendToken: resendToken,
               ),
             ),
           );

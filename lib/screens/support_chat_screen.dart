@@ -2,7 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../models/support_message_model.dart';
+import '../models/support_ticket_model.dart';
 import '../services/support_chat_service.dart';
+import '../services/support_ticket_service.dart';
 import '../theme/app_theme.dart';
 
 // ================================================================
@@ -18,6 +20,15 @@ import '../theme/app_theme.dart';
 // Rather than fake a reply from "support" that never really
 // arrives, this screen is upfront about that with a standing note
 // at the top instead of a pretend chat partner.
+//
+// UPDATED — 2026-09-17: the info banner now also shows the ticket's
+// category and status (Open/In Progress/Resolved) once one exists
+// -- see support_ticket_model.dart/support_ticket_service.dart. The
+// ticket is created on Profile's triage sheet, before this screen
+// even opens, so by the time a customer lands here it usually
+// already exists; the banner just falls back to its original plain
+// text if it doesn't (e.g. a very old thread from before this
+// shipped).
 //
 
 class SupportChatScreen extends StatefulWidget {
@@ -96,57 +107,65 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
       body: customerId == null
           ? const Center(child: Text('Please login first.'))
           : SafeArea(
-              child: Column(
-                children: [
-                  _buildInfoBanner(),
-                  Expanded(
-                    child: StreamBuilder<List<SupportMessageModel>>(
-                      stream: SupportChatService.watchMessages(customerId),
-                      builder: (context, snapshot) {
-                        final messages =
-                            snapshot.data ?? const <SupportMessageModel>[];
+              child: StreamBuilder<SupportTicketModel?>(
+                stream: SupportTicketService.watchTicket(customerId),
+                builder: (context, ticketSnapshot) {
+                  final ticket = ticketSnapshot.data;
 
-                        if (snapshot.connectionState ==
-                                ConnectionState.waiting &&
-                            messages.isEmpty) {
-                          return const Center(
-                            child: CircularProgressIndicator(
-                              color: AppTheme.primaryBlue,
-                            ),
-                          );
-                        }
+                  return Column(
+                    children: [
+                      _buildInfoBanner(ticket),
+                      Expanded(
+                        child: StreamBuilder<List<SupportMessageModel>>(
+                          stream: SupportChatService.watchMessages(customerId),
+                          builder: (context, snapshot) {
+                            final messages =
+                                snapshot.data ?? const <SupportMessageModel>[];
 
-                        if (messages.isEmpty) {
-                          return _buildEmptyState();
-                        }
+                            if (snapshot.connectionState ==
+                                    ConnectionState.waiting &&
+                                messages.isEmpty) {
+                              return const Center(
+                                child: CircularProgressIndicator(
+                                  color: AppTheme.primaryBlue,
+                                ),
+                              );
+                            }
 
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (_scrollController.hasClients) {
-                            _scrollController.jumpTo(
-                              _scrollController.position.maxScrollExtent,
+                            if (messages.isEmpty) {
+                              return _buildEmptyState();
+                            }
+
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (_scrollController.hasClients) {
+                                _scrollController.jumpTo(
+                                  _scrollController.position.maxScrollExtent,
+                                );
+                              }
+                            });
+
+                            return ListView.builder(
+                              controller: _scrollController,
+                              padding:
+                                  const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                              itemCount: messages.length,
+                              itemBuilder: (context, index) {
+                                return _buildBubble(messages[index]);
+                              },
                             );
-                          }
-                        });
-
-                        return ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                          itemCount: messages.length,
-                          itemBuilder: (context, index) {
-                            return _buildBubble(messages[index]);
                           },
-                        );
-                      },
-                    ),
-                  ),
-                  _buildComposer(),
-                ],
+                        ),
+                      ),
+                      _buildComposer(),
+                    ],
+                  );
+                },
               ),
             ),
     );
   }
 
-  Widget _buildInfoBanner() {
+  Widget _buildInfoBanner(SupportTicketModel? ticket) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
@@ -155,24 +174,42 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
         color: AppTheme.lightBlue,
         borderRadius: BorderRadius.circular(13),
       ),
-      child: const Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.info_outline_rounded,
-            color: AppTheme.primaryBlue,
-            size: 17,
-          ),
-          SizedBox(width: 9),
-          Expanded(
-            child: Text(
-              'Send us your question and our team will get back to you here.',
-              style: TextStyle(
-                fontSize: 12,
+          const Row(
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
                 color: AppTheme.primaryBlue,
-                fontWeight: FontWeight.w600,
+                size: 17,
               ),
-            ),
+              SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  'Send us your question and our team will get back to you here.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.primaryBlue,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
+          if (ticket != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _InfoPill(text: ticket.categoryLabel, color: AppTheme.primaryBlue),
+                const SizedBox(width: 6),
+                _InfoPill(
+                  text: _statusLabel(ticket.status),
+                  color: _statusColor(ticket.status),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -358,6 +395,54 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+String _statusLabel(String status) {
+  switch (status) {
+    case 'IN_PROGRESS':
+      return 'In progress';
+    case 'RESOLVED':
+      return 'Resolved';
+    default:
+      return 'Open';
+  }
+}
+
+Color _statusColor(String status) {
+  switch (status) {
+    case 'IN_PROGRESS':
+      return const Color(0xFF1565C0);
+    case 'RESOLVED':
+      return const Color(0xFF1F9254);
+    default:
+      return const Color(0xFFB8860B);
+  }
+}
+
+class _InfoPill extends StatelessWidget {
+  final String text;
+  final Color color;
+
+  const _InfoPill({required this.text, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
       ),
     );
   }
