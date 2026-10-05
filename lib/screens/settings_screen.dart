@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'account_security_screen.dart';
+import 'faq_screen.dart';
 import 'legal_content_screen.dart';
 
 // ================================================================
@@ -167,6 +168,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => LegalContentScreen.privacyPolicy(),
+                  ),
+                );
+              },
+            ),
+            _SettingsTile(
+              icon: Icons.help_outline_rounded,
+              title: 'FAQs',
+              subtitle: 'Answers to common questions',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const FaqScreen(),
                   ),
                 );
               },

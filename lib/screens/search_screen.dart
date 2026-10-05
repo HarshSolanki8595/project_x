@@ -43,13 +43,27 @@ class SearchScreen extends StatefulWidget {
   State<SearchScreen> createState() => _SearchScreenState();
 }
 
+// Added 2026-10-01, per Harsh's request: "the search option should
+// state near or exact search options for the customer to simplify
+// placing an order". `_findMatches()` already computed these two
+// tiers internally (substring match vs. typo-tolerant edit-distance
+// match) but concatenated them into one flat, unlabeled list -- this
+// just carries the tier through to the result tile so it can show a
+// small "Exact match" / "Near match" label. Null for the no-match
+// fallback suggestions (_fallbackSuggestions()), which aren't a match
+// of either kind and already have their own "You might still be
+// looking for one of these" framing.
+enum _MatchTier { exact, near }
+
 class _SearchResult {
   final Category category;
   final SubCategory subCategory;
+  final _MatchTier? matchTier;
 
   const _SearchResult({
     required this.category,
     required this.subCategory,
+    this.matchTier,
   });
 }
 
@@ -143,7 +157,11 @@ class _SearchScreenState extends State<SearchScreen> {
 
         if (wholePhraseMatch || anyWordMatch) {
           exact.add(
-            _SearchResult(category: category, subCategory: subCategory),
+            _SearchResult(
+              category: category,
+              subCategory: subCategory,
+              matchTier: _MatchTier.exact,
+            ),
           );
           continue;
         }
@@ -163,7 +181,11 @@ class _SearchScreenState extends State<SearchScreen> {
 
         if (hasNearMatch) {
           near.add(
-            _SearchResult(category: category, subCategory: subCategory),
+            _SearchResult(
+              category: category,
+              subCategory: subCategory,
+              matchTier: _MatchTier.near,
+            ),
           );
         }
       }
@@ -275,6 +297,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 subCategoryName: subCategory.name,
                 subCategoryId: subCategory.id,
                 categoryId: category.id,
+                matchGroup: subCategory.matchGroup,
               ),
       ),
     );
@@ -510,12 +533,23 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    category.name,
-                    style: TextStyle(
-                      color: Colors.grey.shade700,
-                      fontSize: 12,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          category.name,
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontSize: 12,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (result.matchTier != null) ...[
+                        const SizedBox(width: 8),
+                        _MatchTierBadge(tier: result.matchTier!),
+                      ],
+                    ],
                   ),
                 ],
               ),
@@ -526,6 +560,43 @@ class _SearchScreenState extends State<SearchScreen> {
               color: Colors.grey,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// Small "Exact match" / "Near match" pill shown on each matched
+// result tile -- see the enum's doc comment above for the full
+// explanation. Exact match in green (it's a confident hit), near
+// match in amber (typo-tolerant -- still worth a glance before
+// booking).
+class _MatchTierBadge extends StatelessWidget {
+  final _MatchTier tier;
+
+  const _MatchTierBadge({required this.tier});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isExact = tier == _MatchTier.exact;
+
+    final Color foreground =
+        isExact ? const Color(0xFF15803D) : const Color(0xFFB45309);
+    final Color background =
+        isExact ? const Color(0xFFE8F8EE) : const Color(0xFFFFF4E3);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        isExact ? "Exact match" : "Near match",
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: foreground,
         ),
       ),
     );

@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:record/record.dart';
 
 import 'address_screen.dart';
 import '../models/service_request.dart';
@@ -43,6 +47,27 @@ class ServiceRequestScreen extends StatefulWidget {
 
   final bool initialIsEmergency;
 
+  // ============================================================
+  // MATCH GROUP -- added 2026-10-02
+  // ============================================================
+  //
+  // The chosen subcategory's SubCategory.matchGroup (see
+  // lib/models/subcategory.dart for the full explanation),
+  // resolved by the caller from the same taxonomy entry subCategoryId
+  // came from. Forwarded onto the request so the Cloud Function's
+  // Appliances/Automobile fallback-matching tier can narrow to the
+  // same trade family instead of the whole category.
+  //
+  // When this is exactly 'both' (a vehicle-agnostic Automobile item
+  // like Battery Service or Tyre & Puncture), the subcategory id
+  // alone can't tell a car job from a bike job, so this screen asks
+  // the customer directly below. Null for every non-Automobile
+  // category and for the free-text "Ask Habio" flow, where it stays
+  // unset.
+  //
+
+  final String? matchGroup;
+
   const ServiceRequestScreen({
     super.key,
     required this.categoryName,
@@ -50,6 +75,7 @@ class ServiceRequestScreen extends StatefulWidget {
     required this.subCategoryId,
     this.categoryId = '',
     this.initialIsEmergency = false,
+    this.matchGroup,
   });
 
   @override
@@ -75,6 +101,31 @@ class _ServiceRequestScreenState
   File? selectedVideo;
 
   // ============================================================
+  // VOICE NOTE -- added 2026-10-02
+  // ============================================================
+  //
+  // Optional recording describing the problem, sitting alongside
+  // the existing photo/video attachments. Capped at 60 seconds
+  // (_maxVoiceNoteSeconds) -- recording stops itself automatically
+  // at the cap rather than just disabling the button, so the
+  // customer isn't left wondering why nothing happens.
+  //
+  // Uploaded by ServiceRequestMediaService once a real requestId
+  // exists -- see RequestService.createRequest.
+  //
+
+  static const int _maxVoiceNoteSeconds = 60;
+
+  final AudioRecorder _voiceNoteRecorder = AudioRecorder();
+  final AudioPlayer _voiceNotePreviewPlayer = AudioPlayer();
+
+  File? selectedVoiceNote;
+  bool _isRecordingVoiceNote = false;
+  bool _isPlayingVoiceNotePreview = false;
+  int _recordingSeconds = 0;
+  Timer? _recordingTimer;
+
+  // ============================================================
   // MATERIAL SOURCING -- added 2026-09-04
   // ============================================================
   //
@@ -97,10 +148,29 @@ class _ServiceRequestScreenState
   final TextEditingController materialBrandController =
       TextEditingController();
 
+  // ============================================================
+  // VEHICLE TYPE -- added 2026-10-02
+  // ============================================================
+  //
+  // Only asked when widget.matchGroup == 'both' -- see the field
+  // doc comment on ServiceRequestScreen above. Mandatory in that
+  // case before Continue, same validation pattern as
+  // customerProvidesMaterial above.
+  //
+
+  String? vehicleType;
+
   @override
   void initState() {
     super.initState();
     isEmergency = widget.initialIsEmergency;
+
+    _voiceNotePreviewPlayer.onPlayerComplete.listen((_) {
+      if (!mounted) return;
+      setState(() {
+        _isPlayingVoiceNotePreview = false;
+      });
+    });
   }
 
   Future<void> pickPhotos() async {
@@ -133,10 +203,112 @@ class _ServiceRequestScreenState
     }
   }
 
+  // ============================================================
+  // VOICE NOTE RECORDING -- added 2026-10-02
+  // ============================================================
+
+  Future<void> _startVoiceNoteRecording() async {
+    final bool hasPermission = await _voiceNoteRecorder.hasPermission();
+
+    if (!hasPermission) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Microphone permission is needed to record a voice note.",
+          ),
+        ),
+      );
+      return;
+    }
+
+    final Directory tempDir = await getTemporaryDirectory();
+    final String path =
+        '${tempDir.path}/voice_note_${DateTime.now().millisecondsSinceEpoch}.m4a';
+
+    await _voiceNoteRecorder.start(
+      const RecordConfig(encoder: AudioEncoder.aacLc),
+      path: path,
+    );
+
+    setState(() {
+      _isRecordingVoiceNote = true;
+      _recordingSeconds = 0;
+    });
+
+    _recordingTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        setState(() {
+          _recordingSeconds++;
+        });
+
+        if (_recordingSeconds >= _maxVoiceNoteSeconds) {
+          _stopVoiceNoteRecording();
+        }
+      },
+    );
+  }
+
+  Future<void> _stopVoiceNoteRecording() async {
+    _recordingTimer?.cancel();
+    _recordingTimer = null;
+
+    final String? path = await _voiceNoteRecorder.stop();
+
+    if (!mounted) return;
+
+    setState(() {
+      _isRecordingVoiceNote = false;
+      if (path != null) {
+        selectedVoiceNote = File(path);
+      }
+    });
+  }
+
+  Future<void> _deleteVoiceNote() async {
+    if (_isPlayingVoiceNotePreview) {
+      await _voiceNotePreviewPlayer.stop();
+    }
+
+    setState(() {
+      selectedVoiceNote = null;
+      _isPlayingVoiceNotePreview = false;
+    });
+  }
+
+  Future<void> _toggleVoiceNotePreview() async {
+    if (selectedVoiceNote == null) return;
+
+    if (_isPlayingVoiceNotePreview) {
+      await _voiceNotePreviewPlayer.pause();
+      setState(() {
+        _isPlayingVoiceNotePreview = false;
+      });
+    } else {
+      await _voiceNotePreviewPlayer.play(
+        DeviceFileSource(selectedVoiceNote!.path),
+      );
+      setState(() {
+        _isPlayingVoiceNotePreview = true;
+      });
+    }
+  }
+
+  String _formatSeconds(int totalSeconds) {
+    final int minutes = totalSeconds ~/ 60;
+    final int seconds = totalSeconds % 60;
+    return '${minutes.toString().padLeft(1, '0')}:'
+        '${seconds.toString().padLeft(2, '0')}';
+  }
+
   @override
   void dispose() {
     issueController.dispose();
     materialBrandController.dispose();
+    _recordingTimer?.cancel();
+    _voiceNoteRecorder.dispose();
+    _voiceNotePreviewPlayer.dispose();
     super.dispose();
   }
 
@@ -183,6 +355,24 @@ class _ServiceRequestScreenState
     }
 
     // ==========================================================
+    // VEHICLE TYPE -- mandatory only when the subcategory is
+    // vehicle-agnostic (matchGroup == 'both'); the subcategory id
+    // itself already says car vs bike otherwise.
+    // ==========================================================
+
+    if (widget.matchGroup == 'both' && vehicleType == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Please let us know if this is for a car or a bike.",
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    // ==========================================================
     // FIREBASE AUTHENTICATED CUSTOMER
     // ==========================================================
 
@@ -218,6 +408,8 @@ class _ServiceRequestScreenState
                 selectedPhotos,
             video:
                 selectedVideo,
+            voiceNote:
+                selectedVoiceNote,
 
             // ==================================================
             // CAPABILITY / REQUEST TYPE
@@ -266,6 +458,12 @@ class _ServiceRequestScreenState
                         materialBrandController.text.trim().isNotEmpty
                     ? materialBrandController.text.trim()
                     : null,
+
+            matchGroup:
+                widget.matchGroup,
+
+            vehicleType:
+                widget.matchGroup == 'both' ? vehicleType : null,
           ),
         ),
       ),
@@ -317,6 +515,11 @@ class _ServiceRequestScreenState
               const SizedBox(height: 26),
 
               _buildMaterialSection(),
+
+              if (widget.matchGroup == 'both') ...[
+                const SizedBox(height: 26),
+                _buildVehicleTypeSection(),
+              ],
 
               const SizedBox(height: 26),
 
@@ -724,7 +927,158 @@ class _ServiceRequestScreenState
             ),
           ),
         ],
+
+        // ------------------------------------------------------
+        // VOICE NOTE -- added 2026-10-02
+        // ------------------------------------------------------
+
+        const SizedBox(height: 12),
+
+        _buildVoiceNoteControl(),
       ],
+    );
+  }
+
+  Widget _buildVoiceNoteControl() {
+    // --------------------------------------------------------
+    // RECORDED -- playback/delete card
+    // --------------------------------------------------------
+
+    if (selectedVoiceNote != null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 13,
+          vertical: 10,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: const Color(0xFFE1E7EF),
+          ),
+        ),
+        child: Row(
+          children: [
+            InkWell(
+              onTap: _toggleVoiceNotePreview,
+              borderRadius: BorderRadius.circular(19),
+              child: Container(
+                height: 38,
+                width: 38,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEEF3FF),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(
+                  _isPlayingVoiceNotePreview
+                      ? Icons.pause_rounded
+                      : Icons.play_arrow_rounded,
+                  color: primaryBlue,
+                  size: 21,
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 10),
+
+            const Expanded(
+              child: Text(
+                "Voice note recorded",
+                style: TextStyle(
+                  color: darkText,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+
+            IconButton(
+              onPressed: _deleteVoiceNote,
+              icon: const Icon(
+                Icons.delete_outline_rounded,
+                color: Color(0xFFEF4444),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // --------------------------------------------------------
+    // RECORDING -- live elapsed-time indicator + stop button
+    // --------------------------------------------------------
+
+    if (_isRecordingVoiceNote) {
+      return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 13,
+          vertical: 10,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF1F0),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: const Color(0xFFFECACA),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              height: 10,
+              width: 10,
+              decoration: const BoxDecoration(
+                color: Color(0xFFEF4444),
+                shape: BoxShape.circle,
+              ),
+            ),
+
+            const SizedBox(width: 10),
+
+            Expanded(
+              child: Text(
+                "Recording... ${_formatSeconds(_recordingSeconds)} "
+                "/ ${_formatSeconds(_maxVoiceNoteSeconds)}",
+                style: const TextStyle(
+                  color: darkText,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+
+            TextButton(
+              onPressed: _stopVoiceNoteRecording,
+              child: const Text("Stop"),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // --------------------------------------------------------
+    // NOTHING RECORDED YET -- prompt to record
+    // --------------------------------------------------------
+
+    return OutlinedButton.icon(
+      onPressed: _startVoiceNoteRecording,
+      style: OutlinedButton.styleFrom(
+        backgroundColor: Colors.white,
+        foregroundColor: primaryBlue,
+        side: const BorderSide(
+          color: Color(0xFFDCE3EC),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        minimumSize: const Size.fromHeight(0),
+      ),
+      icon: const Icon(Icons.mic_none_rounded, size: 21),
+      label: const Text(
+        "Record a Voice Note for the Partner (optional)",
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 
@@ -923,6 +1277,75 @@ class _ServiceRequestScreenState
             ),
           ),
         ],
+      ],
+    );
+  }
+
+  // ============================================================
+  // VEHICLE TYPE -- added 2026-10-02
+  // ============================================================
+  //
+  // Shown only when widget.matchGroup == 'both' -- see the field
+  // doc comment on ServiceRequestScreen. Reuses _materialOptionCard's
+  // generic icon/label/selected card styling above.
+  // ============================================================
+
+  Widget _buildVehicleTypeSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Is this for a car or a bike?",
+          style: TextStyle(
+            color: darkText,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+
+        const SizedBox(height: 5),
+
+        const Text(
+          "This service covers both — let us know which one so we can send the right professional.",
+          style: TextStyle(
+            color: secondaryText,
+            fontSize: 14,
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
+        Row(
+          children: [
+            Expanded(
+              child: _materialOptionCard(
+                icon: Icons.directions_car,
+                label: "Car",
+                selected: vehicleType == 'car',
+                onTap: () {
+                  setState(() {
+                    vehicleType = 'car';
+                  });
+                },
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            Expanded(
+              child: _materialOptionCard(
+                icon: Icons.two_wheeler,
+                label: "Bike",
+                selected: vehicleType == 'bike',
+                onTap: () {
+                  setState(() {
+                    vehicleType = 'bike';
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }

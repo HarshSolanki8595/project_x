@@ -76,6 +76,8 @@ class BidService {
     // Business (GST) registrations only -- added 2026-09-04. Null
     // for Individual professionals.
     String? employeeName,
+    // Optional diagnosis voice note -- added 2026-10-02.
+    String? diagnosisVoiceNoteUrl,
   }) async {
     final bool canBid = await OpportunityService.canProfessionalBid(
       requestId: requestId,
@@ -125,6 +127,7 @@ class BidService {
       'additionalWork': additionalWork,
       'message': message,
       'employeeName': employeeName,
+      'diagnosisVoiceNoteUrl': diagnosisVoiceNoteUrl,
       'bidSubmittedAt': Timestamp.fromDate(now),
       'status': MarketplaceStatus.bidSubmitted,
     }, SetOptions(merge: true));
@@ -141,6 +144,7 @@ class BidService {
       additionalWork: additionalWork,
       message: message,
       employeeName: employeeName,
+      diagnosisVoiceNoteUrl: diagnosisVoiceNoteUrl,
       status: MarketplaceStatus.submitted,
       createdAt: now,
     );
@@ -369,6 +373,7 @@ class BidService {
       additionalWork: data['additionalWork'] as String? ?? '',
       message: data['message'] as String? ?? '',
       employeeName: data['employeeName'] as String?,
+      diagnosisVoiceNoteUrl: data['diagnosisVoiceNoteUrl'] as String?,
       status: status,
       createdAt: data['bidSubmittedAt'] is Timestamp
           ? (data['bidSubmittedAt'] as Timestamp).toDate()

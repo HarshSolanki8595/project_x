@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math' as math;
@@ -73,10 +74,116 @@ class _ProfessionalsScreenState
   //
   bool _feeWaivedPreview = false;
 
+  // ============================================================
+  // BID DIAGNOSIS VOICE NOTE PLAYBACK -- added 2026-10-02
+  // ============================================================
+  //
+  // One shared player for every bid card on this screen (the bid
+  // list below and the Accept confirmation sheet) -- only one voice
+  // note plays at a time. _playingVoiceNoteBidId tracks which bid's
+  // note is currently playing (by ProfessionalBidModel.bidId, unique
+  // per bid), so each card knows whether to show play or pause.
+  //
+
+  final AudioPlayer _bidVoiceNotePlayer = AudioPlayer();
+  String? _playingVoiceNoteBidId;
+
   @override
   void initState() {
     super.initState();
     _loadFeeWaiverPreview();
+
+    _bidVoiceNotePlayer.onPlayerComplete.listen((_) {
+      if (!mounted) return;
+      setState(() {
+        _playingVoiceNoteBidId = null;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _bidVoiceNotePlayer.dispose();
+    super.dispose();
+  }
+
+  Future<void> _toggleBidVoiceNote(ProfessionalBidModel bid) async {
+    final String? url = bid.diagnosisVoiceNoteUrl;
+    if (url == null || url.trim().isEmpty) return;
+
+    if (_playingVoiceNoteBidId == bid.bidId) {
+      await _bidVoiceNotePlayer.pause();
+      setState(() {
+        _playingVoiceNoteBidId = null;
+      });
+    } else {
+      await _bidVoiceNotePlayer.play(UrlSource(url));
+      setState(() {
+        _playingVoiceNoteBidId = bid.bidId;
+      });
+    }
+  }
+
+  // ============================================================
+  // DIAGNOSIS VOICE NOTE CHIP -- added 2026-10-02
+  // ============================================================
+  //
+  // Small play/pause control shown alongside the diagnosis message
+  // wherever a bid is displayed -- the bid list card
+  // (_professionalBidCardContent) and the Accept confirmation sheet
+  // (_showAcceptConfirmation). Renders nothing when the bid has no
+  // voice note (every bid submitted before this feature existed,
+  // and any bid where the professional skipped it -- it's optional).
+  //
+
+  Widget _diagnosisVoiceNoteChip(ProfessionalBidModel bid) {
+    final String? url = bid.diagnosisVoiceNoteUrl;
+    if (url == null || url.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final bool isPlaying = _playingVoiceNoteBidId == bid.bidId;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: InkWell(
+        onTap: () => _toggleBidVoiceNote(bid),
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 7,
+          ),
+          decoration: BoxDecoration(
+            color: lightBlue,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isPlaying
+                    ? Icons.pause_circle_filled_rounded
+                    : Icons.play_circle_fill_rounded,
+                color: primaryBlue,
+                size: 18,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                isPlaying
+                    ? 'Playing diagnosis voice note...'
+                    : "Play partner's voice note",
+                style: const TextStyle(
+                  color: primaryBlue,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _loadFeeWaiverPreview() async {
@@ -515,6 +622,8 @@ class _ProfessionalsScreenState
                       ),
                     ),
                   ),
+
+                  _diagnosisVoiceNoteChip(bid),
                 ],
 
                 const SizedBox(height: 20),
@@ -1869,6 +1978,8 @@ class _ProfessionalsScreenState
                   height: 1.4,
                 ),
               ),
+
+              _diagnosisVoiceNoteChip(bid),
             ],
 
             // ----------------------------------------------------

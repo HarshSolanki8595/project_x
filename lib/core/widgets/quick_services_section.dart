@@ -1,30 +1,27 @@
 import 'package:flutter/material.dart';
 
 import '../../data/service_categories.dart';
+import '../../models/category.dart';
 
 // ============================================================
 // QUICK SERVICES SECTION -- added 2026-09-01
 // ============================================================
 //
-// Segregates the categories flagged Category.isQuickService (Helper
-// Services + Cleaning, per the finalized taxonomy/pricing-model
-// decision) into their own section, instead of piling every category
-// together in one grid. These two get a fixed, system-computed price
-// with no bidding (see the "Helper Services & Cleaning pricing model"
-// item on the Build Queue) -- that's what "Quick" refers to, and why
-// they're called out here rather than left in Browse Categories.
+// Shows the app's fixed-price ("Quick Service") categories --
+// Helper Services and Cleaning -- as their own horizontal row above
+// the main category grid, so customers can immediately spot the
+// services that skip professional-quoted bidding and go straight to
+// a fixed price (see fixed_price_service_config.dart /
+// FixedPriceRequestScreen, reached via SubcategoryScreen's
+// `category.isQuickService` branch). CategoryGrid excludes these two
+// categories from its own grid to avoid duplication (see
+// CategoryGrid's Category.isQuickService filter).
 //
-// Tapping a card still opens the normal SubcategoryScreen flow, same
-// as every other category, via onCategoryTap -- the dedicated
-// fixed-price booking flow is separate, not-yet-built work; this
-// section only changes where these two categories live on the home
-// screen and how they're presented, not the booking flow itself.
-//
-// Visually this reuses the same tokens as every other section on this
-// screen (white cards, #EEF3FF borders, 18-21px rounding, the
+// Visually this reuses the same tokens as every other section on
+// this screen (white cards, #EEF3FF borders, 18px rounding, the
 // #0F172A/#64748B/#1557FF text/accent colors already used by
-// CategoryGrid, FrequentlyUsedSection and TrendingServices) so it
-// reads as part of the same screen, not a new visual language.
+// CategoryGrid and TrendingServices) so it reads as part of the same
+// screen, not a new visual language.
 
 class QuickServicesSection extends StatelessWidget {
   const QuickServicesSection({
@@ -32,11 +29,14 @@ class QuickServicesSection extends StatelessWidget {
     this.onCategoryTap,
   });
 
+  /// Fired when a category card is tapped -- caller is expected to open
+  /// that category's SubcategoryScreen (see home_screen.dart).
   final Function(String)? onCategoryTap;
 
   static const Color _darkText = Color(0xFF0F172A);
   static const Color _secondaryText = Color(0xFF64748B);
   static const Color _primaryBlue = Color(0xFF1557FF);
+  static const Color _cardBorder = Color(0xFFEEF3FF);
 
   @override
   Widget build(BuildContext context) {
@@ -97,8 +97,8 @@ class QuickServicesSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
           child: Text(
             "Answer a few questions, get an instant price — no bidding.",
             style: TextStyle(
@@ -109,23 +109,24 @@ class QuickServicesSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 15),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              for (var i = 0; i < quickCategories.length; i++) ...[
-                if (i > 0) const SizedBox(width: 13),
-                Expanded(
-                  child: _QuickServiceCard(
-                    name: quickCategories[i].name,
-                    icon: quickCategories[i].icon,
-                    color: quickCategories[i].color,
-                    subCount: quickCategories[i].subCategories.length,
-                    onTap: () => onCategoryTap?.call(quickCategories[i].name),
-                  ),
+        SizedBox(
+          height: 148,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            scrollDirection: Axis.horizontal,
+            itemCount: quickCategories.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 11),
+            itemBuilder: (context, index) {
+              final category = quickCategories[index];
+
+              return SizedBox(
+                width: 118,
+                child: _QuickServiceCard(
+                  category: category,
+                  onTap: () => onCategoryTap?.call(category.name),
                 ),
-              ],
-            ],
+              );
+            },
           ),
         ),
       ],
@@ -135,58 +136,46 @@ class QuickServicesSection extends StatelessWidget {
 
 class _QuickServiceCard extends StatelessWidget {
   const _QuickServiceCard({
-    required this.name,
-    required this.icon,
-    required this.color,
-    required this.subCount,
+    required this.category,
     required this.onTap,
   });
 
-  final String name;
-  final IconData icon;
-  final Color color;
-  final int subCount;
+  final Category category;
   final VoidCallback onTap;
 
   static const Color _darkText = Color(0xFF0F172A);
-  static const Color _secondaryText = Color(0xFF64748B);
   static const Color _cardBorder = Color(0xFFEEF3FF);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(21),
+      borderRadius: BorderRadius.circular(18),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(21),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: _cardBorder),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircleAvatar(
-              radius: 24,
-              backgroundColor: color.withValues(alpha: 0.12),
-              child: Icon(icon, color: color, size: 25),
+              radius: 25,
+              backgroundColor: category.color.withValues(alpha: 0.12),
+              child: Icon(category.icon, color: category.color, size: 27),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Text(
-              name,
+              category.name,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: _darkText,
-                fontSize: 15,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              "$subCount services",
-              style: const TextStyle(
-                color: _secondaryText,
-                fontSize: 12,
               ),
             ),
           ],

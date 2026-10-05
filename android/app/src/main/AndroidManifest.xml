@@ -5,6 +5,11 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
+    <!-- MICROPHONE PERMISSION (added 2026-10-02) -->
+    <!-- Required by the 'record' package for the customer's optional -->
+    <!-- voice-note recording on a service request.                   -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
     <!-- NOTIFICATION PERMISSION (added 2026-09-27) -->
     <!-- Required on Android 13+ (API 33+) for the app to be able to post -->
     <!-- to the system notification panel at all, without which this,     -->

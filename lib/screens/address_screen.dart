@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/services/address_repository.dart';
 import '../models/address.dart';
 import '../models/service_request.dart';
+import '../services/service_area_service.dart';
 import 'add_address_screen.dart';
 import 'date_time_screen.dart';
 
@@ -25,6 +26,10 @@ class _AddressScreenState extends State<AddressScreen> {
   static const Color pageBackground = Color(0xFFF7F8FC);
 
   Address? _selectedAddress;
+
+  // True while the service-area check (a quick Firestore read) runs,
+  // so a double tap on Continue can't start two of them.
+  bool _checkingArea = false;
 
   @override
   Widget build(BuildContext context) {
@@ -431,6 +436,131 @@ class _AddressScreenState extends State<AddressScreen> {
     );
   }
 
+  // ------------------------------------------------------------
+  // CONTINUE (extracted from the button's onPressed, 2026-10-05)
+  // ------------------------------------------------------------
+  //
+  // Same work as before -- copy the address and its coordinates onto
+  // the request, then go to DateTimeScreen -- with one new step in
+  // between: if the address is outside every live Habio city (admin
+  // panel > Cities), the customer is told so and can join the
+  // waitlist instead of continuing. The check fails open (no cities
+  // set up, or a read problem, lets the customer through).
+  //
+  Future<void> _continue() async {
+    final address = _selectedAddress;
+
+    if (address == null) {
+      return;
+    }
+
+    // ------------------------------------------------
+    // COPY ADDRESS + COORDINATES ONTO THE REQUEST
+    // ------------------------------------------------
+    //
+    // Previously only `address` (the display string)
+    // was copied here. `latitude`/`longitude` were
+    // never set, so downstream screens (and the
+    // Firestore write in RequestProcessingService)
+    // always saw them as null and threw:
+    //
+    //   StateError: Customer location is required
+    //   before matching professionals.
+    //
+    // Both fields must be copied from the selected
+    // Address for the request to reach Firestore.
+    //
+
+    widget.request.address = address.fullAddress;
+
+    widget.request.latitude = address.latitude;
+
+    widget.request.longitude = address.longitude;
+
+    final lat = address.latitude;
+    final lng = address.longitude;
+
+    if (lat != null && lng != null) {
+      setState(() => _checkingArea = true);
+
+      final result = await ServiceAreaService.check(lat, lng);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() => _checkingArea = false);
+
+      if (!result.allowed) {
+        await _showOutsideAreaDialog(address, lat, lng, result.message);
+        return;
+      }
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DateTimeScreen(
+          request: widget.request,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showOutsideAreaDialog(
+    Address address,
+    double lat,
+    double lng,
+    String message,
+  ) async {
+    final join = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("We're not in your area yet"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Choose another address'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Notify me when you launch'),
+          ),
+        ],
+      ),
+    );
+
+    if (join != true || !mounted) {
+      return;
+    }
+
+    final saved = await ServiceAreaService.joinWaitlist(
+      lat: lat,
+      lng: lng,
+      cityHint: address.city,
+      areaHint: address.area,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          saved
+              ? "You're on the list. We'll let you know when we reach you."
+              : "Couldn't save that right now. Please try again later.",
+        ),
+      ),
+    );
+  }
+
   Widget _buildContinueButton() {
     final enabled = _selectedAddress != null;
 
@@ -438,44 +568,7 @@ class _AddressScreenState extends State<AddressScreen> {
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: !enabled
-            ? null
-            : () {
-                // ------------------------------------------------
-                // COPY ADDRESS + COORDINATES ONTO THE REQUEST
-                // ------------------------------------------------
-                //
-                // Previously only `address` (the display string)
-                // was copied here. `latitude`/`longitude` were
-                // never set, so downstream screens (and the
-                // Firestore write in RequestProcessingService)
-                // always saw them as null and threw:
-                //
-                //   StateError: Customer location is required
-                //   before matching professionals.
-                //
-                // Both fields must be copied from the selected
-                // Address for the request to reach Firestore.
-                //
-
-                widget.request.address =
-                    _selectedAddress!.fullAddress;
-
-                widget.request.latitude =
-                    _selectedAddress!.latitude;
-
-                widget.request.longitude =
-                    _selectedAddress!.longitude;
-
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => DateTimeScreen(
-                      request: widget.request,
-                    ),
-                  ),
-                );
-              },
+        onPressed: !enabled || _checkingArea ? null : _continue,
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryBlue,
           disabledBackgroundColor: const Color(0xFFE8EDF5),

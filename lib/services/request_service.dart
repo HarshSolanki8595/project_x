@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/service_request_model.dart';
 import 'request_repository.dart';
+import 'service_request_media_service.dart';
 
 class RequestService {
   // ============================================================
@@ -45,6 +48,19 @@ class RequestService {
     bool? customerProvidesMaterial,
     String? materialGrade,
     String? materialBrandPreference,
+    String? matchGroup,
+    String? vehicleType,
+    // ----------------------------------------------------------
+    // MEDIA (added 2026-10-02) -- local files picked/recorded on
+    // ServiceRequestScreen. Uploaded to Firebase Storage below,
+    // once the real requestId exists, via
+    // ServiceRequestMediaService. See that file and
+    // ServiceRequestModel.photoUrls/videoUrl/voiceNoteUrl for the
+    // full explanation.
+    // ----------------------------------------------------------
+    List<File> photos = const [],
+    File? video,
+    File? voiceNote,
   }) async {
     // ----------------------------------------------------------
     // GENERATE A UNIQUE REQUEST ID
@@ -54,6 +70,34 @@ class RequestService {
         .collection('service_requests')
         .doc()
         .id;
+
+    // ----------------------------------------------------------
+    // UPLOAD MEDIA (added 2026-10-02)
+    // ----------------------------------------------------------
+    //
+    // Uploaded now that the real requestId is known, BEFORE the
+    // request document itself is written, so the Firestore write
+    // below already carries the final download URLs in one shot
+    // instead of a create-then-update.
+    //
+
+    final List<String> photoUrls =
+        await ServiceRequestMediaService.uploadPhotos(
+      requestId: requestId,
+      photos: photos,
+    );
+
+    final String? videoUrl =
+        await ServiceRequestMediaService.uploadVideo(
+      requestId: requestId,
+      video: video,
+    );
+
+    final String? voiceNoteUrl =
+        await ServiceRequestMediaService.uploadVoiceNote(
+      requestId: requestId,
+      voiceNote: voiceNote,
+    );
 
     final ServiceRequestModel request = ServiceRequestModel(
       requestId: requestId,
@@ -82,6 +126,11 @@ class RequestService {
       customerProvidesMaterial: customerProvidesMaterial,
       materialGrade: materialGrade,
       materialBrandPreference: materialBrandPreference,
+      matchGroup: matchGroup,
+      vehicleType: vehicleType,
+      photoUrls: photoUrls,
+      videoUrl: videoUrl,
+      voiceNoteUrl: voiceNoteUrl,
     );
 
     await RequestRepository.addRequest(

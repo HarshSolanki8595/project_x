@@ -20,6 +20,14 @@ class ProfessionalBidModel {
   // before this existed.
   final String? employeeName;
 
+  // Firebase Storage download URL for the optional voice note a
+  // professional records explaining their diagnosis, attached
+  // alongside the now-mandatory `message` field above -- added
+  // 2026-10-02. Null when no voice note was recorded, and for any
+  // bid submitted before this existed. Shown on the bid card in
+  // professionals_screen.dart alongside `message`.
+  final String? diagnosisVoiceNoteUrl;
+
   final String status;
   final DateTime createdAt;
 
@@ -35,6 +43,7 @@ class ProfessionalBidModel {
     required this.additionalWork,
     required this.message,
     this.employeeName,
+    this.diagnosisVoiceNoteUrl,
     required this.status,
     required this.createdAt,
   });

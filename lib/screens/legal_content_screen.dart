@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 // ================================================================
 // LEGAL CONTENT SCREEN -- NEW (2026-09-16)
@@ -14,6 +17,90 @@ import 'package:flutter/material.dart';
 // home-services marketplace app -- it should be reviewed/replaced
 // with Habio's actual legal copy before this ships to real users.
 // ================================================================
+
+// ================================================================
+// FIRESTORE OVERRIDE (NEW -- 2026-10-03)
+// ================================================================
+//
+// `.terms()` / `.privacyPolicy()` below now prefer a Firestore-loaded
+// override when the admin panel's new Legal Docs editor has
+// published one, exactly the same override-with-safe-fallback
+// pattern as ServiceCategories.all (see service_categories.dart) --
+// every existing call site (LegalContentScreen.terms(), used from
+// settings_screen.dart and policy_acceptance_screen.dart) keeps
+// working completely unchanged. loadFromFirestore() is called once
+// at splash (see splash_screen.dart), best-effort, never awaited in
+// a way that could block launch -- any failure (offline, permission,
+// no doc published yet) just leaves the hardcoded copy in place.
+//
+
+class LegalDocsOverride {
+  LegalDocsOverride._();
+
+  static LegalContentScreen? _termsOverride;
+  static LegalContentScreen? _privacyOverride;
+
+  // Doc ids match the admin panel's LegalDocId.customerTerms /
+  // .customerPrivacy (see legal_doc.dart there) -- the customer and
+  // professional apps each have their own, genuinely different Terms
+  // & Privacy copy, so these are two of four total legal_docs
+  // documents, not a shared pair.
+  static const String _termsDocId = 'terms_of_service_customer';
+  static const String _privacyDocId = 'privacy_policy_customer';
+
+  static Future<void> loadFromFirestore() async {
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('legal_docs')
+          .doc(_termsDocId)
+          .get();
+      final loaded = _parse(snap);
+      if (loaded != null) _termsOverride = loaded;
+    } catch (e) {
+      debugPrint('LegalDocsOverride.loadFromFirestore (terms) failed: $e');
+    }
+
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('legal_docs')
+          .doc(_privacyDocId)
+          .get();
+      final loaded = _parse(snap);
+      if (loaded != null) _privacyOverride = loaded;
+    } catch (e) {
+      debugPrint('LegalDocsOverride.loadFromFirestore (privacy) failed: $e');
+    }
+  }
+
+  static LegalContentScreen? _parse(DocumentSnapshot<Map<String, dynamic>> snap) {
+    if (!snap.exists) return null;
+    final data = snap.data();
+    if (data == null) return null;
+
+    final rawSections = data['sections'] as List<dynamic>? ?? const [];
+    final sections = rawSections
+        .whereType<Map<String, dynamic>>()
+        .map(
+          (m) => LegalSection(
+            m['heading'] as String? ?? '',
+            m['body'] as String? ?? '',
+          ),
+        )
+        .toList();
+    if (sections.isEmpty) return null;
+
+    final updatedAt = data['updatedAt'];
+    final lastUpdated = updatedAt is Timestamp
+        ? 'Last updated: ${DateFormat('MMMM y').format(updatedAt.toDate())}'
+        : 'Last updated: recently';
+
+    return LegalContentScreen(
+      title: data['title'] as String? ?? '',
+      lastUpdated: lastUpdated,
+      sections: sections,
+    );
+  }
+}
 
 class LegalSection {
   final String heading;
@@ -41,6 +128,9 @@ class LegalContentScreen extends StatelessWidget {
   static const Color cardBorder = Color(0xFFE5E8EE);
 
   factory LegalContentScreen.terms() {
+    final override = LegalDocsOverride._termsOverride;
+    if (override != null) return override;
+
     return const LegalContentScreen(
       title: 'Terms & Conditions',
       lastUpdated: 'Last updated: September 2026',
@@ -89,6 +179,9 @@ class LegalContentScreen extends StatelessWidget {
   }
 
   factory LegalContentScreen.privacyPolicy() {
+    final override = LegalDocsOverride._privacyOverride;
+    if (override != null) return override;
+
     return const LegalContentScreen(
       title: 'Privacy Policy',
       lastUpdated: 'Last updated: September 2026',

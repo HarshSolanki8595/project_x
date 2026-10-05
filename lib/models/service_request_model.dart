@@ -88,6 +88,48 @@ class ServiceRequestModel {
   final String? materialGrade;
   final String? materialBrandPreference;
 
+  // ============================================================
+  // APPLIANCES / AUTOMOBILE NARROWER MATCHING (added 2026-10-02)
+  // Mirrors SubCategory.matchGroup (lib/models/subcategory.dart) --
+  // see that file for the full explanation. Set from the chosen
+  // subcategory's matchGroup at request-creation time (see
+  // RequestService.createRequest / RequestRepository.addRequest),
+  // and read by the Cloud Function's fallback-matching tier so an
+  // Appliances/Automobile request only falls back to professionals
+  // covering the same real-world trade family, not the whole
+  // category. Null for every other category -- their fallback is
+  // unchanged.
+  final String? matchGroup;
+
+  // Only meaningful for the handful of Automobile subcategories
+  // tagged matchGroup: 'both' (vehicle-agnostic items like Battery
+  // Service or Tyre & Puncture) -- for those, the subcategory id
+  // alone can't tell a car job from a bike job, so the customer is
+  // asked directly on ServiceRequestScreen. 'car' or 'bike'; null
+  // for every other subcategory/category, where the subcategory
+  // itself already says which vehicle (or isn't Automobile at all).
+  final String? vehicleType;
+
+  // ============================================================
+  // MEDIA (added 2026-10-02)
+  // ============================================================
+  //
+  // Firebase Storage download URLs for the photos/video/voice note
+  // the customer attached on ServiceRequestScreen. Previously these
+  // were collected as local Files on ServiceRequest
+  // (lib/models/service_request.dart) but never actually uploaded
+  // anywhere -- toMap() there hardcoded empty/null. Now uploaded by
+  // ServiceRequestMediaService at request-creation time (see
+  // RequestService.createRequest) and the resulting URLs are stored
+  // here, the real Firestore-backed model. All null/empty for a
+  // request with no media attached, and for any request created
+  // before this existed.
+  // ============================================================
+
+  final List<String> photoUrls;
+  final String? videoUrl;
+  final String? voiceNoteUrl;
+
   const ServiceRequestModel({
     required this.requestId,
     required this.customerId,
@@ -115,5 +157,10 @@ class ServiceRequestModel {
     this.customerProvidesMaterial,
     this.materialGrade,
     this.materialBrandPreference,
+    this.matchGroup,
+    this.vehicleType,
+    this.photoUrls = const [],
+    this.videoUrl,
+    this.voiceNoteUrl,
   });
 }

@@ -32,6 +32,12 @@ class ServiceRequest {
   List<File> photos;
   File? video;
 
+  // Optional voice note describing the problem, recorded on
+  // ServiceRequestScreen -- added 2026-10-02. See
+  // ServiceRequestMediaService.uploadVoiceNote and
+  // ServiceRequestModel.voiceNoteUrl for the rest of this feature.
+  File? voiceNote;
+
   // ============================================================
   // LOCATION / SCHEDULE
   // ============================================================
@@ -116,6 +122,34 @@ class ServiceRequest {
   String? materialBrandPreference;
 
   // ============================================================
+  // MATCH GROUP (Appliances/Automobile narrower matching)
+  // Added 2026-10-02 -- see SubCategory.matchGroup
+  // (lib/models/subcategory.dart) for the full explanation. Mirrors
+  // the chosen subcategory's matchGroup at request-creation time, the
+  // same way ServiceRequestModel.matchGroup already does -- this was
+  // the missing link: ServiceRequestScreen and
+  // FindingProfessionalsScreen both already read/write this field,
+  // but ServiceRequest itself never declared it. Null for every
+  // category where this doesn't apply.
+  // ============================================================
+
+  String? matchGroup;
+
+  // ============================================================
+  // VEHICLE TYPE (Automobile only)
+  // Added 2026-10-02 -- see SubCategory.matchGroup
+  // (lib/models/subcategory.dart) for the full explanation. Only
+  // ever set when the chosen Automobile subcategory is tagged
+  // matchGroup: 'both' (a vehicle-agnostic item like Battery
+  // Service or Tyre & Puncture, where the subcategory id alone
+  // can't tell a car job from a bike job) -- ServiceRequestScreen
+  // asks the customer directly in that case. Null for every other
+  // subcategory/category.
+  // ============================================================
+
+  String? vehicleType;
+
+  // ============================================================
   // CONSTRUCTOR
   // ============================================================
 
@@ -126,6 +160,7 @@ class ServiceRequest {
     required this.isEmergency,
     this.photos = const [],
     this.video,
+    this.voiceNote,
     this.address,
     this.latitude,
     this.longitude,
@@ -146,6 +181,8 @@ class ServiceRequest {
     this.customerProvidesMaterial,
     this.materialGrade,
     this.materialBrandPreference,
+    this.matchGroup,
+    this.vehicleType,
   }) : requestId = requestId ?? _generateRequestId();
 
   // ============================================================
@@ -159,6 +196,7 @@ class ServiceRequest {
     bool? isEmergency,
     List<File>? photos,
     File? video,
+    File? voiceNote,
     String? address,
     double? latitude,
     double? longitude,
@@ -179,6 +217,8 @@ class ServiceRequest {
     bool? customerProvidesMaterial,
     String? materialGrade,
     String? materialBrandPreference,
+    String? matchGroup,
+    String? vehicleType,
   }) {
     return ServiceRequest(
       categoryName:
@@ -198,6 +238,9 @@ class ServiceRequest {
 
       video:
           video ?? this.video,
+
+      voiceNote:
+          voiceNote ?? this.voiceNote,
 
       address:
           address ?? this.address,
@@ -260,6 +303,12 @@ class ServiceRequest {
 
       materialBrandPreference:
           materialBrandPreference ?? this.materialBrandPreference,
+
+      matchGroup:
+          matchGroup ?? this.matchGroup,
+
+      vehicleType:
+          vehicleType ?? this.vehicleType,
     );
   }
 
@@ -328,6 +377,9 @@ class ServiceRequest {
 
       'materialBrandPreference':
           materialBrandPreference,
+
+      'vehicleType':
+          vehicleType,
 
       // Firebase Storage URLs will be added later.
       'photos': <String>[],
@@ -435,6 +487,9 @@ class ServiceRequest {
 
       materialBrandPreference:
           map['materialBrandPreference'] as String?,
+
+      vehicleType:
+          map['vehicleType'] as String?,
 
       photos: [],
 

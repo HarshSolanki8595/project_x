@@ -73,6 +73,7 @@ final Category? category =
                   subCategoryName: subCategory.name,
                   subCategoryId: subCategory.id,
                   categoryId: category.id,
+                  matchGroup: subCategory.matchGroup,
                 ),
         ),
       );

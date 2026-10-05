@@ -58,9 +58,15 @@ class RazorpayPaymentService {
   // being created when the customer actually taps Pay.
   //
 
+  // promoCode (NEW -- 2026-10-05): an optional promo code the customer
+  // typed into the payment sheet. The server validates it and, if it is
+  // good, creates the Razorpay order for the DISCOUNTED amount and
+  // returns promoCode/promoDiscount in the map. An invalid code throws a
+  // FirebaseFunctionsException whose message is safe to show as-is.
   Future<Map<String, dynamic>> fetchPreview({
     required String orderId,
     String purpose = 'JOB_PAYMENT',
+    String? promoCode,
   }) async {
     final callable =
         FirebaseFunctions.instance.httpsCallable('createRazorpayOrder');
@@ -68,6 +74,8 @@ class RazorpayPaymentService {
     final response = await callable.call(<String, dynamic>{
       'orderId': orderId,
       'purpose': purpose,
+      if (promoCode != null && promoCode.trim().isNotEmpty)
+        'promoCode': promoCode.trim(),
     });
 
     return Map<String, dynamic>.from(response.data as Map);

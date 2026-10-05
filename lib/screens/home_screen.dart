@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../core/widgets/announcement_banner.dart';
 import '../core/widgets/ask_projectx_card.dart';
 import '../core/widgets/category_grid.dart';
 import '../core/widgets/continue_booking_card.dart';
+import '../core/widgets/day_to_day_coming_soon_section.dart';
 import '../core/widgets/emergency_card.dart';
-import '../core/widgets/frequently_used_section.dart';
 import '../core/widgets/home_app_bar.dart';
 import '../core/widgets/home_search_bar.dart';
 import '../core/widgets/quick_services_section.dart';
@@ -307,28 +308,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 showUnreadDot: widget.notificationCount > 0,
               ),
 
+              // Admin-panel announcement banner (NEW — 2026-10-02,
+              // §4C's "Broadcast & promotions"). Renders nothing when
+              // no active announcement targets customers.
+              const AnnouncementBanner(),
+
               const SizedBox(height: 12),
-
-              // ============================================================
-              // MOVED (2026-09-16): the flyer banner now sits right below
-              // the location bar and above the "Welcome" greeting, instead
-              // of below it -- was: HomeAppBar -> Welcome text -> flyers ->
-              // search bar; now: HomeAppBar -> flyers -> Welcome text ->
-              // search bar. Nothing about the banner itself (the
-              // 3-of-11-random-flyers selection, the reshuffle-on-Home-tab
-              // logic in MainNavigationScreen) changed, only where it's
-              // drawn in this Column.
-              // ============================================================
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _FlyerBanner(
-                  key: ValueKey(widget.flyers),
-                  flyers: widget.flyers,
-                ),
-              ),
-
-              const SizedBox(height: 18),
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -381,7 +366,43 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
 
-              const SizedBox(height: 30),
+              // ============================================================
+              // MOVED (2026-10-01): the flyer banner now sits below the
+              // Ask Habio card and above Quick Services / Day-to-Day
+              // Services, instead of up near the location bar -- was:
+              // HomeAppBar -> flyers -> Welcome text -> search bar -> Ask
+              // Habio; now: HomeAppBar -> Welcome text -> search bar -> Ask
+              // Habio -> flyers -> Quick Services -> Day-to-Day Services.
+              // Nothing about the banner itself (the 3-of-11-random-flyers
+              // selection, the reshuffle-on-Home-tab logic in
+              // MainNavigationScreen) changed, only where it's drawn in
+              // this Column.
+              // ============================================================
+
+              const SizedBox(height: 22),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _FlyerBanner(
+                  key: ValueKey(widget.flyers),
+                  flyers: widget.flyers,
+                ),
+              ),
+
+              // ============================================================
+              // NOTE (2026-10-01): QuickServicesSection currently renders
+              // nothing (SizedBox.shrink()) since neither Cleaning nor
+              // Helper Services carries isQuickService: true anymore (see
+              // the 2026-09-30 bifurcation in service_categories.dart) --
+              // so right now these two 16px gaps just add up to one 32px
+              // gap straight from the flyer banner to Day-to-Day Services
+              // (was 62px: 30 before + 32 after, too much once Quick
+              // Services had nothing to show). Kept as two separate gaps,
+              // not one merged one, so spacing stays correct either way
+              // if Quick Services ever has a category again.
+              // ============================================================
+
+              const SizedBox(height: 16),
 
               QuickServicesSection(
                 onCategoryTap: (category) {
@@ -396,20 +417,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
 
-              FrequentlyUsedSection(
-                onServiceTap: (category) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => SubcategoryScreen(
-                        categoryName: category,
-                      ),
-                    ),
-                  );
-                },
-              ),
+              const DayToDayComingSoonSection(),
 
               const SizedBox(height: 32),
 
@@ -458,8 +468,8 @@ class _HomeScreenState extends State<HomeScreen> {
 // HOME FLYER BANNER -- added 2026-09-13
 // ================================================================
 //
-// Compact promotional strip shown right under "Welcome $userName",
-// above the search bar. Shows 3 of the 11 differentiator flyers in
+// Compact promotional strip shown below the Ask Habio card, above
+// Quick Services / Day-to-Day Services. Shows 3 of the 11 differentiator flyers in
 // kHomeFlyers below -- which 3, and in what order, is decided by
 // MainNavigationScreen every time the customer lands on the Home
 // tab (see _pickFlyers there), not by this widget. Swipe left/right

@@ -223,6 +223,18 @@ class _FindingProfessionalsScreenState
         customerProvidesMaterial: widget.request.customerProvidesMaterial,
         materialGrade: widget.request.materialGrade,
         materialBrandPreference: widget.request.materialBrandPreference,
+        // Appliances/Automobile narrower matching (2026-10-02) -- see
+        // SubCategory.matchGroup (lib/models/subcategory.dart) and
+        // ServiceRequestScreen for the full explanation.
+        matchGroup: widget.request.matchGroup,
+        vehicleType: widget.request.vehicleType,
+        // Media (added 2026-10-02) -- uploaded to Firebase Storage
+        // inside RequestService.createRequest once the real
+        // requestId exists. See ServiceRequestMediaService and
+        // ServiceRequestModel.photoUrls/videoUrl/voiceNoteUrl.
+        photos: widget.request.photos,
+        video: widget.request.video,
+        voiceNote: widget.request.voiceNote,
       );
 
       // --------------------------------------------------------

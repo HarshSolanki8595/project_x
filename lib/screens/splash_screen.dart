@@ -8,6 +8,7 @@ import '../data/fixed_price_service_config.dart';
 import '../data/service_categories.dart';
 import '../services/notification_service.dart';
 import 'create_profile_screen.dart';
+import 'legal_content_screen.dart';
 import 'main_navigation_screen.dart';
 import 'onboarding_screen.dart';
 
@@ -66,6 +67,7 @@ class _SplashScreenState extends State<SplashScreen>
     // is always safe to fire and forget.
     ServiceCategories.loadFromFirestore();
     FixedPriceCatalog.loadFromFirestore();
+    LegalDocsOverride.loadFromFirestore();
 
     _controller.forward();
 

@@ -381,7 +381,14 @@ class ProfessionalProfileScreen extends StatelessWidget {
     return StreamBuilder<List<ReviewModel>>(
       stream: ReviewService.watchReviewsForProfessional(professionalId),
       builder: (context, snapshot) {
-        final reviews = snapshot.data ?? const <ReviewModel>[];
+        // Moderated-hidden reviews (admin panel's Reviews screen,
+        // 2026-10-03) are filtered out client-side here, same
+        // no-new-composite-index discipline as every other
+        // audience/active filter added this project -- the query
+        // itself stays a single where+orderBy.
+        final reviews = (snapshot.data ?? const <ReviewModel>[])
+            .where((r) => !r.isHidden)
+            .toList();
 
         if (snapshot.connectionState == ConnectionState.waiting &&
             !snapshot.hasData) {
@@ -488,6 +495,39 @@ class ProfessionalProfileScreen extends StatelessWidget {
                 fontSize: 13,
                 color: textPrimary,
                 height: 1.4,
+              ),
+            ),
+          ],
+          if ((review.platformReply ?? '').trim().isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: lightBlue,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Response from Habio',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: primaryBlue,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    review.platformReply!.trim(),
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      color: textPrimary,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

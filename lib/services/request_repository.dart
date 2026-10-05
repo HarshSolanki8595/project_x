@@ -50,6 +50,11 @@ class RequestRepository {
       'customerProvidesMaterial': request.customerProvidesMaterial,
       'materialGrade': request.materialGrade,
       'materialBrandPreference': request.materialBrandPreference,
+      'matchGroup': request.matchGroup,
+      'vehicleType': request.vehicleType,
+      'photoUrls': request.photoUrls,
+      'videoUrl': request.videoUrl,
+      'voiceNoteUrl': request.voiceNoteUrl,
     });
   }
 
@@ -229,6 +234,25 @@ class RequestRepository {
 
       materialBrandPreference:
           data['materialBrandPreference'] as String?,
+
+      matchGroup:
+          data['matchGroup'] as String?,
+
+      vehicleType:
+          data['vehicleType'] as String?,
+
+      photoUrls:
+          data['photoUrls'] == null
+              ? const []
+              : List<String>.from(
+                  data['photoUrls'] as List,
+                ),
+
+      videoUrl:
+          data['videoUrl'] as String?,
+
+      voiceNoteUrl:
+          data['voiceNoteUrl'] as String?,
     );
   }
 

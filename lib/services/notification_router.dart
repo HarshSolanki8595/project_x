@@ -39,6 +39,21 @@ class NotificationRouter {
     required String type,
     required String? relatedId,
   }) async {
+    // BROADCAST (NEW — 2026-10-02, admin panel's push-notification
+    // composer) carries no relatedId by design -- it's a platform-
+    // wide message, not tied to any one booking. Without this guard
+    // it would fall straight into the "no relatedId" branch below
+    // and show a confusing "This booking is no longer available"
+    // snackbar for a notification that was never about a booking.
+    // Tapping it just leaves the customer wherever the tap already
+    // brought them (Home, most commonly), same as every other
+    // unrecognized type falls through to the no-op default below.
+    //
+    // ORDER_REASSIGNED (NEW -- 2026-10-05): the admin moved the booking
+    // to another professional and the old order document is gone, so
+    // there is nothing to open. Same no-op as BROADCAST.
+    if (type == 'BROADCAST' || type == 'ORDER_REASSIGNED') return;
+
     if (relatedId == null || relatedId.trim().isEmpty) {
       // No id to look anything up by. Previously this silently did
       // nothing at all, which is indistinguishable from a bug on a

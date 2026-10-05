@@ -24,12 +24,24 @@ class CategoryGrid extends StatelessWidget {
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 20),
           child: Text(
-            "Browse Categories",
+            "All Categories",
             style: TextStyle(
               color: Color(0xFF0F172A),
               fontSize: 20,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.3,
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            "Get bids from the nearest professionals to choose from.",
+            style: TextStyle(
+              color: Color(0xFF64748B),
+              fontSize: 13,
+              height: 1.4,
             ),
           ),
         ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/service_categories.dart';
 import '../models/category.dart';
 import '../models/subcategory.dart';
+import 'fixed_price_request_screen.dart';
 import 'service_request_screen.dart';
 
 // ================================================================
@@ -32,18 +33,29 @@ import 'service_request_screen.dart';
 //   Home Repair     -- hardware (locked out), general_home
 //   Appliances      -- air_conditioner, refrigerator,
 //                       general_appliance (spoiling food overnight)
-//   Helper Services -- night_caregiver (already named "Night Nurse /
-//                       Caregiver" in the taxonomy), elderly_care
+//   Helper Services -- night_caregiver (already named "Night
+//                       Nurse / Caregiver" in the taxonomy)
+//
+// REVISED 2026-09-29: elderly_care was removed from the taxonomy
+// entirely (Habio isn't onboarding for it for now, per Harsh) --
+// dropped from this list too.
 //
 // Deliberately excluded: cosmetic/schedulable categories (Painting,
 // Beauty, Moving, Decoration & Events, etc.) -- nothing there is a
 // genuine can't-wait-until-morning situation.
 //
-// Picking a subcategory here goes straight into the normal
-// ServiceRequestScreen with initialIsEmergency: true, so the request
-// is flagged the same way manually toggling "Mark this request as an
-// emergency" on that screen already would -- no separate emergency
-// pipeline, no matching changes.
+// Picking a subcategory here goes into ServiceRequestScreen with
+// initialIsEmergency: true (flagged the same way manually toggling
+// "Mark this request as an emergency" on that screen would), UNLESS
+// the subcategory's category is a Quick Service (Helper Services or
+// Cleaning) -- those always go through FixedPriceRequestScreen
+// instead, same as everywhere else in the app (see
+// SubcategoryScreen/search_screen.dart for the same
+// category.isQuickService branch). FixedPriceRequestScreen doesn't
+// have an emergency flag yet, so an emergency night-caregiver booking
+// today gets the right tiered pricing but isn't marked emergency
+// internally -- worth a follow-up if that flag needs to reach Quick
+// Service bookings too.
 // ================================================================
 
 class _EmergencyOption {
@@ -130,11 +142,6 @@ class EmergencyAssistanceScreen extends StatelessWidget {
       subCategoryId: 'night_caregiver',
       reason: 'Overnight nursing / caregiving',
     ),
-    _EmergencyOption(
-      categoryId: 'helper_services',
-      subCategoryId: 'elderly_care',
-      reason: 'Urgent elderly or patient care',
-    ),
   ];
 
   void _openRequest(
@@ -145,13 +152,21 @@ class EmergencyAssistanceScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ServiceRequestScreen(
-          categoryName: category.name,
-          subCategoryName: subCategory.name,
-          subCategoryId: subCategory.id,
-          categoryId: category.id,
-          initialIsEmergency: true,
-        ),
+        builder: (_) => category.isQuickService
+            ? FixedPriceRequestScreen(
+                categoryName: category.name,
+                subCategoryName: subCategory.name,
+                subCategoryId: subCategory.id,
+                categoryId: category.id,
+              )
+            : ServiceRequestScreen(
+                categoryName: category.name,
+                subCategoryName: subCategory.name,
+                subCategoryId: subCategory.id,
+                categoryId: category.id,
+                initialIsEmergency: true,
+                matchGroup: subCategory.matchGroup,
+              ),
       ),
     );
   }

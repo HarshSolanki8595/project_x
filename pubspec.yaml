@@ -20,6 +20,13 @@ dependencies:
   image_picker: ^1.1.2
   video_player: ^2.10.0
 
+  # Voice notes (added 2026-10-02 -- customer problem description and
+  # professional bid diagnosis voice notes). 'record' captures audio,
+  # 'audioplayers' plays it back.
+  record: ^6.2.1
+  audioplayers: ^6.1.0
+  path_provider: ^2.1.4
+
   # Maps
   google_maps_flutter: ^2.18.0
   geolocator: ^14.0.3

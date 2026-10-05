@@ -1,13 +1,24 @@
 // ================================================================
-// FIXED-PRICE SERVICE CONFIG -- Helper Services & Cleaning only
+// FIXED-PRICE SERVICE CONFIG -- currently unused (2026-09-30)
 // ================================================================
 //
-// Added 2026-09-02, per Harsh's confirmed pricing model (see
-// "Helper Services & Cleaning -- new pricing model" in the master
-// to-do doc): these two categories skip professional-quoted bidding
-// entirely. Instead, the customer picks a package tier, the app
-// shows that tier's price as the starting/floor price, and
-// professionals just Accept or Ignore at that posted price -- no
+// Added 2026-09-02, per Harsh's confirmed pricing model, for the
+// Helper Services & Cleaning categories back when both carried
+// isQuickService: true. REVISED 2026-09-30: neither category is a
+// Quick Service anymore -- the subcategories this file prices
+// (maid_fulltime, home_cleaning, etc.) are the "Day-to-Day Services"
+// Coming Soon preview now (see
+// core/widgets/day_to_day_coming_soon_section.dart), not a live,
+// bookable flow -- so nothing in service_categories.dart has
+// isQuickService: true and nothing reads FixedPriceCatalog.configs
+// today. Left in place, untouched, in case Day-to-Day Services
+// becomes a real fixed-price category later -- these tier
+// prices/labels would just need a category to point at them again.
+//
+// Whatever subcategory this config applies to skips professional-
+// quoted bidding entirely. Instead, the customer picks a package
+// tier, the app shows that tier's price as the starting/floor price,
+// and professionals just Accept or Ignore at that posted price -- no
 // counter-offers.
 //
 // REVISED 2026-09-02 (same day): switched from a linear
@@ -306,24 +317,10 @@ class FixedPriceCatalog {
         PriceTier(key: 'full_day', label: 'Full-Day (3 Meals)', description: '', price: 999, estimatedHours: 5),
       ],
     ),
-    'babysitter': FixedPriceSubCategoryConfig(
-      subCategoryId: 'babysitter',
-      tierAxisLabel: 'Duration',
-      tiers: [
-        PriceTier(key: 'two_hours', label: '2 Hours', description: '', price: 399, estimatedHours: 2),
-        PriceTier(key: 'four_hours', label: '4 Hours', description: '', price: 699, estimatedHours: 4),
-        PriceTier(key: 'full_day', label: '8 Hours / Full-Day', description: '', price: 1299, estimatedHours: 8),
-      ],
-    ),
-    'elderly_care': FixedPriceSubCategoryConfig(
-      subCategoryId: 'elderly_care',
-      tierAxisLabel: 'Duration',
-      tiers: [
-        PriceTier(key: 'four_hours', label: '4 Hours', description: '', price: 999, estimatedHours: 4),
-        PriceTier(key: 'eight_hours', label: '8 Hours', description: '', price: 1799, estimatedHours: 8),
-        PriceTier(key: 'twelve_hours', label: '12 Hours', description: '', price: 2599, estimatedHours: 12),
-      ],
-    ),
+    // babysitter and elderly_care configs removed 2026-09-29 -- both
+    // subcategories were deleted from the app entirely (see
+    // service_categories.dart), per Harsh's explicit instruction:
+    // "very delicate categories... we can add them later."
     'driver': FixedPriceSubCategoryConfig(
       subCategoryId: 'driver',
       tierAxisLabel: 'Trip type',

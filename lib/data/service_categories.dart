@@ -238,18 +238,13 @@ Category(
         'pressure pump',
       ],
     ),
-    SubCategory(
-      id: 'geyser_connection',
-      name: 'Geyser Installation & Connection',
-      icon: Icons.hot_tub_outlined,
-      description: 'Water connection and installation for geysers.',
-      keywords: [
-        'geyser',
-        'water heater',
-        'geyser installation',
-        'geyser connection',
-      ],
-    ),
+    // -- Geyser Installation & Connection (id 'geyser_connection')
+    // removed 2026-10-01 -- duplicate-work cleanup. Geyser work is
+    // now one listing under Appliances' 'geyser_repair' subcategory
+    // (renamed to Geyser Installation & Repair, keywords merged in
+    // from this entry), with Plumbing tagged as a related category
+    // there so a Plumbing professional can still pick it up as a
+    // skill.
     // -- Added 2026-09-16, from the finalized taxonomy PDF
     // (habio_categories_subcategories_final.pdf). New ids only --
     // every id above this line is untouched, so no already-
@@ -288,6 +283,7 @@ Category(
         'freezer',
         'cooling',
       ],
+      matchGroup: 'cooling',
     ),
     SubCategory(
       id: 'washing_machine',
@@ -300,6 +296,7 @@ Category(
         'laundry',
         'spin',
       ],
+      matchGroup: 'kitchen_laundry',
     ),
     SubCategory(
       id: 'air_conditioner',
@@ -313,6 +310,7 @@ Category(
         'window ac',
         'cooling',
       ],
+      matchGroup: 'cooling',
     ),
     SubCategory(
       id: 'water_purifier',
@@ -325,6 +323,7 @@ Category(
         'filter',
         'uv',
       ],
+      matchGroup: 'water_systems',
     ),
     SubCategory(
       id: 'kitchen_appliances',
@@ -343,6 +342,7 @@ Category(
         'air fryer',
         'rice cooker',
       ],
+      matchGroup: 'kitchen_laundry',
     ),
     SubCategory(
       id: 'chimney_hob',
@@ -355,6 +355,7 @@ Category(
         'hob',
         'gas hob',
       ],
+      matchGroup: 'kitchen_laundry',
     ),
     SubCategory(
       id: 'dishwasher',
@@ -365,6 +366,7 @@ Category(
         'dishwasher',
         'dish washer',
       ],
+      matchGroup: 'kitchen_laundry',
     ),
     SubCategory(
       id: 'vacuum_cleaner',
@@ -375,16 +377,17 @@ Category(
         'vacuum',
         'vacuum cleaner',
       ],
+      matchGroup: 'kitchen_laundry',
     ),
     // -- Added 2026-09-16, from the finalized taxonomy PDF
     // (habio_categories_subcategories_final.pdf). New ids only --
     // every id above this line is untouched, so no already-
     // onboarded professional's subcategoryIds selection breaks.
-    SubCategory(id: 'tv_repair', name: 'TV Repair', icon: Icons.tv, description: 'Television repair and servicing.', keywords: ['tv', 'television']),
-    SubCategory(id: 'geyser_repair', name: 'Geyser Repair', icon: Icons.hot_tub_outlined, description: 'Geyser/water heater unit repair.', keywords: ['geyser repair', 'water heater repair']),
-    SubCategory(id: 'air_purifier_repair', name: 'Air Purifier Repair', icon: Icons.air, description: 'Air purifier repair and servicing.', keywords: ['air purifier']),
-    SubCategory(id: 'iron_press_repair', name: 'Iron / Press Repair', icon: Icons.iron, description: 'Iron and press repair.', keywords: ['iron', 'press']),
-    SubCategory(id: 'water_cooler_repair', name: 'Water Cooler Repair', icon: Icons.local_drink, description: 'Water cooler repair and servicing.', keywords: ['water cooler']),
+    SubCategory(id: 'tv_repair', name: 'TV Repair', icon: Icons.tv, description: 'Television repair and servicing.', keywords: ['tv', 'television'], matchGroup: 'electronics'),
+    SubCategory(id: 'geyser_repair', name: 'Geyser Installation & Repair', icon: Icons.hot_tub_outlined, description: 'Geyser/water heater installation, connection and repair.', keywords: ['geyser repair', 'water heater repair', 'geyser', 'water heater', 'geyser installation', 'geyser connection'], relatedCategories: ['plumbing'], matchGroup: 'water_systems'),
+    SubCategory(id: 'air_purifier_repair', name: 'Air Purifier Repair', icon: Icons.air, description: 'Air purifier repair and servicing.', keywords: ['air purifier'], matchGroup: 'cooling'),
+    SubCategory(id: 'iron_press_repair', name: 'Iron / Press Repair', icon: Icons.iron, description: 'Iron and press repair.', keywords: ['iron', 'press'], matchGroup: 'kitchen_laundry'),
+    SubCategory(id: 'water_cooler_repair', name: 'Water Cooler Repair', icon: Icons.local_drink, description: 'Water cooler repair and servicing.', keywords: ['water cooler'], matchGroup: 'water_systems'),
     SubCategory(
       id: 'general_appliance',
       name: 'General Appliance Issue',
@@ -395,6 +398,8 @@ Category(
         'other',
         'unknown',
       ],
+      // No matchGroup -- "not sure" should keep falling back to the
+      // whole category, same as before this change.
     ),
   ],
 ),
@@ -465,29 +470,15 @@ Category(
         'cabinet',
       ],
     ),
-    SubCategory(
-      id: 'locks',
-      name: 'Locks & Hinges',
-      icon: Icons.lock_outline,
-      description: 'Replacement and repair of locks, handles and hinges.',
-      keywords: [
-        'lock',
-        'hinge',
-        'handle',
-        'door lock',
-      ],
-    ),
-    SubCategory(
-      id: 'wood_polish',
-      name: 'Wood Polish & Finishing',
-      icon: Icons.format_paint,
-      description: 'Polishing, varnishing and finishing of wooden surfaces.',
-      keywords: [
-        'polish',
-        'varnish',
-        'wood finish',
-      ],
-    ),
+    // -- Locks & Hinges (id 'locks') and Wood Polish & Finishing (id
+    // 'wood_polish') removed 2026-10-01 -- duplicate-work cleanup.
+    // Locks/hardware work is now one listing under Home Repair's
+    // 'hardware' subcategory (Carpentry tagged as a related category
+    // there, so a Carpentry professional can still pick it up as a
+    // skill); wood polish/finishing is now one listing under
+    // Painting's 'wood_finish' subcategory, same treatment. Neither
+    // id is reused elsewhere -- removing them here does not affect
+    // any other subcategory's id.
     // -- Added 2026-09-16, from the finalized taxonomy PDF
     // (habio_categories_subcategories_final.pdf). New ids only --
     // every id above this line is untouched, so no already-
@@ -517,31 +508,32 @@ Category(
   name: 'Cleaning',
   icon: Icons.cleaning_services,
   color: Colors.teal,
-  // Quick Service (2026-09-01) -- see Category.isQuickService.
-  isQuickService: true,
+  // REVISED 2026-09-30: home_cleaning, bathroom_cleaning,
+  // kitchen_cleaning, office_cleaning, clothes_cleaning and
+  // clothes_washing removed from here -- they're the "Day-to-Day
+  // Services" Coming Soon preview now (see
+  // core/widgets/day_to_day_coming_soon_section.dart), not live yet,
+  // so they can't also be live and bookable under Cleaning at the
+  // same time. That was the only reason Cleaning was a Quick Service
+  // (isQuickService) -- with those subcategories gone, everything
+  // left here is a normal, bid-based service, same as
+  // Electrical/Plumbing/etc, so isQuickService is removed too.
   subCategories: [
-    SubCategory(id: 'home_cleaning', name: 'Home Cleaning', icon: Icons.home, description: 'Complete home cleaning.', keywords: ['home','cleaning']),
-    SubCategory(id: 'kitchen_cleaning', name: 'Kitchen/Utensil Cleaning', icon: Icons.kitchen, description: 'Kitchen and utensil cleaning services.', keywords: ['kitchen','utensils','dishes','vessels','chimney']),
-    SubCategory(id: 'bathroom_cleaning', name: 'Bathroom Cleaning', icon: Icons.bathtub_outlined, description: 'Bathroom deep cleaning.', keywords: ['bathroom','toilet']),
     SubCategory(id: 'sofa_cleaning', name: 'Sofa & Upholstery', icon: Icons.weekend, description: 'Sofa and upholstery cleaning.', keywords: ['sofa','upholstery']),
     SubCategory(id: 'carpet_cleaning', name: 'Carpet & Mattress', icon: Icons.bed_outlined, description: 'Carpet and mattress cleaning.', keywords: ['carpet','mattress']),
     SubCategory(id: 'window_cleaning', name: 'Window Cleaning', icon: Icons.window, description: 'Glass and window cleaning.', keywords: ['window','glass']),
     SubCategory(id: 'water_tank_cleaning', name: 'Water Tank Cleaning', icon: Icons.water_drop, description: 'Water tank cleaning.', keywords: ['tank']),
-    // -- New 2026-09-01, from the finalized taxonomy (see the
-    // habio-master-todo project doc, "Core product & UI backlog").
-    // New ids only -- every id above this line is untouched, so no
-    // already-onboarded professional's subcategoryIds selection breaks.
     SubCategory(id: 'chimney_cleaning', name: 'Chimney Cleaning', icon: Icons.fireplace_outlined, description: 'Kitchen chimney cleaning and degreasing.', keywords: ['chimney']),
     SubCategory(id: 'car_cleaning', name: 'Car Cleaning & Detailing', icon: Icons.local_car_wash, description: 'Doorstep car cleaning and detailing.', keywords: ['car','detailing']),
-    SubCategory(id: 'office_cleaning', name: 'Office & Commercial Cleaning', icon: Icons.business, description: 'Office and commercial space cleaning.', keywords: ['office','commercial']),
     SubCategory(id: 'move_cleaning', name: 'Move-In / Move-Out Cleaning', icon: Icons.inventory_2_outlined, description: 'Deep cleaning before moving in or after moving out.', keywords: ['move in','move out','shifting']),
     SubCategory(id: 'mattress_cleaning', name: 'Mattress Cleaning', icon: Icons.bed, description: 'Mattress deep cleaning and sanitization.', keywords: ['mattress']),
     SubCategory(id: 'curtain_cleaning', name: 'Curtain Cleaning', icon: Icons.local_laundry_service, description: 'Curtain and drape cleaning.', keywords: ['curtain','drapes']),
-    SubCategory(id: 'garden_cleaning', name: 'Garden & Lawn Cleaning', icon: Icons.grass, description: 'Garden and lawn clean-up.', keywords: ['garden','lawn']),
+    // -- Garden & Lawn Cleaning (id 'garden_cleaning') removed
+    // 2026-10-01 -- duplicate-work cleanup, merged into Helper
+    // Services' 'gardener' subcategory (renamed Gardener / Lawn
+    // Care), which tags Cleaning as a related category.
     SubCategory(id: 'post_construction_cleaning', name: 'Post-Construction Cleaning', icon: Icons.construction, description: 'Deep cleaning after construction or renovation work.', keywords: ['construction','renovation']),
     SubCategory(id: 'disinfection_service', name: 'Disinfection & Sanitization', icon: Icons.cleaning_services, description: 'Disinfection and sanitization service.', keywords: ['disinfection','sanitization']),
-    SubCategory(id: 'clothes_cleaning', name: 'Clothes Cleaning', icon: Icons.local_laundry_service, description: 'Wash, dry and fold laundry service.', keywords: ['clothes','laundry','wash','wash and fold']),
-    SubCategory(id: 'clothes_washing', name: 'Clothes Washing', icon: Icons.local_laundry_service, description: 'Daily wash-only pickup and drop service.', keywords: ['clothes','washing','daily wash','pickup drop']),
     SubCategory(id: 'general_cleaning', name: 'General Cleaning Service', icon: Icons.help_outline, description: 'Other cleaning services.', keywords: ['cleaning']),
   ],
 ),
@@ -550,25 +542,21 @@ Category(
   name: 'Helper Services',
   icon: Icons.people_alt,
   color: Colors.cyan,
-  // Quick Service (2026-09-01) -- see Category.isQuickService. Brand
-  // new category, from the finalized taxonomy PDF. Several
-  // subcategories are marked [SENSITIVE] there and will need the
-  // enhanced verification path once that build item ships (see
-  // "core-doc-verification" on the Build Queue) -- no gating exists
-  // yet, so nothing changes here for those specifically.
-  isQuickService: true,
+  // REVISED 2026-09-30: maid_fulltime, maid_parttime, cook, driver,
+  // dog_walking and night_caregiver removed from here -- they're the
+  // "Day-to-Day Services" Coming Soon preview now (see
+  // core/widgets/day_to_day_coming_soon_section.dart), not live yet,
+  // so they can't also be live and bookable under Helper Services at
+  // the same time. That was the only reason Helper Services was a
+  // Quick Service (isQuickService) -- with those subcategories gone,
+  // everything left here is a normal, bid-based service, same as
+  // Electrical/Plumbing/etc, so isQuickService is removed too.
+  // babysitter and elderly_care stay removed from the app entirely,
+  // per Harsh's earlier instruction.
   subCategories: [
-    SubCategory(id: 'maid_fulltime', name: 'Full-Time Maid / Domestic Help', icon: Icons.home, description: 'Full-time domestic help.', keywords: ['maid','domestic help','full time']),
-    SubCategory(id: 'maid_parttime', name: 'Part-Time Maid / Domestic Help', icon: Icons.cleaning_services, description: 'Part-time domestic help.', keywords: ['maid','domestic help','part time']),
-    SubCategory(id: 'cook', name: 'Cook (Daily / Occasional)', icon: Icons.kitchen, description: 'Daily or occasional cooking help.', keywords: ['cook','cooking']),
-    SubCategory(id: 'babysitter', name: 'Babysitter / Nanny', icon: Icons.child_care, description: 'Babysitting and nanny services.', keywords: ['babysitter','nanny','childcare']),
-    SubCategory(id: 'elderly_care', name: 'Elderly / Patient Care Attendant', icon: Icons.accessible, description: 'Elderly and patient care attendance.', keywords: ['elderly care','patient care','attendant']),
-    SubCategory(id: 'driver', name: 'Driver on Hire', icon: Icons.directions_car, description: 'On-hire driver services.', keywords: ['driver']),
-    SubCategory(id: 'dog_walking', name: 'Dog Walking / Pet Care', icon: Icons.pets, description: 'Dog walking and pet care.', keywords: ['dog walking','pet care']),
-    SubCategory(id: 'gardener', name: 'Gardener / Lawn Helper', icon: Icons.grass, description: 'Gardening and lawn help.', keywords: ['gardener','lawn']),
+    SubCategory(id: 'gardener', name: 'Gardener / Lawn Care', icon: Icons.grass, description: 'Gardening, lawn care and garden clean-up help.', keywords: ['gardener', 'lawn', 'garden', 'lawn cleaning', 'garden cleaning'], relatedCategories: ['cleaning']),
     SubCategory(id: 'errand_assistant', name: 'Errand Running / Personal Assistant', icon: Icons.assignment, description: 'Errands and personal assistance.', keywords: ['errand','personal assistant']),
     SubCategory(id: 'laundry_ironing', name: 'Laundry & Ironing Help', icon: Icons.local_laundry_service, description: 'Laundry and ironing help.', keywords: ['laundry','ironing']),
-    SubCategory(id: 'night_caregiver', name: 'Night Nurse / Caregiver', icon: Icons.nightlight_round, description: 'Overnight nursing and caregiving.', keywords: ['night nurse','caregiver']),
     SubCategory(id: 'party_cooking', name: 'Event / Party Cooking Help', icon: Icons.restaurant, description: 'Cooking help for events and parties.', keywords: ['party cooking','event cooking']),
     SubCategory(id: 'pet_grooming', name: 'Pet Grooming', icon: Icons.content_cut, description: 'Pet grooming at home.', keywords: ['pet grooming']),
     SubCategory(id: 'plant_care', name: 'Plant Watering / Care Service', icon: Icons.local_florist, description: 'Plant watering and care.', keywords: ['plant care','watering']),
@@ -587,7 +575,7 @@ Category(
     SubCategory(id: 'waterproofing', name: 'Waterproofing', icon: Icons.water_damage_outlined, description: 'Waterproof coating.', keywords: ['waterproof']),
     SubCategory(id: 'putty', name: 'Wall Putty', icon: Icons.layers_outlined, description: 'Wall putty services.', keywords: ['putty']),
     SubCategory(id: 'wallpaper', name: 'Wallpaper', icon: Icons.wallpaper, description: 'Wallpaper installation.', keywords: ['wallpaper']),
-    SubCategory(id: 'wood_finish', name: 'Wood Polish & Finish', icon: Icons.format_color_fill, description: 'Wood polishing.', keywords: ['polish']),
+    SubCategory(id: 'wood_finish', name: 'Wood Polish & Finish', icon: Icons.format_color_fill, description: 'Polishing, varnishing and finishing of wooden surfaces.', keywords: ['polish', 'varnish', 'wood finish', 'wood polish'], relatedCategories: ['carpentry']),
     // -- Added 2026-09-16, from the finalized taxonomy PDF
     // (habio_categories_subcategories_final.pdf). New ids only --
     // every id above this line is untouched, so no already-
@@ -632,13 +620,22 @@ Category(
   icon: Icons.home_repair_service,
   color: Colors.red,
   subCategories: [
-    SubCategory(id: 'glass', name: 'Glass Repair', icon: Icons.window, description: 'Glass installation & repair.', keywords: ['glass']),
-    SubCategory(id: 'aluminium', name: 'Aluminium Work', icon: Icons.construction, description: 'Aluminium fabrication.', keywords: ['aluminium']),
+    // -- Glass Repair (id 'glass') removed 2026-10-01 -- duplicate-
+    // work cleanup. This generic entry overlapped the whole Glass
+    // Work category; Home Repair is now tagged as a related category
+    // on Glass Work's 'glass_window_installation' and
+    // 'cracked_glass_repair' subcategories (installation + repair,
+    // matching this entry's old "Glass installation & repair" scope)
+    // instead of keeping a separate generic listing here.
+    // -- Aluminium Work (id 'aluminium') removed 2026-10-01 --
+    // duplicate-work cleanup, merged into Metal Fabrication's
+    // 'aluminium_window_door' subcategory, which tags Home Repair as
+    // a related category.
     SubCategory(id: 'tiles', name: 'Tiles & Flooring', icon: Icons.grid_view, description: 'Tile and flooring work.', keywords: ['tiles']),
     SubCategory(id: 'ceiling', name: 'Ceiling Repair', icon: Icons.architecture, description: 'False ceiling and repairs.', keywords: ['ceiling']),
     SubCategory(id: 'masonry', name: 'Masonry & Civil Work', icon: Icons.foundation, description: 'Brick and cement work.', keywords: ['masonry']),
     SubCategory(id: 'roof', name: 'Roofing Repairs', icon: Icons.roofing, description: 'Roof repair.', keywords: ['roof']),
-    SubCategory(id: 'hardware', name: 'Lock & Hardware Repair', icon: Icons.lock_outline, description: 'Door hardware repair.', keywords: ['lock']),
+    SubCategory(id: 'hardware', name: 'Lock & Hardware Repair', icon: Icons.lock_outline, description: 'Replacement and repair of locks, handles and hinges.', keywords: ['lock', 'hardware', 'hinge', 'handle', 'door lock'], relatedCategories: ['carpentry']),
     // -- Added 2026-09-16, from the finalized taxonomy PDF
     // (habio_categories_subcategories_final.pdf). New ids only --
     // every id above this line is untouched, so no already-
@@ -661,25 +658,38 @@ Category(
   icon: Icons.directions_car,
   color: Colors.indigo,
   subCategories: [
-    SubCategory(id: 'car', name: 'Car Repair', icon: Icons.directions_car, description: 'Car repairs.', keywords: ['car']),
-    SubCategory(id: 'bike', name: 'Bike Repair', icon: Icons.two_wheeler, description: 'Bike repairs.', keywords: ['bike']),
-    SubCategory(id: 'battery', name: 'Battery Service', icon: Icons.battery_full, description: 'Battery replacement.', keywords: ['battery']),
-    SubCategory(id: 'tyre', name: 'Tyre & Puncture', icon: Icons.tire_repair, description: 'Tyre repair.', keywords: ['tyre']),
-    SubCategory(id: 'wash', name: 'Car Wash & Detailing', icon: Icons.local_car_wash, description: 'Vehicle cleaning.', keywords: ['wash']),
-    SubCategory(id: 'oil', name: 'Oil Change', icon: Icons.opacity, description: 'Engine oil replacement.', keywords: ['oil']),
-    SubCategory(id: 'inspection', name: 'Vehicle Inspection', icon: Icons.fact_check, description: 'Vehicle inspection.', keywords: ['inspection']),
+    SubCategory(id: 'car', name: 'Car Repair', icon: Icons.directions_car, description: 'Car repairs.', keywords: ['car'], matchGroup: 'car'),
+    SubCategory(id: 'bike', name: 'Bike Repair', icon: Icons.two_wheeler, description: 'Bike repairs.', keywords: ['bike'], matchGroup: 'bike'),
+    SubCategory(id: 'battery', name: 'Battery Service', icon: Icons.battery_full, description: 'Battery replacement.', keywords: ['battery'], matchGroup: 'both'),
+    SubCategory(id: 'tyre', name: 'Tyre & Puncture', icon: Icons.tire_repair, description: 'Tyre repair.', keywords: ['tyre'], matchGroup: 'both'),
+    SubCategory(id: 'wash', name: 'Car Wash & Detailing', icon: Icons.local_car_wash, description: 'Vehicle cleaning.', keywords: ['wash'], matchGroup: 'car'),
+    SubCategory(id: 'oil', name: 'Oil Change', icon: Icons.opacity, description: 'Engine oil replacement.', keywords: ['oil'], matchGroup: 'both'),
+    // id changed 2026-10-01 from 'inspection' to 'vehicle_inspection' -- fixes
+    // an accidental id collision with Electrical's own 'inspection' entry
+    // above (both previously used the same id).
+    SubCategory(id: 'vehicle_inspection', name: 'Vehicle Inspection', icon: Icons.fact_check, description: 'Vehicle inspection.', keywords: ['inspection'], matchGroup: 'both'),
     // -- Added 2026-09-16, from the finalized taxonomy PDF
     // (habio_categories_subcategories_final.pdf). New ids only --
     // every id above this line is untouched, so no already-
     // onboarded professional's subcategoryIds selection breaks.
-    SubCategory(id: 'car_ac_repair', name: 'Car AC Repair', icon: Icons.ac_unit, description: 'Car AC repair and servicing.', keywords: ['car ac']),
-    SubCategory(id: 'car_denting_painting', name: 'Car Denting & Painting', icon: Icons.format_paint, description: 'Car denting and painting.', keywords: ['denting', 'car painting']),
-    SubCategory(id: 'car_electrical_repair', name: 'Car Electrical Repair', icon: Icons.electrical_services, description: 'Car electrical repair.', keywords: ['car electrical']),
-    SubCategory(id: 'roadside_breakdown_assistance', name: 'Roadside Breakdown Assistance', icon: Icons.car_repair, description: 'Roadside breakdown assistance.', keywords: ['roadside assistance', 'breakdown']),
-    SubCategory(id: 'wheel_alignment_balancing', name: 'Wheel Alignment & Balancing', icon: Icons.album_outlined, description: 'Wheel alignment and balancing.', keywords: ['wheel alignment', 'balancing']),
-    SubCategory(id: 'car_scratch_dent_removal', name: 'Car Scratch & Dent Removal', icon: Icons.brush, description: 'Car scratch and dent removal.', keywords: ['scratch removal', 'dent removal']),
-    SubCategory(id: 'ev_charging_point_installation', name: 'EV Charging Point Installation', icon: Icons.ev_station, description: 'EV charging point installation.', keywords: ['ev charging', 'electric vehicle']),
-    SubCategory(id: 'general_auto', name: 'General Automobile Service', icon: Icons.help_outline, description: 'Other automobile work.', keywords: ['automobile']),
+    SubCategory(id: 'car_ac_repair', name: 'Car AC Repair', icon: Icons.ac_unit, description: 'Car AC repair and servicing.', keywords: ['car ac'], matchGroup: 'car'),
+    SubCategory(id: 'car_denting_painting', name: 'Car Denting & Painting', icon: Icons.format_paint, description: 'Car denting and painting.', keywords: ['denting', 'car painting'], matchGroup: 'car'),
+    SubCategory(id: 'car_electrical_repair', name: 'Car Electrical Repair', icon: Icons.electrical_services, description: 'Car electrical repair.', keywords: ['car electrical'], matchGroup: 'car'),
+    SubCategory(id: 'roadside_breakdown_assistance', name: 'Roadside Breakdown Assistance', icon: Icons.car_repair, description: 'Roadside breakdown assistance.', keywords: ['roadside assistance', 'breakdown'], matchGroup: 'both'),
+    SubCategory(id: 'wheel_alignment_balancing', name: 'Wheel Alignment & Balancing', icon: Icons.album_outlined, description: 'Wheel alignment and balancing.', keywords: ['wheel alignment', 'balancing'], matchGroup: 'car'),
+    SubCategory(id: 'car_scratch_dent_removal', name: 'Car Scratch & Dent Removal', icon: Icons.brush, description: 'Car scratch and dent removal.', keywords: ['scratch removal', 'dent removal'], matchGroup: 'car'),
+    SubCategory(id: 'ev_charging_point_installation', name: 'EV Charging Point Installation', icon: Icons.ev_station, description: 'EV charging point installation.', keywords: ['ev charging', 'electric vehicle'], matchGroup: 'both'),
+    SubCategory(id: 'general_auto', name: 'General Automobile Service', icon: Icons.help_outline, description: 'Other automobile work.', keywords: ['automobile'], matchGroup: 'both'),
+    // -- Added 2026-10-02: bike-specific depth, matching what car
+    // already had (previously "Bike Repair" was the ONLY dedicated
+    // bike subcategory -- see the Automobile vehicle-type split
+    // discussion in the project to-do). New ids only.
+    SubCategory(id: 'bike_electrical_repair', name: 'Bike Electrical Repair', icon: Icons.electrical_services, description: 'Bike wiring, lighting, horn and starter motor repair.', keywords: ['bike electrical', 'two wheeler electrical'], matchGroup: 'bike'),
+    SubCategory(id: 'bike_denting_painting', name: 'Bike Denting & Painting', icon: Icons.format_paint, description: 'Bike body panel and tank denting and painting.', keywords: ['bike denting', 'bike painting'], matchGroup: 'bike'),
+    SubCategory(id: 'bike_engine_clutch_service', name: 'Bike Engine & Clutch Service', icon: Icons.settings, description: 'Bike engine overhaul, clutch plate replacement and tuning.', keywords: ['bike engine', 'bike clutch', 'engine tuning'], matchGroup: 'bike'),
+    SubCategory(id: 'bike_chain_brake_service', name: 'Bike Chain, Sprocket & Brake Service', icon: Icons.settings_input_component, description: 'Bike drivetrain (chain, sprocket) and brake servicing.', keywords: ['bike chain', 'sprocket', 'bike brake'], matchGroup: 'bike'),
+    SubCategory(id: 'scooter_transmission_service', name: 'Scooter / Automatic Transmission Service', icon: Icons.two_wheeler, description: 'Scooter CVT/variator and automatic transmission service.', keywords: ['scooter service', 'cvt', 'variator'], matchGroup: 'bike'),
+    SubCategory(id: 'bike_suspension_fork_repair', name: 'Bike Suspension & Fork Repair', icon: Icons.build_circle_outlined, description: 'Bike front fork and suspension repair.', keywords: ['bike suspension', 'fork repair'], matchGroup: 'bike'),
   ],
 ),
 Category(
@@ -691,7 +701,10 @@ Category(
     SubCategory(id: 'house', name: 'House Shifting', icon: Icons.home, description: 'Home relocation.', keywords: ['house']),
     SubCategory(id: 'office', name: 'Office Relocation', icon: Icons.business, description: 'Office shifting.', keywords: ['office']),
     SubCategory(id: 'packers', name: 'Packers & Movers', icon: Icons.inventory, description: 'Packing services.', keywords: ['packers']),
-    SubCategory(id: 'furniture', name: 'Furniture Moving', icon: Icons.chair, description: 'Furniture shifting.', keywords: ['furniture']),
+    // id changed 2026-10-01 from 'furniture' to 'furniture_moving' -- fixes an
+    // accidental id collision with Carpentry's own 'furniture' subcategory
+    // (both previously used the same id).
+    SubCategory(id: 'furniture_moving', name: 'Furniture Moving', icon: Icons.chair, description: 'Furniture shifting.', keywords: ['furniture']),
     SubCategory(id: 'appliance', name: 'Appliance Relocation', icon: Icons.kitchen, description: 'Move appliances safely.', keywords: ['appliance']),
     SubCategory(id: 'loading', name: 'Loading & Unloading', icon: Icons.move_up, description: 'Loading assistance.', keywords: ['loading']),
     SubCategory(id: 'storage', name: 'Storage Services', icon: Icons.warehouse, description: 'Temporary storage.', keywords: ['storage']),
@@ -751,7 +764,7 @@ Category(
   color: Colors.blueGrey,
   subCategories: [
     SubCategory(id: 'grill_gate_fabrication', name: 'Grill & Gate Fabrication and Repair', icon: Icons.door_front_door, description: 'Grill and gate fabrication and repair.', keywords: ['grill', 'gate']),
-    SubCategory(id: 'aluminium_window_door', name: 'Aluminium Window & Door Fabrication', icon: Icons.window, description: 'Aluminium window and door fabrication.', keywords: ['aluminium', 'window', 'door']),
+    SubCategory(id: 'aluminium_window_door', name: 'Aluminium Window & Door Fabrication', icon: Icons.window, description: 'Aluminium window, door and general aluminium fabrication work.', keywords: ['aluminium', 'window', 'door', 'aluminium work', 'aluminium fabrication'], relatedCategories: ['home_repair']),
     SubCategory(id: 'onsite_welding', name: 'On-Site Welding Services', icon: Icons.local_fire_department, description: 'On-site welding services.', keywords: ['welding']),
     SubCategory(id: 'staircase_railing_fabrication', name: 'Staircase & Railing Fabrication', icon: Icons.stairs, description: 'Staircase and railing fabrication.', keywords: ['staircase', 'railing']),
     SubCategory(id: 'shed_shelter_fabrication', name: 'Shed / Shelter Structure Fabrication', icon: Icons.warehouse, description: 'Shed and shelter structure fabrication.', keywords: ['shed', 'shelter']),
@@ -775,13 +788,13 @@ Category(
   subCategories: [
     SubCategory(id: 'glass_door_partition', name: 'Glass Door & Partition Installation', icon: Icons.door_front_door, description: 'Glass door and partition installation.', keywords: ['glass door', 'partition']),
     SubCategory(id: 'mirror_installation', name: 'Mirror Installation & Repair', icon: Icons.crop_original, description: 'Mirror installation and repair.', keywords: ['mirror']),
-    SubCategory(id: 'glass_window_installation', name: 'Glass Window Installation / Replacement', icon: Icons.window, description: 'Glass window installation and replacement.', keywords: ['glass window']),
+    SubCategory(id: 'glass_window_installation', name: 'Glass Window Installation / Replacement', icon: Icons.window, description: 'Glass window installation and replacement.', keywords: ['glass window'], relatedCategories: ['home_repair']),
     SubCategory(id: 'shower_cubicle_glass', name: 'Shower Cubicle / Glass Enclosure Installation', icon: Icons.bathtub_outlined, description: 'Shower cubicle and glass enclosure installation.', keywords: ['shower cubicle', 'glass enclosure']),
     SubCategory(id: 'glass_tabletop_shelf', name: 'Glass Tabletop & Shelf Installation', icon: Icons.inventory_2_outlined, description: 'Glass tabletop and shelf installation.', keywords: ['glass tabletop', 'glass shelf']),
     SubCategory(id: 'toughened_glass_installation', name: 'Toughened Glass Installation', icon: Icons.shield_outlined, description: 'Toughened glass installation.', keywords: ['toughened glass']),
     SubCategory(id: 'glass_railing_installation', name: 'Glass Railing Installation', icon: Icons.stairs, description: 'Glass railing installation.', keywords: ['glass railing']),
     SubCategory(id: 'custom_glass_cutting', name: 'Custom Glass Cutting & Fitting', icon: Icons.content_cut, description: 'Custom glass cutting and fitting.', keywords: ['glass cutting']),
-    SubCategory(id: 'cracked_glass_repair', name: 'Cracked / Broken Glass Repair & Replacement', icon: Icons.broken_image_outlined, description: 'Cracked and broken glass repair and replacement.', keywords: ['cracked glass', 'broken glass']),
+    SubCategory(id: 'cracked_glass_repair', name: 'Cracked / Broken Glass Repair & Replacement', icon: Icons.broken_image_outlined, description: 'Cracked and broken glass repair and replacement.', keywords: ['cracked glass', 'broken glass'], relatedCategories: ['home_repair']),
     SubCategory(id: 'glass_balcony_fabrication', name: 'Glass Balcony Fabrication', icon: Icons.balcony, description: 'Glass balcony fabrication.', keywords: ['glass balcony']),
     SubCategory(id: 'glass_canopy_installation', name: 'Glass Canopy Installation', icon: Icons.roofing, description: 'Glass canopy installation.', keywords: ['glass canopy']),
     SubCategory(id: 'acrylic_sheet_installation', name: 'Acrylic Sheet Installation', icon: Icons.layers_outlined, description: 'Acrylic sheet installation.', keywords: ['acrylic sheet']),

@@ -1962,6 +1962,20 @@ class _PaymentSheetState extends State<_PaymentSheet> {
   double get _fullTotal =>
       (_preview?['fullTotal'] as num?)?.toDouble() ?? _agreedPrice;
   bool get _waived => _preview?['platformFeeWaived'] == true;
+
+  // PROMO CODE (NEW -- 2026-10-05). A code is applied here, at payment,
+  // and REPLACES the first-orders free-fee offer for this order. The
+  // server does all the validation and pricing: this sheet only sends the
+  // typed code to fetchPreview and renders what comes back.
+  final TextEditingController _promoController = TextEditingController();
+  bool _showPromoField = false;
+  bool _promoBusy = false;
+  String? _promoError;
+
+  String? get _promoCode => _preview?['promoCode'] as String?;
+  double get _promoDiscount =>
+      (_preview?['promoDiscount'] as num?)?.toDouble() ?? 0;
+  bool get _promoApplied => _promoCode != null && _promoDiscount > 0;
   // What the customer actually owes -- straight from the paise amount
   // Razorpay's order was created for, so this can never drift from
   // what Checkout is about to charge.
@@ -1994,8 +2008,79 @@ class _PaymentSheetState extends State<_PaymentSheet> {
     }
   }
 
+  Future<void> _applyPromo() async {
+    final code = _promoController.text.trim();
+
+    if (code.isEmpty || _promoBusy || _isPaying) return;
+
+    setState(() {
+      _promoBusy = true;
+      _promoError = null;
+    });
+
+    try {
+      final preview = await _paymentService.fetchPreview(
+        orderId: widget.order.orderId,
+        purpose: 'JOB_PAYMENT',
+        promoCode: code,
+      );
+      if (mounted) {
+        setState(() {
+          _preview = preview;
+          _promoBusy = false;
+        });
+      }
+    } on FirebaseFunctionsException catch (e) {
+      if (mounted) {
+        setState(() {
+          _promoError = e.message ?? 'That promo code could not be applied.';
+          _promoBusy = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _promoError = 'That promo code could not be applied.';
+          _promoBusy = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _removePromo() async {
+    if (_promoBusy || _isPaying) return;
+
+    setState(() {
+      _promoBusy = true;
+      _promoError = null;
+    });
+
+    try {
+      final preview = await _paymentService.fetchPreview(
+        orderId: widget.order.orderId,
+        purpose: 'JOB_PAYMENT',
+      );
+      if (mounted) {
+        setState(() {
+          _preview = preview;
+          _promoBusy = false;
+          _showPromoField = false;
+          _promoController.clear();
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _promoError = 'Could not remove the code. Please try again.';
+          _promoBusy = false;
+        });
+      }
+    }
+  }
+
   @override
   void dispose() {
+    _promoController.dispose();
     _paymentService.dispose();
     super.dispose();
   }
@@ -2168,6 +2253,33 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                   _gst,
                   waived: _waived,
                 ),
+                if (_promoApplied) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Promo $_promoCode',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: waivedGreen,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        '-₹${_promoDiscount.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: waivedGreen,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 10),
+                _promoSection(),
 
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
@@ -2187,7 +2299,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                         ),
                       ),
                     ),
-                    if (_waived) ...[
+                    if (_waived || _promoApplied) ...[
                       Text(
                         '₹${_fullTotal.toStringAsFixed(2)}',
                         style: const TextStyle(
@@ -2204,7 +2316,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
-                        color: _waived ? waivedGreen : primaryBlue,
+                        color: (_waived || _promoApplied) ? waivedGreen : primaryBlue,
                       ),
                     ),
                   ],
@@ -2250,7 +2362,9 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: (_isPaying || _preview == null) ? null : _confirmPayment,
+                  onPressed: (_isPaying || _preview == null || _promoBusy)
+                      ? null
+                      : _confirmPayment,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryBlue,
                     foregroundColor: Colors.white,
@@ -2283,6 +2397,125 @@ class _PaymentSheetState extends State<_PaymentSheet> {
           ),
         ),
       ),
+    );
+  }
+
+  // Promo code entry (NEW -- 2026-10-05): a quiet text link that opens a
+  // small field; once a code is applied it becomes a green chip with
+  // Remove. All checking happens server-side.
+  Widget _promoSection() {
+    if (_promoApplied) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: waivedGreenBg,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.local_offer_rounded,
+                color: waivedGreen, size: 16),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '$_promoCode applied',
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: waivedGreen,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: (_promoBusy || _isPaying) ? null : _removePromo,
+              style: TextButton.styleFrom(
+                minimumSize: Size.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text('Remove'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (!_showPromoField) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton(
+          onPressed: () => setState(() => _showPromoField = true),
+          style: TextButton.styleFrom(
+            minimumSize: Size.zero,
+            padding: EdgeInsets.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: const Text(
+            'Have a promo code?',
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _promoController,
+                enabled: !_promoBusy,
+                textCapitalization: TextCapitalization.characters,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _applyPromo(),
+                decoration: InputDecoration(
+                  hintText: 'Enter promo code',
+                  isDense: true,
+                  errorText: _promoError,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            SizedBox(
+              height: 44,
+              child: ElevatedButton(
+                onPressed: _promoBusy ? null : _applyPromo,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryBlue,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: _promoBusy
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Apply'),
+              ),
+            ),
+          ],
+        ),
+        if (_waived) ...[
+          const SizedBox(height: 6),
+          const Text(
+            'A promo code replaces your free platform fee offer on this order.',
+            style: TextStyle(fontSize: 11.5, color: textSecondary),
+          ),
+        ],
+      ],
     );
   }
 
