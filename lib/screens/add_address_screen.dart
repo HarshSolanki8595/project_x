@@ -412,7 +412,7 @@ class _AddAddressScreenState
 
               _buildSectionTitle(
                 "Address details",
-                "Tell us where the professional needs to visit.",
+                "Tell us where the partner needs to visit.",
               ),
 
               const SizedBox(
@@ -562,7 +562,7 @@ class _AddAddressScreenState
                 Text(
                   isEditing
                       ? "Update your address"
-                      : "Where should we send the professional?",
+                      : "Where should we send the partner?",
                   style:
                       const TextStyle(
                     color: darkText,
@@ -577,7 +577,7 @@ class _AddAddressScreenState
                 ),
 
                 const Text(
-                  "Your address helps us connect you with professionals who can visit you.",
+                  "Your address helps us connect you with partners who can visit you.",
                   style:
                       TextStyle(
                     color:

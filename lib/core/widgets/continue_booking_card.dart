@@ -6,7 +6,7 @@ class ContinueBookingCard extends StatelessWidget {
     required this.isVisible,
     this.serviceName = "AC Repair",
     this.professionalName = "Raj Electricals",
-    this.status = "Professional is on the way",
+    this.status = "Partner is on the way",
     this.progress = 0.65,
     this.onContinue,
   });

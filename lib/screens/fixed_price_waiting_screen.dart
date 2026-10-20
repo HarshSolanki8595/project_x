@@ -381,7 +381,7 @@ class _FixedPriceWaitingScreenState extends State<FixedPriceWaitingScreen>
                   ),
                   const SizedBox(height: 32),
                   const Text(
-                    'Finding You a Professional',
+                    'Finding You a Partner',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 28,
@@ -393,7 +393,7 @@ class _FixedPriceWaitingScreenState extends State<FixedPriceWaitingScreen>
                   const SizedBox(height: 10),
                   const Text(
                     'Your request has been sent to nearby verified '
-                    'professionals at your posted price.',
+                    'partners at your posted price.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.grey,
@@ -461,7 +461,7 @@ class _FixedPriceWaitingScreenState extends State<FixedPriceWaitingScreen>
                           Expanded(
                             child: Text(
                               'This is taking longer than usual. Raising '
-                              'your price can help nearby professionals '
+                              'your price can help nearby partners '
                               'notice your request faster.',
                               style: TextStyle(
                                 color: Color(0xFF7A5A15),

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -61,6 +62,8 @@ class OrderStatusScreen extends StatefulWidget {
 }
 
 class _OrderStatusScreenState extends State<OrderStatusScreen> {
+  bool _invoiceBusy = false;
+
   static const Color primaryBlue = Color(0xFF1557FF);
   static const Color lightBlue = Color(0xFFEEF3FF);
   static const Color background = Color(0xFFF7F8FC);
@@ -306,6 +309,10 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           const SizedBox(height: 14),
           _buildCancellationFeeCard(order),
         ],
+        if (_isInvoiceEligible(order)) ...[
+          const SizedBox(height: 14),
+          _buildInvoiceCard(order),
+        ],
         if (order.status == MarketplaceStatus.orderCompleted) ...[
           const SizedBox(height: 14),
           _buildReviewCard(order),
@@ -368,7 +375,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           ),
           const SizedBox(height: 6),
           const Text(
-            'You can withdraw from this booking. A flat ₹150 cancellation fee applies once a professional has been confirmed.',
+            'You can withdraw from this booking. A flat ₹150 cancellation fee applies once a partner has been confirmed.',
             style: TextStyle(
               fontSize: 13,
               height: 1.4,
@@ -457,7 +464,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               const SizedBox(width: 12),
               const Expanded(
                 child: Text(
-                  'Your professional withdrew',
+                  'Your partner withdrew',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
@@ -469,7 +476,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           ),
           const SizedBox(height: 6),
           const Text(
-            "Don't worry — we're finding you a new professional for "
+            "Don't worry — we're finding you a new partner for "
             "this job at no extra cost to you.",
             style: TextStyle(
               fontSize: 13,
@@ -491,7 +498,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 );
               },
               child: const Text(
-                'Find New Professional',
+                'Find New Partner',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
               ),
             ),
@@ -617,6 +624,146 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     );
   }
 
+  // ============================================================
+  // TAX INVOICE (NEW -- 2026-10-07)
+  // ============================================================
+  //
+  // Completed bookings -- and cancelled ones whose cancellation fee was
+  // paid -- can have a tax invoice. Three states: "Generate invoice",
+  // then "Invoice requested -- ready within 24 hours" (disabled) until the
+  // PDF has been prepared, then "View invoice". A push notification
+  // (INVOICE_READY) opens this booking when it is ready.
+  //
+
+  bool _isInvoiceEligible(OrderModel order) {
+    return order.status == MarketplaceStatus.orderCompleted ||
+        (order.status == MarketplaceStatus.orderCancelled &&
+            order.isCancellationFeePaid);
+  }
+
+  Widget _buildInvoiceCard(OrderModel order) {
+    final String state = order.invoiceStatus;
+    final bool ready = state == 'READY' &&
+        order.invoicePdfPath != null &&
+        order.invoicePdfPath!.isNotEmpty;
+    final bool requested = state == 'REQUESTED' || (state == 'READY' && !ready);
+
+    final String label = ready
+        ? 'View invoice'
+        : requested
+            ? 'Invoice requested \u2014 ready within 24 hours'
+            : 'Generate invoice';
+
+    final VoidCallback? onPressed = _invoiceBusy || requested
+        ? null
+        : ready
+            ? () => _viewInvoice(order)
+            : () => _generateInvoice(order);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor),
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        height: 48,
+        child: ElevatedButton.icon(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryBlue,
+            foregroundColor: Colors.white,
+            disabledBackgroundColor: const Color(0xFFE5E8EE),
+            disabledForegroundColor: textSecondary,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(13),
+            ),
+          ),
+          icon: _invoiceBusy
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Icon(
+                  ready
+                      ? Icons.receipt_long_rounded
+                      : requested
+                          ? Icons.hourglass_top_rounded
+                          : Icons.description_outlined,
+                  size: 18,
+                ),
+          label: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _generateInvoice(OrderModel order) async {
+    setState(() => _invoiceBusy = true);
+
+    try {
+      await OrderService.requestInvoice(order.orderId);
+    } on StateError catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to request the invoice right now.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _invoiceBusy = false);
+    }
+  }
+
+  Future<void> _viewInvoice(OrderModel order) async {
+    final String? path = order.invoicePdfPath;
+    if (path == null || path.isEmpty) return;
+
+    setState(() => _invoiceBusy = true);
+
+    try {
+      final String url =
+          await FirebaseStorage.instance.ref(path).getDownloadURL();
+
+      final bool opened = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!opened && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to open the invoice.')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to open the invoice.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _invoiceBusy = false);
+    }
+  }
+
   Future<void> _openCancellationFeeSheet(OrderModel order) async {
     await showModalBottomSheet<void>(
       context: context,
@@ -645,7 +792,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             ),
           ),
           content: const Text(
-            'A flat ₹150 cancellation fee applies. Your booking stays active — the professional isn\'t notified and nothing changes — until you pay it on the next screen.',
+            'A flat ₹150 cancellation fee applies. Your booking stays active — the partner isn\'t notified and nothing changes — until you pay it on the next screen.',
             style: TextStyle(
               fontSize: 14,
               height: 1.4,
@@ -1272,7 +1419,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  professional?.name ?? 'Professional',
+                  professional?.name ?? 'Partner',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -1291,7 +1438,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                       ),
                       SizedBox(width: 4),
                       Text(
-                        'Verified Professional',
+                        'Verified Partner',
                         style: TextStyle(
                           color: green,
                           fontSize: 12,
@@ -1394,7 +1541,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  'Your professional needs this to start the job',
+                  'Your partner needs this to start the job',
                   style: TextStyle(
                     fontSize: 12,
                     color: textSecondary,
@@ -1474,7 +1621,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  'Share this code so your professional can confirm they\'re taking it',
+                  'Share this code so your partner can confirm they\'re taking it',
                   style: TextStyle(
                     fontSize: 11.5,
                     height: 1.35,
@@ -1515,7 +1662,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
       'PICKED_UP': (
         Icons.inventory_2_outlined,
         'Item picked up',
-        'Your professional has taken your item for repair.',
+        'Your partner has taken your item for repair.',
       ),
       'IN_REPAIR': (
         Icons.build_circle_outlined,
@@ -1533,7 +1680,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
         (
           Icons.inventory_2_outlined,
           'Item picked up',
-          'Your professional has taken your item for repair.',
+          'Your partner has taken your item for repair.',
         );
 
     return Container(
@@ -1854,7 +2001,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
         return const _StatusConfig(
           title: 'Job In Progress',
           subtitle:
-              'Your professional is working on this request.',
+              'Your partner is working on this request.',
           color: Color(0xFFB45309),
           icon: Icons.build_circle_outlined,
         );
@@ -1877,7 +2024,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
         return const _StatusConfig(
           title: 'Order Confirmed',
           subtitle:
-              'Your professional will begin the job soon.',
+              'Your partner will begin the job soon.',
           color: primaryBlue,
           icon: Icons.event_available_outlined,
         );
@@ -2221,7 +2368,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Platform fee waived — welcome offer on your first orders',
+                            'Platform fee waived on this order',
                             style: TextStyle(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w700,
@@ -2613,6 +2760,22 @@ class _PaymentSheetState extends State<_PaymentSheet> {
 // payment above.
 // ================================================================
 
+/// Opens the cancellation-fee payment sheet for [order]. Public so the
+/// blocked-state prompt (OutstandingFeePrompt) can reuse it -- 2026-10-07.
+Future<void> showCancellationFeeSheet(
+  BuildContext context,
+  OrderModel order,
+) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (sheetContext) {
+      return _CancellationFeeSheet(order: order);
+    },
+  );
+}
+
 class _CancellationFeeSheet extends StatefulWidget {
   final OrderModel order;
 
@@ -2933,7 +3096,7 @@ class _LiveLocationCardState extends State<_LiveLocationCard> {
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      "Waiting for the professional to start sharing "
+                      "Waiting for the partner to start sharing "
                       "their live location...",
                       style: TextStyle(
                         fontSize: 12.5,
@@ -3006,7 +3169,7 @@ class _LiveLocationCardState extends State<_LiveLocationCard> {
               ),
               SizedBox(width: 8),
               Text(
-                "Professional's Live Location",
+                "Partner's Live Location",
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,

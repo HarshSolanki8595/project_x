@@ -140,6 +140,9 @@ class NotificationRouter {
       case 'JOB_COMPLETED':
       case 'ORDER_CANCELLED':
       case 'PICKUP_STAGE_CHANGED':
+      case 'INVOICE_READY':
+      case 'NO_SHOW_FEE_OWED':
+      case 'FEE_WAIVED':
         // An order now exists for this request — OrderStatusScreen
         // streams it live and shows whatever's current (pay now,
         // rate & review, pickup progress, etc).

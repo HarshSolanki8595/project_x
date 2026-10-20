@@ -628,7 +628,7 @@ class _ServiceRequestScreenState
         const SizedBox(height: 6),
 
         const Text(
-          "Tell us what is happening so the right professional can help.",
+          "Tell us what is happening so the right partner can help.",
           style: TextStyle(
             color: secondaryText,
             fontSize: 14,
@@ -734,7 +734,7 @@ class _ServiceRequestScreenState
           CrossAxisAlignment.start,
       children: [
         const Text(
-          "Help the professional understand",
+          "Help the partner understand",
           style: TextStyle(
             color: darkText,
             fontSize: 20,
@@ -1156,7 +1156,7 @@ class _ServiceRequestScreenState
         const SizedBox(height: 5),
 
         const Text(
-          "This helps the professional quote you accurately.",
+          "This helps the partner quote you accurately.",
           style: TextStyle(
             color: secondaryText,
             fontSize: 14,
@@ -1187,7 +1187,7 @@ class _ServiceRequestScreenState
             Expanded(
               child: _materialOptionCard(
                 icon: Icons.storefront_outlined,
-                label: "Professional sources it",
+                label: "Partner sources it",
                 selected: customerProvidesMaterial == false,
                 onTap: () {
                   setState(() {
@@ -1214,7 +1214,7 @@ class _ServiceRequestScreenState
           const SizedBox(height: 3),
 
           const Text(
-            "Required — helps the professional price the right quality.",
+            "Required — helps the partner price the right quality.",
             style: TextStyle(
               color: secondaryText,
               fontSize: 12.5,
@@ -1306,7 +1306,7 @@ class _ServiceRequestScreenState
         const SizedBox(height: 5),
 
         const Text(
-          "This service covers both — let us know which one so we can send the right professional.",
+          "This service covers both — let us know which one so we can send the right partner.",
           style: TextStyle(
             color: secondaryText,
             fontSize: 14,

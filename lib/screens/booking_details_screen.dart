@@ -260,7 +260,7 @@ class _BookingDetailsScreenState
                     // ==================================================
 
                     _sectionTitle(
-                      "Professional",
+                      "Partner",
                     ),
 
                     _buildProfessionalCard(),

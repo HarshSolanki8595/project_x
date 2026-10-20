@@ -331,7 +331,7 @@ class _SplashScreenState extends State<SplashScreen>
               child: FadeTransition(
                 opacity: _textFade,
                 child: const Text(
-                  "Connecting Homes\nwith Trusted Professionals",
+                  "Connecting Homes\nwith Trusted Partners",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white70,

@@ -113,7 +113,7 @@ class _AddressScreenState extends State<AddressScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Where should the professional come?",
+                    "Where should the partner come?",
                     style: TextStyle(
                       color: darkText,
                       fontSize: 24,
@@ -383,7 +383,7 @@ class _AddressScreenState extends State<AddressScreen> {
             ),
             SizedBox(height: 6),
             Text(
-              "Add an address where the professional should visit.",
+              "Add an address where the partner should visit.",
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: secondaryText,

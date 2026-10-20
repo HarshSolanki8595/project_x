@@ -51,7 +51,7 @@ class ProfessionalProfileScreen extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         title: const Text(
-          'Professional Profile',
+          'Partner Profile',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -106,7 +106,7 @@ class ProfessionalProfileScreen extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.all(28),
         child: Text(
-          'This professional\'s profile could not be loaded.',
+          'This partner\'s profile could not be loaded.',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 15,
@@ -152,7 +152,7 @@ class ProfessionalProfileScreen extends StatelessWidget {
           Text(
             professional.name.isNotEmpty
                 ? professional.name
-                : 'Professional',
+                : 'Partner',
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 20,
@@ -190,7 +190,7 @@ class ProfessionalProfileScreen extends StatelessWidget {
           Icon(Icons.verified_rounded, color: green, size: 14),
           SizedBox(width: 4),
           Text(
-            'Verified Professional',
+            'Verified Partner',
             style: TextStyle(
               color: green,
               fontSize: 12,

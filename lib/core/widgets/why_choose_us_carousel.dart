@@ -27,12 +27,12 @@ class WhyChooseUsCarousel extends StatelessWidget {
   static const List<CarouselTip> _tips = [
     CarouselTip(
       icon: Icons.compare_arrows_rounded,
-      text: 'Professionals decide their price -- you choose the offer '
+      text: 'Partners decide their price -- you choose the offer '
           "that's right for you.",
     ),
     CarouselTip(
       icon: Icons.verified_rounded,
-      text: 'Every professional is verified before they can bid on '
+      text: 'Every partner is verified before they can bid on '
           'your request.',
     ),
     CarouselTip(

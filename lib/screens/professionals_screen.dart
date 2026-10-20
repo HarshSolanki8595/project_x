@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math' as math;
 
+import '../core/widgets/outstanding_fee_prompt.dart';
 import '../core/widgets/safety_awareness_carousel.dart';
 import '../core/widgets/why_choose_us_carousel.dart';
 import '../models/marketplace_status.dart';
@@ -199,10 +200,15 @@ class _ProfessionalsScreenState
       final int waiversUsed =
           (snapshot.data()?['platformFeeWaiversUsed'] as num?)?.toInt() ?? 0;
 
+      // Only an admin-granted goodwill waiver can apply now (the automatic
+      // first-orders offer was retired 2026-10-07).
+      final int extraWaivers =
+          (snapshot.data()?['extraFeeWaivers'] as num?)?.toInt() ?? 0;
+
       if (mounted) {
         setState(() {
-          _feeWaivedPreview =
-              waiversUsed < CustomerPricing.firstOrdersFeeWaiverCount;
+          _feeWaivedPreview = waiversUsed <
+              CustomerPricing.firstOrdersFeeWaiverCount + extraWaivers;
         });
       }
     } catch (_) {
@@ -337,6 +343,17 @@ class _ProfessionalsScreenState
             professional.name,
         price: order.agreedPrice,
       );
+    } on OutstandingFeeException catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      // Blocked-state message with the amount owed and a Pay button.
+      await OutstandingFeePrompt.show(
+        context,
+        amountOwed: e.amountOwed,
+        orderId: e.orderId,
+      );
     } catch (e) {
       if (!mounted) {
         return;
@@ -460,7 +477,7 @@ class _ProfessionalsScreenState
                 ),
 
                 const Text(
-                  "Professional's quote",
+                  "Partner's quote",
                   style: TextStyle(
                     color: textSecondary,
                     fontSize: 11,
@@ -1036,7 +1053,7 @@ class _ProfessionalsScreenState
           ),
 
           title: const Text(
-            'Professionals & Quotes',
+            'Partners & Quotes',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
@@ -1220,7 +1237,7 @@ class _ProfessionalsScreenState
                 // ------------------------------------------------------
 
                 const Text(
-                  'Choose the right professional',
+                  'Choose the right partner',
                   style: TextStyle(
                     fontSize: 28,
                     height: 1.15,
@@ -1234,7 +1251,7 @@ class _ProfessionalsScreenState
                 const SizedBox(height: 5),
 
                 const Text(
-                  'Compare verified professionals, their offers and their experience before deciding.',
+                  'Compare verified partners, their offers and their experience before deciding.',
                   style: TextStyle(
                     color: textSecondary,
                     fontSize: 14,
@@ -1517,7 +1534,7 @@ class _ProfessionalsScreenState
           const SizedBox(height: 7),
 
           const Text(
-            'Your request has been sent to matched professionals. Their offers will appear here as they submit them.',
+            'Your request has been sent to matched partners. Their offers will appear here as they submit them.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: textSecondary,
@@ -1752,7 +1769,7 @@ class _ProfessionalsScreenState
                 children: [
                   _detailRow(
                     Icons.badge_outlined,
-                    'Professional ID',
+                    'Partner ID',
                     professional
                         .professionalId,
                   ),
@@ -2060,7 +2077,7 @@ class _ProfessionalsScreenState
                         ),
                       )
                     : const Text(
-                        'Choose This Professional',
+                        'Choose This Partner',
                         style:
                             TextStyle(
                           fontSize: 14,
@@ -2108,7 +2125,7 @@ class _ProfessionalsScreenState
           ),
           SizedBox(width: 4),
           Text(
-            'Verified Professional',
+            'Verified Partner',
             style: TextStyle(
               color:
                   Color(0xFF35A853),
@@ -2146,7 +2163,7 @@ class _ProfessionalsScreenState
           borderRadius: BorderRadius.circular(20),
         ),
         child: const Text(
-          'New professional',
+          'New partner',
           style: TextStyle(
             color: textSecondary,
             fontSize: 12,
@@ -2256,7 +2273,7 @@ class _ProfessionalsScreenState
         ),
       ),
       child: Text(
-        'Professional ${bid.professionalId} submitted a bid of ₹${bid.totalPrice.toStringAsFixed(0)}.',
+        'Partner ${bid.professionalId} submitted a bid of ₹${bid.totalPrice.toStringAsFixed(0)}.',
         style:
             const TextStyle(
           color: textPrimary,

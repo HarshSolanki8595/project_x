@@ -279,7 +279,7 @@ class EmergencyAssistanceScreen extends StatelessWidget {
                 SizedBox(height: 4),
                 Text(
                   "Day or night, these are flagged as urgent so nearby "
-                  "professionals are notified first. Pick what's "
+                  "partners are notified first. Pick what's "
                   "happening below.",
                   style: TextStyle(
                     color: secondaryText,

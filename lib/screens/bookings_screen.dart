@@ -155,7 +155,7 @@ class _BookingsScreenState extends State<BookingsScreen>
     final confirmed = await _showCancelConfirmation(
       title: 'Cancel this request?',
       message:
-          'This will stop the search for professionals and close any offers already received.',
+          'This will stop the search for partners and close any offers already received.',
     );
 
     if (!confirmed || _cancelling) {
@@ -213,7 +213,7 @@ class _BookingsScreenState extends State<BookingsScreen>
     final confirmed = await _showCancelConfirmation(
       title: 'Cancel this booking?',
       message:
-          'A flat ₹150 cancellation fee applies. Your booking stays active — the professional isn\'t notified and nothing changes — until you pay it.',
+          'A flat ₹150 cancellation fee applies. Your booking stays active — the partner isn\'t notified and nothing changes — until you pay it.',
     );
 
     if (!confirmed || _cancelling) {
@@ -510,7 +510,7 @@ class _BookingsScreenState extends State<BookingsScreen>
     if (requests.isEmpty) {
       return _emptyState(
         'No upcoming requests',
-        'Requests you create will appear here while you search for professionals or review quotes.',
+        'Requests you create will appear here while you search for partners or review quotes.',
       );
     }
 
@@ -882,7 +882,7 @@ class _BookingsScreenState extends State<BookingsScreen>
                               CrossAxisAlignment.start,
                           children: [
                             Text(
-                              professional?.name ?? 'Professional',
+                              professional?.name ?? 'Partner',
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -906,7 +906,7 @@ class _BookingsScreenState extends State<BookingsScreen>
                                             professional
                                                     .completedJobsCount <=
                                                 0
-                                        ? 'New professional'
+                                        ? 'New partner'
                                         : '${professional.averageRating.toStringAsFixed(1)} • ${professional.completedJobsCount} jobs',
                                     maxLines: 1,
                                     overflow:

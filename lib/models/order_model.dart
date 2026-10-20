@@ -83,6 +83,12 @@ class OrderModel {
 
   final String cancelledBy;
 
+  // Tax invoice (added 2026-10-07): invoiceStatus is '' / 'NONE' until the
+  // customer taps "Generate invoice", then 'REQUESTED' (ready within 24
+  // hours) and finally 'READY' with the PDF's Firebase Storage path.
+  final String invoiceStatus;
+  final String? invoicePdfPath;
+
   final DateTime createdAt;
   final DateTime? startedAt;
   final DateTime? completedAt;
@@ -144,6 +150,8 @@ class OrderModel {
     this.cancellationFeeStatus = '',
     this.cancellationFeePaidAt,
     this.cancelledBy = '',
+    this.invoiceStatus = '',
+    this.invoicePdfPath,
     required this.createdAt,
     this.startedAt,
     this.completedAt,
@@ -194,6 +202,8 @@ class OrderModel {
           ? null
           : _readDate(data['cancellationFeePaidAt']),
       cancelledBy: data['cancelledBy'] as String? ?? '',
+      invoiceStatus: data['invoiceStatus'] as String? ?? '',
+      invoicePdfPath: data['invoicePdfPath'] as String?,
       createdAt: _readDate(data['createdAt']),
       startedAt:
           data['startedAt'] == null ? null : _readDate(data['startedAt']),

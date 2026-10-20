@@ -144,7 +144,7 @@ class BookingSummaryScreen extends StatelessWidget {
                     // PROFESSIONAL
                     // =================================================
 
-                    _sectionTitle("Professional"),
+                    _sectionTitle("Partner"),
 
                     _buildCard(
                       child: Column(
@@ -283,7 +283,7 @@ class BookingSummaryScreen extends StatelessWidget {
                                       SizedBox(height: 2),
 
                                       Text(
-                                        "Professional's quote",
+                                        "Partner's quote",
                                         style: TextStyle(
                                           fontSize: 13,
                                           color:

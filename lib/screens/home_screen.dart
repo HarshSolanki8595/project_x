@@ -66,29 +66,6 @@ class _HomeScreenState extends State<HomeScreen> {
   static const Color darkText = Color(0xFF0F172A);
   static const Color secondaryText = Color(0xFF64748B);
 
-  // ============================================================
-  // FIRST-ORDERS FEE WAIVER POPUP -- added 2026-09-11
-  // ============================================================
-  //
-  // Customer-side counterpart to the professional app's "Refer &
-  // Earn" popup (professional_home_screen.dart) -- same dialog
-  // shape/style and the same once-per-app-launch guard via a static
-  // bool, but shown here to surface the first-orders platform-fee
-  // waiver (built 2026-09-09) instead. Only shown while the customer
-  // still has at least one of their first 3 fee-free orders left --
-  // platformFeeWaiversUsed on this same users/{uid} doc is the live
-  // counter (see FIRST_ORDERS_FEE_WAIVER_COUNT and
-  // createRazorpayOrder/verifyRazorpayPayment in functions/index.js),
-  // incremented only on an actually-verified waived payment. Once a
-  // customer has used all 3, this stays silent for good on every
-  // future launch -- no separate "dismissed permanently" flag needed,
-  // the real counter already does that job.
-  //
-
-  static bool _waiverPopupShown = false;
-
-  static const int _totalFreeOrders = 3;
-
   @override
   void initState() {
     super.initState();
@@ -111,149 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         userName = doc["fullName"] ?? "User";
       });
-
-      final int waiversUsed =
-          (doc.data()?['platformFeeWaiversUsed'] as num?)?.toInt() ?? 0;
-
-      final int remaining =
-          (_totalFreeOrders - waiversUsed).clamp(0, _totalFreeOrders);
-
-      if (remaining > 0 && !_waiverPopupShown) {
-        _waiverPopupShown = true;
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            _showWaiverPopup(remaining);
-          }
-        });
-      }
     }
-  }
-
-  void _showWaiverPopup(int remaining) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (dialogContext) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 28),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(24, 34, 24, 24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFEAF6EC),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.celebration_rounded,
-                        color: Color(0xFF15803D),
-                        size: 32,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Your First 3 Orders Are\nPlatform-Fee-Free!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 19,
-                        fontWeight: FontWeight.w800,
-                        color: darkText,
-                        height: 1.25,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      remaining == _totalFreeOrders
-                          ? "We've waived the platform fee and GST on "
-                              'your first $_totalFreeOrders orders -- pay '
-                              'only the service price. It applies '
-                              'automatically at checkout, no code needed.'
-                          : 'You have $remaining of $_totalFreeOrders '
-                              'fee-free orders left -- pay only the '
-                              'service price, no platform fee or GST '
-                              'added.',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: secondaryText,
-                        height: 1.45,
-                      ),
-                    ),
-                    const SizedBox(height: 22),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(dialogContext);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1557FF),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        child: const Text(
-                          'Book Now',
-                          style: TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // ------------------------------------------------------
-              // CLOSE (X) -- top right, matches the referral popup
-              // ------------------------------------------------------
-
-              Positioned(
-                top: -12,
-                right: -12,
-                child: GestureDetector(
-                  onTap: () => Navigator.pop(dialogContext),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 6,
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.close_rounded,
-                      color: darkText,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   void _openAskProjectX() {
@@ -666,7 +501,7 @@ const List<FlyerContent> kHomeFlyers = [
     accentColor: Color(0xFF4338CA),
     title: 'Fairness, Both Ways',
     subtitle:
-        'Professionals are held accountable for cancellations too '
+        'Partners are held accountable for cancellations too '
         '-- not just you.',
   ),
   FlyerContent(
@@ -674,7 +509,7 @@ const List<FlyerContent> kHomeFlyers = [
     accentColor: Color(0xFF1557FF),
     title: 'Verified Pros, Real Ratings',
     subtitle:
-        'Every professional is verified, rated and reviewed -- so '
+        'Every partner is verified, rated and reviewed -- so '
         "you know who's coming.",
   ),
   FlyerContent(

@@ -37,7 +37,7 @@ class CategoryGrid extends StatelessWidget {
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 20),
           child: Text(
-            "Get bids from the nearest professionals to choose from.",
+            "Get bids from the nearest partners to choose from.",
             style: TextStyle(
               color: Color(0xFF64748B),
               fontSize: 13,

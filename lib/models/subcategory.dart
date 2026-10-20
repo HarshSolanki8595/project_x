@@ -37,8 +37,12 @@ class SubCategory {
   // category. Null for every category where this doesn't apply --
   // the fallback there is untouched.
   //
-  // Appliances values: 'cooling', 'kitchen_laundry', 'water_systems',
-  // 'electronics'. Automobile values: 'car', 'bike', 'both' (a
+  // Appliances values (re-grouped 2026-10-07 -- also the partner-side
+  // specialty groups): 'cooling', 'washing', 'kitchen', 'electronics',
+  // 'water_heating'; the General item stays null. Decoration & Event
+  // Services values (added 2026-10-07, same purpose): 'decoration_setup',
+  // 'photo_video', 'sound_music', 'catering'; General stays null.
+  // Automobile values: 'car', 'bike', 'both' (a
   // handful of genuinely vehicle-agnostic items -- Battery, Tyre &
   // Puncture, Oil Change, Vehicle Inspection, Roadside Breakdown
   // Assistance, EV Charging, General Automobile Service -- that

@@ -89,7 +89,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         imageAsset: "assets/images/onboarding/handshake.png",
                         icon: Icons.verified_user_rounded,
                         number: '1',
-                        title: 'Trusted Professionals, Right at Home',
+                        title: 'Trusted Partners, Right at Home',
                         subtitle:
                             'Verified experts. Fair prices. Services you '
                             'can trust.',
@@ -139,7 +139,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         number: '3',
                         title: 'Compare. Choose. Relax.',
                         subtitle:
-                            'Choose the professional you trust and book '
+                            'Choose the partner you trust and book '
                             'instantly.',
                         badges: [
                           _FeatureBadge(

@@ -296,7 +296,7 @@ Category(
         'laundry',
         'spin',
       ],
-      matchGroup: 'kitchen_laundry',
+      matchGroup: 'washing',
     ),
     SubCategory(
       id: 'air_conditioner',
@@ -323,7 +323,7 @@ Category(
         'filter',
         'uv',
       ],
-      matchGroup: 'water_systems',
+      matchGroup: 'water_heating',
     ),
     SubCategory(
       id: 'kitchen_appliances',
@@ -342,7 +342,7 @@ Category(
         'air fryer',
         'rice cooker',
       ],
-      matchGroup: 'kitchen_laundry',
+      matchGroup: 'kitchen',
     ),
     SubCategory(
       id: 'chimney_hob',
@@ -355,7 +355,7 @@ Category(
         'hob',
         'gas hob',
       ],
-      matchGroup: 'kitchen_laundry',
+      matchGroup: 'kitchen',
     ),
     SubCategory(
       id: 'dishwasher',
@@ -366,7 +366,7 @@ Category(
         'dishwasher',
         'dish washer',
       ],
-      matchGroup: 'kitchen_laundry',
+      matchGroup: 'washing',
     ),
     SubCategory(
       id: 'vacuum_cleaner',
@@ -377,17 +377,17 @@ Category(
         'vacuum',
         'vacuum cleaner',
       ],
-      matchGroup: 'kitchen_laundry',
+      matchGroup: 'electronics',
     ),
     // -- Added 2026-09-16, from the finalized taxonomy PDF
     // (habio_categories_subcategories_final.pdf). New ids only --
     // every id above this line is untouched, so no already-
     // onboarded professional's subcategoryIds selection breaks.
     SubCategory(id: 'tv_repair', name: 'TV Repair', icon: Icons.tv, description: 'Television repair and servicing.', keywords: ['tv', 'television'], matchGroup: 'electronics'),
-    SubCategory(id: 'geyser_repair', name: 'Geyser Installation & Repair', icon: Icons.hot_tub_outlined, description: 'Geyser/water heater installation, connection and repair.', keywords: ['geyser repair', 'water heater repair', 'geyser', 'water heater', 'geyser installation', 'geyser connection'], relatedCategories: ['plumbing'], matchGroup: 'water_systems'),
-    SubCategory(id: 'air_purifier_repair', name: 'Air Purifier Repair', icon: Icons.air, description: 'Air purifier repair and servicing.', keywords: ['air purifier'], matchGroup: 'cooling'),
-    SubCategory(id: 'iron_press_repair', name: 'Iron / Press Repair', icon: Icons.iron, description: 'Iron and press repair.', keywords: ['iron', 'press'], matchGroup: 'kitchen_laundry'),
-    SubCategory(id: 'water_cooler_repair', name: 'Water Cooler Repair', icon: Icons.local_drink, description: 'Water cooler repair and servicing.', keywords: ['water cooler'], matchGroup: 'water_systems'),
+    SubCategory(id: 'geyser_repair', name: 'Geyser Installation & Repair', icon: Icons.hot_tub_outlined, description: 'Geyser/water heater installation, connection and repair.', keywords: ['geyser repair', 'water heater repair', 'geyser', 'water heater', 'geyser installation', 'geyser connection'], relatedCategories: ['plumbing'], matchGroup: 'water_heating'),
+    SubCategory(id: 'air_purifier_repair', name: 'Air Purifier Repair', icon: Icons.air, description: 'Air purifier repair and servicing.', keywords: ['air purifier'], matchGroup: 'electronics'),
+    SubCategory(id: 'iron_press_repair', name: 'Iron / Press Repair', icon: Icons.iron, description: 'Iron and press repair.', keywords: ['iron', 'press'], matchGroup: 'washing'),
+    SubCategory(id: 'water_cooler_repair', name: 'Water Cooler Repair', icon: Icons.local_drink, description: 'Water cooler repair and servicing.', keywords: ['water cooler'], matchGroup: 'cooling'),
     SubCategory(
       id: 'general_appliance',
       name: 'General Appliance Issue',
@@ -526,7 +526,6 @@ Category(
     SubCategory(id: 'chimney_cleaning', name: 'Chimney Cleaning', icon: Icons.fireplace_outlined, description: 'Kitchen chimney cleaning and degreasing.', keywords: ['chimney']),
     SubCategory(id: 'car_cleaning', name: 'Car Cleaning & Detailing', icon: Icons.local_car_wash, description: 'Doorstep car cleaning and detailing.', keywords: ['car','detailing']),
     SubCategory(id: 'move_cleaning', name: 'Move-In / Move-Out Cleaning', icon: Icons.inventory_2_outlined, description: 'Deep cleaning before moving in or after moving out.', keywords: ['move in','move out','shifting']),
-    SubCategory(id: 'mattress_cleaning', name: 'Mattress Cleaning', icon: Icons.bed, description: 'Mattress deep cleaning and sanitization.', keywords: ['mattress']),
     SubCategory(id: 'curtain_cleaning', name: 'Curtain Cleaning', icon: Icons.local_laundry_service, description: 'Curtain and drape cleaning.', keywords: ['curtain','drapes']),
     // -- Garden & Lawn Cleaning (id 'garden_cleaning') removed
     // 2026-10-01 -- duplicate-work cleanup, merged into Helper
@@ -828,19 +827,19 @@ Category(
   icon: Icons.celebration,
   color: Colors.purpleAccent,
   subCategories: [
-    SubCategory(id: 'birthday_party_decoration', name: 'Birthday Party Decoration', icon: Icons.cake, description: 'Birthday party decoration.', keywords: ['birthday decoration']),
-    SubCategory(id: 'wedding_engagement_decoration', name: 'Wedding / Engagement Decoration', icon: Icons.favorite_border, description: 'Wedding and engagement decoration.', keywords: ['wedding decoration', 'engagement decoration']),
-    SubCategory(id: 'balloon_decoration', name: 'Balloon Decoration', icon: Icons.celebration, description: 'Balloon decoration.', keywords: ['balloon decoration']),
-    SubCategory(id: 'flower_decoration', name: 'Flower Decoration', icon: Icons.local_florist, description: 'Flower decoration.', keywords: ['flower decoration']),
-    SubCategory(id: 'corporate_event_setup', name: 'Corporate Event Setup', icon: Icons.business, description: 'Corporate event setup.', keywords: ['corporate event']),
-    SubCategory(id: 'festival_pooja_decoration', name: 'Festival / Pooja Decoration', icon: Icons.celebration, description: 'Festival and pooja decoration.', keywords: ['festival decoration', 'pooja decoration']),
-    SubCategory(id: 'photography_videography', name: 'Photography & Videography', icon: Icons.camera_alt, description: 'Photography and videography.', keywords: ['photography', 'videography']),
-    SubCategory(id: 'catering_coordination', name: 'Catering Coordination', icon: Icons.restaurant, description: 'Catering coordination.', keywords: ['catering']),
-    SubCategory(id: 'tent_canopy_setup', name: 'Tent / Canopy Setup', icon: Icons.roofing, description: 'Tent and canopy setup.', keywords: ['tent setup', 'canopy setup']),
-    SubCategory(id: 'dj_sound_setup', name: 'DJ & Sound Setup', icon: Icons.music_note, description: 'DJ and sound setup.', keywords: ['dj', 'sound setup']),
-    SubCategory(id: 'stage_entrance_arch_decoration', name: 'Stage & Entrance Arch Decoration', icon: Icons.theater_comedy, description: 'Stage and entrance arch decoration.', keywords: ['stage decoration', 'entrance arch']),
-    SubCategory(id: 'fairy_light_installation', name: 'Fairy Light / String Light Installation', icon: Icons.lightbulb_outline, description: 'Fairy light and string light installation.', keywords: ['fairy lights', 'string lights']),
-    SubCategory(id: 'drone_photography', name: 'Drone Photography', icon: Icons.flight, description: 'Drone photography.', keywords: ['drone photography']),
+    SubCategory(id: 'birthday_party_decoration', name: 'Birthday Party Decoration', icon: Icons.cake, description: 'Birthday party decoration.', keywords: ['birthday decoration'], matchGroup: 'decoration_setup'),
+    SubCategory(id: 'wedding_engagement_decoration', name: 'Wedding / Engagement Decoration', icon: Icons.favorite_border, description: 'Wedding and engagement decoration.', keywords: ['wedding decoration', 'engagement decoration'], matchGroup: 'decoration_setup'),
+    SubCategory(id: 'balloon_decoration', name: 'Balloon Decoration', icon: Icons.celebration, description: 'Balloon decoration.', keywords: ['balloon decoration'], matchGroup: 'decoration_setup'),
+    SubCategory(id: 'flower_decoration', name: 'Flower Decoration', icon: Icons.local_florist, description: 'Flower decoration.', keywords: ['flower decoration'], matchGroup: 'decoration_setup'),
+    SubCategory(id: 'corporate_event_setup', name: 'Corporate Event Setup', icon: Icons.business, description: 'Corporate event setup.', keywords: ['corporate event'], matchGroup: 'decoration_setup'),
+    SubCategory(id: 'festival_pooja_decoration', name: 'Festival / Pooja Decoration', icon: Icons.celebration, description: 'Festival and pooja decoration.', keywords: ['festival decoration', 'pooja decoration'], matchGroup: 'decoration_setup'),
+    SubCategory(id: 'photography_videography', name: 'Photography & Videography', icon: Icons.camera_alt, description: 'Photography and videography.', keywords: ['photography', 'videography'], matchGroup: 'photo_video'),
+    SubCategory(id: 'catering_coordination', name: 'Catering Coordination', icon: Icons.restaurant, description: 'Catering coordination.', keywords: ['catering'], matchGroup: 'catering'),
+    SubCategory(id: 'tent_canopy_setup', name: 'Tent / Canopy Setup', icon: Icons.roofing, description: 'Tent and canopy setup.', keywords: ['tent setup', 'canopy setup'], matchGroup: 'decoration_setup'),
+    SubCategory(id: 'dj_sound_setup', name: 'DJ & Sound Setup', icon: Icons.music_note, description: 'DJ and sound setup.', keywords: ['dj', 'sound setup'], matchGroup: 'sound_music'),
+    SubCategory(id: 'stage_entrance_arch_decoration', name: 'Stage & Entrance Arch Decoration', icon: Icons.theater_comedy, description: 'Stage and entrance arch decoration.', keywords: ['stage decoration', 'entrance arch'], matchGroup: 'decoration_setup'),
+    SubCategory(id: 'fairy_light_installation', name: 'Fairy Light / String Light Installation', icon: Icons.lightbulb_outline, description: 'Fairy light and string light installation.', keywords: ['fairy lights', 'string lights'], matchGroup: 'decoration_setup'),
+    SubCategory(id: 'drone_photography', name: 'Drone Photography', icon: Icons.flight, description: 'Drone photography.', keywords: ['drone photography'], matchGroup: 'photo_video'),
     SubCategory(id: 'general_decoration_events', name: 'General Decoration Service', icon: Icons.help_outline, description: 'Not sure? Choose this option.', keywords: ['decoration', 'events', 'other', 'unknown']),
   ],
 ),
@@ -916,6 +915,13 @@ Category(
                 keywords: List<String>.from(
                   subDoc.data()['keywords'] ?? const [],
                 ),
+                // Skill-group tags must survive the Firestore round-trip
+                // (kept 2026-10-07) or the skill-group lock, the car/bike
+                // gate and the narrowed fallback silently switch off.
+                relatedCategories: List<String>.from(
+                  subDoc.data()['relatedCategories'] ?? const [],
+                ),
+                matchGroup: subDoc.data()['matchGroup'] as String?,
               ),
         ];
 

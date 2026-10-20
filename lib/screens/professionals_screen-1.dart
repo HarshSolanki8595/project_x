@@ -581,7 +581,7 @@ class _ProfessionalsScreenState
         scrolledUnderElevation: 0,
 
         title: const Text(
-          'Professionals & Quotes',
+          'Partners & Quotes',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -764,7 +764,7 @@ class _ProfessionalsScreenState
                 // ------------------------------------------------------
 
                 const Text(
-                  'Choose the right professional',
+                  'Choose the right partner',
                   style: TextStyle(
                     fontSize: 28,
                     height: 1.15,
@@ -778,7 +778,7 @@ class _ProfessionalsScreenState
                 const SizedBox(height: 5),
 
                 const Text(
-                  'Compare verified professionals, their offers and their experience before deciding.',
+                  'Compare verified partners, their offers and their experience before deciding.',
                   style: TextStyle(
                     color: textSecondary,
                     fontSize: 14,
@@ -940,7 +940,7 @@ class _ProfessionalsScreenState
 
           Expanded(
             child: Text(
-              'Professionals decide their price. You decide which offer gives you the best value.',
+              'Partners decide their price. You decide which offer gives you the best value.',
               style: TextStyle(
                 color:
                     Color(0xFF475569),
@@ -1097,7 +1097,7 @@ class _ProfessionalsScreenState
           const SizedBox(height: 7),
 
           const Text(
-            'Your request has been sent to matched professionals. Their offers will appear here as they submit them.',
+            'Your request has been sent to matched partners. Their offers will appear here as they submit them.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: textSecondary,
@@ -1332,7 +1332,7 @@ class _ProfessionalsScreenState
                 children: [
                   _detailRow(
                     Icons.badge_outlined,
-                    'Professional ID',
+                    'Partner ID',
                     professional
                         .professionalId,
                   ),
@@ -1638,7 +1638,7 @@ class _ProfessionalsScreenState
                         ),
                       )
                     : const Text(
-                        'Choose This Professional',
+                        'Choose This Partner',
                         style:
                             TextStyle(
                           fontSize: 14,
@@ -1686,7 +1686,7 @@ class _ProfessionalsScreenState
           ),
           SizedBox(width: 4),
           Text(
-            'Verified Professional',
+            'Verified Partner',
             style: TextStyle(
               color:
                   Color(0xFF35A853),
@@ -1724,7 +1724,7 @@ class _ProfessionalsScreenState
           borderRadius: BorderRadius.circular(20),
         ),
         child: const Text(
-          'New professional',
+          'New partner',
           style: TextStyle(
             color: textSecondary,
             fontSize: 12,
@@ -1834,7 +1834,7 @@ class _ProfessionalsScreenState
         ),
       ),
       child: Text(
-        'Professional ${bid.professionalId} submitted a bid of ₹${bid.totalPrice.toStringAsFixed(0)}.',
+        'Partner ${bid.professionalId} submitted a bid of ₹${bid.totalPrice.toStringAsFixed(0)}.',
         style:
             const TextStyle(
           color: textPrimary,

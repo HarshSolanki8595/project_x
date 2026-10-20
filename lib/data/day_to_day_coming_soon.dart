@@ -55,6 +55,5 @@ const List<ComingSoonService> kDayToDayComingSoonServices = [
   ComingSoonService(icon: Icons.soup_kitchen_outlined, name: 'Kitchen/Utensil Cleaning'),
   ComingSoonService(icon: Icons.business, name: 'Office & Commercial Cleaning'),
   ComingSoonService(icon: Icons.local_laundry_service, name: 'Clothes Cleaning'),
-  ComingSoonService(icon: Icons.local_laundry_service_outlined, name: 'Clothes Washing'),
   ComingSoonService(icon: Icons.local_car_wash, name: 'Regular Car Cleaning'),
 ];

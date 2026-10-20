@@ -164,7 +164,7 @@ class _RateReviewScreenState extends State<RateReviewScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  professional?.name ?? 'Professional',
+                  professional?.name ?? 'Partner',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,

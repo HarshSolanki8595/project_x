@@ -137,23 +137,23 @@ class LegalContentScreen extends StatelessWidget {
       sections: [
         LegalSection(
           '1. Using Habio',
-          'Habio connects customers with independent service professionals '
+          'Habio connects customers with independent service partners '
               'for home services such as electrical, plumbing, cleaning and '
               'appliance repair. By booking a service through the app, you '
               'agree to provide accurate information about the job and your '
-              'address so a professional can be matched and dispatched.',
+              'address so a partner can be matched and dispatched.',
         ),
         LegalSection(
           '2. Bookings & Pricing',
           'Some services show a fixed price up front; others are quoted by '
-              'professionals based on the details you provide. A booking is '
-              'confirmed once a professional accepts it. Prices may vary if '
+              'partners based on the details you provide. A booking is '
+              'confirmed once a partner accepts it. Prices may vary if '
               'the actual job differs materially from what was described.',
         ),
         LegalSection(
           '3. Cancellations',
-          'You may cancel a booking before a professional starts the job. '
-              'Cancelling after a professional has been dispatched or has '
+          'You may cancel a booking before a partner starts the job. '
+              'Cancelling after a partner has been dispatched or has '
               'begun work may be subject to a cancellation fee, shown to you '
               'before you confirm the cancellation.',
         ),
@@ -164,8 +164,8 @@ class LegalContentScreen extends StatelessWidget {
         ),
         LegalSection(
           '5. Professional Conduct',
-          'Professionals on Habio are independent service providers, not '
-              'Habio employees. If a professional\'s conduct or work quality '
+          'Partners on Habio are independent service providers, not '
+              'Habio employees. If a partner\'s conduct or work quality '
               'falls short, please report it through Help & Support so we '
               'can look into it.',
         ),
@@ -191,17 +191,17 @@ class LegalContentScreen extends StatelessWidget {
           'To provide the service, Habio collects your name, phone number, '
               'saved addresses, and details about the bookings you make '
               '(service type, schedule, and any notes you add for the '
-              'professional).',
+              'partner).',
         ),
         LegalSection(
           'How We Use It',
-          'Your information is used to match you with professionals, keep '
+          'Your information is used to match you with partners, keep '
               'you updated on your bookings via notifications, process '
               'payments, and provide support when you reach out.',
         ),
         LegalSection(
           'Who We Share It With',
-          'The professional assigned to your booking sees what\'s needed to '
+          'The partner assigned to your booking sees what\'s needed to '
               'complete the job -- your address, contact number, and job '
               'details. We do not sell your personal information to third '
               'parties.',

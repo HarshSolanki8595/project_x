@@ -86,7 +86,7 @@ class BidService {
 
     if (!canBid) {
       throw StateError(
-        'Professional is not authorized to bid on this request.',
+        'Partner is not authorized to bid on this request.',
       );
     }
 
@@ -100,7 +100,7 @@ class BidService {
 
     if (existingData != null && existingData['bidId'] != null) {
       throw StateError(
-        'Professional has already submitted a bid for this '
+        'Partner has already submitted a bid for this '
         'request.',
       );
     }

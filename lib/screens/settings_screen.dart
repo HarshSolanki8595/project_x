@@ -246,7 +246,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _NotificationSwitch(
             icon: Icons.chat_bubble_outline_rounded,
             title: 'Messages',
-            subtitle: 'Updates from support and your professional',
+            subtitle: 'Updates from support and your partner',
             value: _messageNotifications,
             onChanged: (value) {
               setState(() => _messageNotifications = value);

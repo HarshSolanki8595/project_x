@@ -88,7 +88,7 @@ class WelcomeScreen extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8),
                 child: Text(
-                  "Find the right professional, compare your\n"
+                  "Find the right partner, compare your\n"
                   "options, and choose what works best for you.",
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -305,7 +305,7 @@ class WelcomeScreen extends StatelessWidget {
                   SizedBox(width: 6),
 
                   Text(
-                    "Trusted professionals",
+                    "Trusted partners",
                     style: TextStyle(
                       color: lightText,
                       fontSize: 12,

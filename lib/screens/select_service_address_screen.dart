@@ -172,7 +172,7 @@ class _SelectServiceAddressScreenState
                   ),
                   children: [
                     const Text(
-                      'Where should the professional come?',
+                      'Where should the partner come?',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w700,

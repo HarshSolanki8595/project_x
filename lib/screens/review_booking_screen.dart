@@ -479,10 +479,10 @@ class ReviewBookingScreen extends StatelessWidget {
                       child: Column(
                         children: [
                           _nextStep(
-                            "Your request will be sent to nearby verified professionals.",
+                            "Your request will be sent to nearby verified partners.",
                           ),
                           _nextStep(
-                            "Professionals will review your request and send quotations.",
+                            "Partners will review your request and send quotations.",
                           ),
                           _nextStep(
                             "Compare prices, ratings and reviews before choosing one.",

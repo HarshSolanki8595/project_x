@@ -87,6 +87,28 @@ class OrderService {
   }
 
   // ============================================================
+  // REQUEST INVOICE (NEW -- 2026-10-07)
+  // ============================================================
+  //
+  // Asks the server to prepare the tax invoice PDF for a completed (or
+  // fee-paid cancelled) booking. It is generated within 24 hours; the
+  // order's invoiceStatus then moves REQUESTED -> READY and the customer
+  // gets a notification.
+  //
+
+  static Future<void> requestInvoice(String orderId) async {
+    try {
+      await FirebaseFunctions.instance
+          .httpsCallable('requestInvoice')
+          .call<Map<String, dynamic>>({'orderId': orderId});
+    } on FirebaseFunctionsException catch (e) {
+      throw StateError(
+        e.message ?? 'Unable to request the invoice right now.',
+      );
+    }
+  }
+
+  // ============================================================
   // CANCEL ORDER
   // ============================================================
   //

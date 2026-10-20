@@ -1,5 +1,6 @@
 import 'package:cloud_functions/cloud_functions.dart';
 
+import '../core/widgets/outstanding_fee_prompt.dart';
 import '../models/order_model.dart';
 
 class OrderAcceptanceService {
@@ -34,6 +35,16 @@ class OrderAcceptanceService {
 
       return OrderModel.fromCallableResponse(orderData);
     } on FirebaseFunctionsException catch (e) {
+      // 2026-10-07: an unpaid cancellation/no-show fee blocks accepting.
+      final dynamic details = e.details;
+      if (details is Map && details['code'] == 'OUTSTANDING_FEE') {
+        throw OutstandingFeeException(
+          e.message ?? 'You have an unpaid fee.',
+          amountOwed: (details['amountOwed'] as num?)?.toDouble() ?? 0,
+          orderId: details['orderId'] as String?,
+        );
+      }
+
       throw StateError(
         e.message ?? 'Unable to accept this offer right now.',
       );

@@ -214,15 +214,6 @@ class FixedPriceCatalog {
         PriceTier(key: '3bhk_plus', label: '3+ BHK', description: 'Move-in / move-out clean', price: 2599, estimatedHours: 10),
       ],
     ),
-    'mattress_cleaning': FixedPriceSubCategoryConfig(
-      subCategoryId: 'mattress_cleaning',
-      tierAxisLabel: 'Mattress size',
-      tiers: [
-        PriceTier(key: 'single', label: 'Single', description: '', price: 399, estimatedHours: 1),
-        PriceTier(key: 'double_queen', label: 'Double / Queen', description: '', price: 549, estimatedHours: 1.5),
-        PriceTier(key: 'king', label: 'King', description: '', price: 699, estimatedHours: 2),
-      ],
-    ),
     'curtain_cleaning': FixedPriceSubCategoryConfig(
       subCategoryId: 'curtain_cleaning',
       tierAxisLabel: 'Number of panels',

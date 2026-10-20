@@ -1,7 +1,10 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../core/widgets/outstanding_fee_prompt.dart';
 import '../models/service_request.dart';
 import '../models/service_request_model.dart';
 import '../services/request_classifier.dart';
@@ -129,7 +132,7 @@ class _FindingProfessionalsScreenState
               null) {
         throw StateError(
           'Customer location is required before matching '
-          'professionals.',
+          'partners.',
         );
       }
 
@@ -146,6 +149,37 @@ class _FindingProfessionalsScreenState
           'Customer authentication is required before creating '
           'a service request.',
         );
+      }
+
+      // --------------------------------------------------------
+      // 2b. UNPAID CANCELLATION / NO-SHOW FEE (2026-10-07)
+      // --------------------------------------------------------
+      //
+      // A customer who owes a fee can't place new requests (Firestore
+      // rules refuse the write too). Check up front, so nothing is
+      // uploaded for a request that can't be saved, and show the
+      // Pay prompt instead.
+      //
+
+      final OutstandingFeeInfo? owedFee = await OutstandingFeePrompt.lookup();
+
+      if (owedFee != null) {
+        if (!mounted) {
+          return;
+        }
+
+        await OutstandingFeePrompt.show(
+          context,
+          amountOwed: owedFee.amount,
+          orderId: owedFee.orderId,
+        );
+
+        if (!mounted) {
+          return;
+        }
+
+        Navigator.of(context).pop();
+        return;
       }
 
       // --------------------------------------------------------
@@ -303,6 +337,15 @@ class _FindingProfessionalsScreenState
         return;
       }
 
+      // Firestore refused the request itself (permission-denied): the
+      // customer's account is suspended, or the category / pricing flow
+      // has been paused by an admin. Say so, and go back, instead of
+      // carrying on to a bid screen for a request that was never saved.
+      if (error is FirebaseException && error.code == 'permission-denied') {
+        await _handleRequestRefused();
+        return;
+      }
+
       setState(() {
         _processingError =
             error.toString();
@@ -313,6 +356,82 @@ class _FindingProfessionalsScreenState
         _openProfessionalsScreen,
       );
     }
+  }
+
+  // ============================================================
+  // REQUEST REFUSED (suspended account / paused service)
+  // ============================================================
+
+  Future<void> _handleRequestRefused() async {
+    // An unpaid cancellation / no-show fee is refused by the same rule --
+    // show the Pay prompt for that rather than the generic message.
+    final OutstandingFeeInfo? owedFee = await OutstandingFeePrompt.lookup();
+
+    if (owedFee != null) {
+      if (!mounted) {
+        return;
+      }
+
+      await OutstandingFeePrompt.show(
+        context,
+        amountOwed: owedFee.amount,
+        orderId: owedFee.orderId,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pop();
+      return;
+    }
+
+    var suspended = false;
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .get();
+        suspended = doc.data()?['isSuspended'] == true;
+      }
+    } catch (_) {
+      // Fall through to the general message below.
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(suspended ? 'Account on hold' : 'Service unavailable'),
+        content: Text(
+          suspended
+              ? 'Your account is on hold, so new requests can\'t be placed '
+                  'right now. Please contact Habio Support from the Help '
+                  'section and we\'ll sort it out.'
+              : 'We can\'t place this request right now. This service may be '
+                  'paused for a short while. Please try again later or pick '
+                  'another service.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.of(context).pop();
   }
 
   // ============================================================
@@ -493,7 +612,7 @@ class _FindingProfessionalsScreenState
               // ------------------------------------------------
 
               const Text(
-                'Finding Professionals',
+                'Finding Partners',
                 textAlign:
                     TextAlign.center,
                 style:
@@ -510,7 +629,7 @@ class _FindingProfessionalsScreenState
               const SizedBox(height: 10),
 
               const Text(
-                'Searching nearby verified professionals\n'
+                'Searching nearby verified partners\n'
                 'who can help with your request.',
                 textAlign:
                     TextAlign.center,
@@ -594,9 +713,9 @@ class _FindingProfessionalsScreenState
                       iconColor:
                           Colors.green,
                       title:
-                          'Verified Professionals Only',
+                          'Verified Partners Only',
                       subtitle:
-                          'Matching trusted professionals',
+                          'Matching trusted partners',
                     ),
 
                     Divider(
@@ -614,7 +733,7 @@ class _FindingProfessionalsScreenState
                       title:
                           'Checking Your Location',
                       subtitle:
-                          'Finding professionals nearby',
+                          'Finding partners nearby',
                     ),
 
                     Divider(
@@ -632,7 +751,7 @@ class _FindingProfessionalsScreenState
                       title:
                           'Request Sent',
                       subtitle: _isFixedPrice
-                          ? 'Waiting for a professional to accept'
+                          ? 'Waiting for a partner to accept'
                           : 'Waiting for quotations',
                     ),
                   ],
@@ -648,8 +767,8 @@ class _FindingProfessionalsScreenState
               Text(
                 _isFixedPrice
                     ? 'Your price is already set.\n'
-                        'A nearby professional just needs to accept it.'
-                    : 'Professionals will decide their price.\n'
+                        'A nearby partner just needs to accept it.'
+                    : 'Partners will decide their price.\n'
                         'You decide which offer is right for you.',
                 textAlign:
                     TextAlign.center,

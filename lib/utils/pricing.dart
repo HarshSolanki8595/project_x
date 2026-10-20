@@ -34,7 +34,12 @@ class CustomerPricing {
   // server-side, update it here too -- there is no shared source
   // between the two codebases, same caveat as the rates above.
   //
-  static const int firstOrdersFeeWaiverCount = 3;
+  //
+  // RETIRED 2026-10-07 (Harsh: "clear the offer program"): the automatic
+  // first-orders offer no longer exists, so this is 0 and nobody is
+  // previewed as waived. An admin can still grant an individual customer
+  // extra fee-free orders (users/{uid}.extraFeeWaivers).
+  static const int firstOrdersFeeWaiverCount = 0;
 
   final double agreedPrice;
   final double platformCharge;
